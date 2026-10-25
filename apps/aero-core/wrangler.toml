@@ -1,0 +1,14 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "halyn-aero-core"
+main = "src/index.ts"
+compatibility_date = "2026-10-19"
+# No nodejs_compat: WebCrypto only (CLAUDE.md §6). Turning it on needs an ADR.
+
+[observability]
+enabled = true
+
+# The mock bank's own database. Database id: docs/RUNBOOK.md first-time setup, step 4.
+[[d1_databases]]
+binding = "DB"
+database_name = "aero-core"
+migrations_dir = "migrations"
