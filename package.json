@@ -18,9 +18,10 @@
     "test:int": "turbo run test:int",
     "test:scenarios": "turbo run test:scenarios",
     "test:e2e": "turbo run test:e2e",
-    "build": "turbo run build",
+    "build": "turbo run build pack:compile",
     "verify": "pnpm run lint && pnpm run typecheck && pnpm run test:unit && pnpm run test:int && pnpm run test:scenarios && pnpm run build",
-    "compile:packs": "tsx scripts/compile-packs.ts",
+    "compile:packs": "turbo run pack:compile",
+    "pack:compile": "tsx scripts/compile-packs.ts",
     "keys:generate": "tsx scripts/keys-generate.ts",
     "db:migrate": "tsx scripts/db-migrate.ts",
     "seed": "tsx scripts/seed.ts",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "@eslint/js": "catalog:",
+    "@halyn/shared": "workspace:*",
     "@types/node": "catalog:",
     "eslint": "catalog:",
     "eslint-config-prettier": "catalog:",
@@ -40,6 +42,7 @@
     "typescript": "catalog:",
     "typescript-eslint": "catalog:",
     "vite": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "yaml": "catalog:"
   }
 }

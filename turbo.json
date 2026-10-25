@@ -33,8 +33,17 @@
       "cache": false,
       "persistent": true
     },
-    "//#lint:root": {},
-    "//#typecheck:root": {},
-    "//#test:unit:root": {}
+    "//#lint:root": {
+      "dependsOn": ["^build"]
+    },
+    "//#typecheck:root": {
+      "dependsOn": ["^build"]
+    },
+    "//#test:unit:root": {},
+    "//#pack:compile": {
+      "dependsOn": ["^build"],
+      "inputs": ["policy-packs/*.yaml", "scripts/compile-packs.ts"],
+      "outputs": ["policy-packs/compiled/**"]
+    }
   }
 }
