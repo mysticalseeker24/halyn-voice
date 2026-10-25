@@ -1,3 +1,17 @@
-// @halyn/shared: Zod schemas, types, reason codes, policy-pack schema, canonical JSON, money.
-// Pure (no I/O, no clock, no randomness). Filled test-first in PROMPTS.md Step 1.
-export const SHARED_PACKAGE = '@halyn/shared';
+// @halyn/shared: Zod schemas, types, reason codes, policy packs, canonical JSON and money.
+// Pure: no I/O, no clock, no randomness (enforced by the ESLint purity rule).
+export * from './actions';
+export * from './api';
+export * from './canonical-json';
+export * from './decision';
+export * from './errors';
+export * from './events';
+export * from './grant';
+export * from './ids';
+export * from './jws';
+export * from './money';
+export * from './pass';
+export * from './policy-pack';
+export * from './reason-codes';
+export * from './region';
+export * from './ws';

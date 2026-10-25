@@ -1,8 +1,24 @@
 import { describe, expect, it } from 'vitest';
-import { SHARED_PACKAGE } from './index';
+import * as shared from './index';
 
-describe('@halyn/shared', () => {
-  it('exports its package name (placeholder until Step 1)', () => {
-    expect(SHARED_PACKAGE).toBe('@halyn/shared');
+describe('@halyn/shared public surface', () => {
+  it.each([
+    'HalynError',
+    'REASON_CODES',
+    'UlidSchema',
+    'REGION_CURRENCY',
+    'formatMoney',
+    'canonicalJson',
+    'ACTION_IDS',
+    'PolicyPackSchema',
+    'compilePolicyPack',
+    'PassClaimsSchema',
+    'GrantClaimsSchema',
+    'DecisionSchema',
+    'ProposeActionRequestSchema',
+    'OutcomeEventSchema',
+    'WsMessageSchema',
+  ])('exports %s', (name) => {
+    expect(shared).toHaveProperty(name);
   });
 });
