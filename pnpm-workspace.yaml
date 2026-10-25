@@ -38,6 +38,7 @@ catalog:
   vitest: ^5.0.5
   wrangler: ^4.152.0
   yaml: ^2.8.1
+  zod: ^4.6.0
 
 # pnpm 11+ blocks dependency build scripts unless they are listed here.
 allowBuilds:

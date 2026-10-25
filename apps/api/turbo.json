@@ -1,0 +1,9 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "test:scenarios": {
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/tests/scenarios/**"]
+    }
+  }
+}

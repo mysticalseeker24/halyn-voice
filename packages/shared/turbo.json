@@ -1,0 +1,14 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "test:unit": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/docs/{GATE,SCENARIOS,API,ARCHITECTURE,PASS}.md",
+        "$TURBO_ROOT$/policy-packs/*.yaml",
+        "$TURBO_ROOT$/tests/scenarios/**"
+      ]
+    }
+  }
+}
