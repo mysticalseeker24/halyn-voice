@@ -1,0 +1,26 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "halyn-api"
+main = "src/index.ts"
+compatibility_date = "2026-10-19"
+# No nodejs_compat: WebCrypto and fetch only (CLAUDE.md §6). Turning it on needs an ADR.
+
+[observability]
+enabled = true
+
+# One Hub per tenant: WebSockets, confirmation alarms, ordered ledger appends, idempotency.
+[[durable_objects.bindings]]
+name = "HUB"
+class_name = "HubDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["HubDO"]
+
+# Compiled policy packs and agent ids. Namespace id: docs/RUNBOOK.md first-time setup, step 4.
+[[kv_namespaces]]
+binding = "CONFIG"
+
+# Clone clips, ledger exports, test reports.
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "halyn-files"

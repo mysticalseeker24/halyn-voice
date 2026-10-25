@@ -1,0 +1,31 @@
+{
+  "name": "@halyn/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "build": "wrangler deploy --dry-run --outdir dist",
+    "deploy": "wrangler deploy",
+    "cf-typegen": "wrangler types",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc -p tsconfig.json",
+    "test:unit": "vitest run --project unit --coverage",
+    "test:int": "vitest run --project int",
+    "test:scenarios": "vitest run --project scenarios"
+  },
+  "dependencies": {
+    "@halyn/shared": "workspace:*",
+    "hono": "catalog:"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "catalog:",
+    "@vitest/coverage-istanbul": "catalog:",
+    "fast-check": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:",
+    "wrangler": "catalog:",
+    "yaml": "catalog:"
+  }
+}
