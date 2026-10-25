@@ -1,0 +1,45 @@
+{
+  "name": "halyn-voice",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.15.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "lint": "turbo run lint lint:root",
+    "lint:root": "eslint --max-warnings 0 scripts tests eslint.config.mjs vitest.config.ts && prettier --check .",
+    "format": "prettier --write .",
+    "typecheck": "turbo run typecheck typecheck:root",
+    "typecheck:root": "tsc -p tsconfig.json",
+    "test:unit": "turbo run test:unit test:unit:root",
+    "test:unit:root": "vitest run",
+    "test:int": "turbo run test:int",
+    "test:scenarios": "turbo run test:scenarios",
+    "test:e2e": "turbo run test:e2e",
+    "build": "turbo run build",
+    "verify": "pnpm run lint && pnpm run typecheck && pnpm run test:unit && pnpm run test:int && pnpm run test:scenarios && pnpm run build",
+    "compile:packs": "tsx scripts/compile-packs.ts",
+    "keys:generate": "tsx scripts/keys-generate.ts",
+    "db:migrate": "tsx scripts/db-migrate.ts",
+    "seed": "tsx scripts/seed.ts",
+    "deploy:api": "pnpm --filter @halyn/api run deploy",
+    "deploy:core": "pnpm --filter @halyn/aero-core run deploy",
+    "deploy:web": "pnpm dlx vercel deploy --prod --cwd apps/web"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "eslint-config-prettier": "catalog:",
+    "globals": "catalog:",
+    "prettier": "catalog:",
+    "tsx": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

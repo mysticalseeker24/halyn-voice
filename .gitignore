@@ -4,13 +4,20 @@ node_modules/
 !.env.example
 .dev.vars
 **/.dev.vars
+# MCP servers with real credentials (template: .mcp.example.json)
+.mcp.json
+.claude/settings.local.json
 .wrangler/
 .next/
+next-env.d.ts
 .turbo/
+.vitest/
 dist/
 coverage/
 playwright-report/
 test-results/
+*.tsbuildinfo
+.eslintcache
 *.log
 .DS_Store
 # generated
