@@ -1,12 +1,15 @@
 # Runbook
 
 ## Prerequisites
-Node 20+, pnpm 9+, Wrangler (via `pnpm dlx wrangler`), a Cloudflare account, a TiDB Cloud Starter cluster, a Vercel
-account, the Bolna API key, the Sarvam API key. Claude Code with the Bolna MCP connected.
+Node 24 (≥ 22.12; `.node-version`), pnpm 12 (pinned in `package.json`: run `corepack enable pnpm` once, or
+`npm i -g pnpm@12`), Wrangler (a dev dependency of each Worker), uv (for the TiDB MCP), a Cloudflare account, a TiDB
+Cloud Starter cluster, a Vercel account, the Bolna API key, the Sarvam API key. Claude Code with the Bolna MCP connected.
 
 ## First-time setup
-1. `cp .env.example .env` and fill it (never commit `.env`).
-2. `pnpm i`
+1. `cp .env.example .env` and fill it (never commit `.env`). For the Cloudflare and TiDB MCP servers,
+   `cp .mcp.example.json .mcp.json` and fill it (git-ignored), then restart Claude Code.
+2. `pnpm i`, then `pnpm --filter @halyn/api cf-typegen` and `pnpm --filter @halyn/aero-core cf-typegen` after any
+   `wrangler.toml` change.
 3. Create TiDB cluster (MySQL-compatible Starter) → put the HTTP connection URL in `TIDB_DATABASE_URL`; create a `dev` branch.
 4. `pnpm --filter api exec wrangler d1 create aero-core` (and `aero-core-dev`), `wrangler kv namespace create halyn-config`, `wrangler r2 bucket create halyn-files` — put ids in `wrangler.toml`.
 5. Secrets: `wrangler secret put BOLNA_API_KEY` (and the others listed in `.env.example`) for `api` and `aero-core`.

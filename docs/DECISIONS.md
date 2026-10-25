@@ -27,3 +27,9 @@ Format: one entry per decision, newest at the bottom. Use `/new-adr`. Never rewr
 
 ## ADR-007 · Halyn Pass v0.1 uses spoken 6-digit one-time codes — Accepted
 **Decision.** Works on any phone line and platform today; SIP header transport later.
+
+## ADR-008 · Toolchain pinned for the build (checked against npm 2026-10-25) — Accepted (2026-10-26)
+**Context.** Several tools moved majors since the plan was written, and some current versions don't fit together.
+**Decision.** pnpm 12.15 (catalog in `pnpm-workspace.yaml`, `allowBuilds`, default 1-day release-age gate) and Node 24 in CI (Vitest 5 and Wrangler need ≥ 22). TypeScript 6.0.x, because typescript-eslint 8 supports `<6.1`. ESLint 10 flat config. Vitest 5 everywhere. Workers tests use `@cloudflare/vitest-plugin` 1.x, which is `@cloudflare/vitest-pool-workers` renamed (the old package is deprecated on npm and caps Vitest at 4), with Istanbul coverage. Each Worker's `build` is `wrangler deploy --dry-run`.
+**Consequences.** tsup's README says it is no longer maintained: if it breaks, move the two libraries to tsdown. eslint-config-next 16's react / jsx-a11y / import plugins declare ESLint ≤ 9 peers; they load and pass on ESLint 10 today, and if one crashes we pin ESLint 9 in `apps/web` only. The TiDB MCP server needs `--with "mcp<2"` until pytidb supports the mcp 2.x SDK.
+**Alternatives.** TypeScript 7 (blocked by typescript-eslint); vitest-pool-workers 0.23 (deprecated).

@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "cloudflare": {
+      "type": "http",
+      "url": "https://mcp.cloudflare.com/mcp",
+      "headers": {
+        "Authorization": "Bearer <CLOUDFLARE_API_TOKEN>"
+      }
+    },
+    "tidb": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["--from", "pytidb[mcp]", "--with", "mcp<2", "tidb-mcp-server"],
+      "env": {
+        "TIDB_HOST": "<gateway host from the TiDB Cloud connect dialog>",
+        "TIDB_PORT": "4000",
+        "TIDB_USERNAME": "<prefix>.root",
+        "TIDB_PASSWORD": "<password>",
+        "TIDB_DATABASE": "sys"
+      }
+    }
+  }
+}
