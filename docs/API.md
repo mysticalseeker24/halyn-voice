@@ -22,6 +22,11 @@ Base: Halyn API Worker. All bodies JSON, validated with Zod schemas from `packag
 | `POST /tools/check_decision` | `{run_id, request_id}` | fallback polling if event injection fails Day-0 |
 | `POST /webhooks/bolna` | Bolna execution payload | `{ok}` |
 
+Tool requests strip unknown keys (a new Bolna context field cannot break a live call); responses are strict.
+`propose_action` validates only the envelope at the boundary: an unknown action or params that fail the action's
+schema (`parseActionParams`) become a recorded `deny` with `E_FAIL_CLOSED`, never an HTTP 400. Caller quotes are
+trimmed to the last 5, 300 chars each. `verify_pass` accepts spoken codes ("4 7 2 9 1 5").
+
 ## Events Halyn sends into calls (`POST https://api.bolna.ai/v1/call/{run_id}/events`)
 | Event | Properties | Aero graph goes to |
 |---|---|---|
@@ -51,6 +56,24 @@ Base: Halyn API Worker. All bodies JSON, validated with Zod schemas from `packag
 ## Aero Core (`apps/aero-core`)
 `POST /core/cards/freeze` · `POST /core/fees/waive` · `POST /core/loans/emi-date` · `POST /core/transfers` ·
 `GET /core/statement` · `GET /core/balance` — every write needs `x-halyn-grant`; reads need a read grant too.
+
+**Grant** (`x-halyn-grant`, compact JWS, schema in `packages/shared/src/grant.ts`). Header
+`{alg: "EdDSA", kid, typ: "halyn-grant+jwt"}`. Claims:
+
+| Claim | Value |
+|---|---|
+| `v` | `halyn-grant/0.1` |
+| `jti` | ULID; single use (inserted into `used_grants` in the same D1 batch as the write) |
+| `iss` / `aud` | `halyn` / `aero-core` |
+| `tenant` · `sub` | tenant id · customer id |
+| `action` | the ActionId; must equal the route's action |
+| `params_hash` | lower-case hex SHA-256 of `canonicalJson(params)` |
+| `request_id` | the `action_requests` id (`req_…`) |
+| `iat` · `exp` | Unix seconds, `0 < exp − iat ≤ 120` (invariant 1) |
+
+**Canonical JSON** (`packages/shared/src/canonical-json.ts`) is what every hash and signature covers: keys sorted by
+UTF-16 code units at every depth, no whitespace, numbers and strings exactly as `JSON.stringify` writes them;
+anything that is not plain JSON data (NaN, Infinity, BigInt, Dates, class instances, cycles) fails closed.
 
 ## WebSocket messages (Hub → apps)
 `decision`, `confirm_request`, `confirm_resolved`, `core_update` (balance/activity), `handoff`, `ledger_append`,

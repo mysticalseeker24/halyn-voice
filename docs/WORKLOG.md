@@ -2,6 +2,24 @@
 
 Newest at the top. One entry per session via `/handoff`: what changed, tests run (with counts), what's next, anything risky.
 
+## 2026-10-26 · Step 1 — packages/shared, test-first
+- Built by the api-builder subagent (tests red first), reviewed in the parent session.
+- Modules: `errors` (HalynError), `reason-codes` (31 codes = docs/GATE.md), `ids` (ULID, `<prefix>_<id>`, E.164,
+  hex64, scenario ids), `region`, `money` (integer minor units, ₹ lakh / $ grouping, parse/format via digit strings),
+  `canonical-json` (RFC 8785-style, fails closed on non-JSON data), `actions` (17 ActionIds, strict params, money-moving
+  and critical sets, `parseActionParams`, `actionAmount`), `policy-pack` (YAML schema with cross-field rules +
+  normalised compiled schema + `compilePolicyPack`), `pass`, `grant` (exp − iat ≤ 120 s), `jws`, `decision`
+  (strictness order), `events` (outcome events into calls), `api` (tool + selected web bodies), `ws` (Hub messages).
+- `scripts/compile-packs.ts` real: YAML → validated, normalised JSON with `source_sha`; reproducible; part of `build`.
+- Review fixes: compiled packs are now re-checked against the code's critical / money-moving sets (a tampered KV pack
+  can't make `transfer.new_payee` Pass-eligible); `ScenarioIdSchema` accepts only 1–12 and 3b.
+- Contract tests read docs/GATE.md, both packs and scenarios.yaml (every propose validates; every reasons_include code
+  exists); `turbo.json` inputs in shared and api make Turbo re-run them when those specs change.
+- Tests (`pnpm verify`, cache bypassed): lint ✓, typecheck ✓, unit 379 ✓ (shared 360 at 100% lines/branches/
+  functions/statements, tooling 13, api 2, web 2, sdk 1, aero-core 1), int 5 ✓, scenarios 1 ✓, build + compile ✓.
+- Decisions: ADR-009 (prefixed ids), ADR-010 (Bolna boundary: lenient envelope, strict params, deny not 400).
+- Next: Step 2 (Gate). Risks: invented param shapes for unused actions; quote trimming hides over-long input silently.
+
 ## 2026-10-26 · Step 0 — monorepo scaffold
 - Repo: git initialised; starter docs pushed as the first commit (`b417851`) to `mysticalseeker24/halyn-voice`.
 - Workspace: pnpm 12 workspace with a version catalog, Turborepo tasks (incl. root `//#` tasks), `tsconfig.base.json`

@@ -30,7 +30,8 @@
   "cnf": { "customer_passkey_sig": "<base64url WebAuthn assertion over SHA-256(canonical claims)>" }
 }
 ```
-Signed by Halyn (Ed25519, `kid` in header). Verified with Halyn's JWKS.
+Signed by Halyn (Ed25519; header `{alg: "EdDSA", kid, typ: "halyn-pass+jwt"}`). Verified with Halyn's JWKS.
+Schema: `packages/shared/src/pass.ts` (scopes unique, never a critical action, `exp − iat` ≤ 30 days).
 
 ## Codes
 6 random digits from `crypto.getRandomValues`, stored only as `SHA-256(pepper ‖ code)`, single use, 5-minute

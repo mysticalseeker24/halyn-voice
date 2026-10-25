@@ -1,6 +1,8 @@
 # Data model
 
-IDs are ULIDs (string, 26). Times are UTC `DATETIME(3)`. Money is `BIGINT amount_minor` + `CHAR(3) currency`.
+IDs are `<prefix>_<ULID>` (e.g. `req_01J…`, `pass_01J…`; max 64 chars); seed rows use readable bodies
+(`ten_aero`, `cus_saksham`, `pass_demo`). A grant's `jti` is a bare ULID. Times are UTC `DATETIME(3)`. Money is
+`BIGINT amount_minor` + `CHAR(3) currency`.
 Every Halyn table has `tenant_id` and every query filters on it.
 
 ## TiDB (Halyn system of record, MySQL dialect, Drizzle `mysql-core`)

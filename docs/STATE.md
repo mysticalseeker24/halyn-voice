@@ -1,10 +1,10 @@
 # STATE — read at the start of every session, update at the end (`/handoff`)
 
-_Last updated: 2026-10-26 00:10 IST by the Step 0 session (scaffold)._
+_Last updated: 2026-10-26 by the Step 1 session (packages/shared)._
 
 ## Where we are
-- Phase: **Step 0 done** (monorepo scaffold, no business logic). `pnpm verify` green locally; `pnpm test:e2e` 5/5.
-  Not yet committed or pushed, so CI has not run on it.
+- Phase: **Step 1 done** (packages/shared, test-first). Step 0 scaffold pushed and CI green (run 40222732303).
+  Shared: 360 tests, 100% coverage; `pnpm compile:packs` writes both packs; `pnpm verify` green locally.
 - Tier target: Tier 1 (scenarios 1, 2, 3 end to end) by **Mon Oct 26, night**.
 - Freeze: **Wed Oct 28, 23:59 IST**. Video Oct 29. Post Oct 30. Submit Oct 31.
 
@@ -64,12 +64,16 @@ _Last updated: 2026-10-26 00:10 IST by the Step 0 session (scaffold)._
 | 12 Velocity split | ☐ | — | text only |
 
 ## Next step
-Commit and push Step 0 (5–8 commits per push), confirm CI is green, then **Step 1** in `PROMPTS.md` (packages/shared, test-first).
+**Step 2** in `PROMPTS.md`: the Gate (apps/api/src/gate) test-first on top of `@halyn/shared` (compiled packs,
+`parseActionParams`, `actionAmount`, `outcomeRank`, reason codes), plus the coaching lexicon.
 
 ## Known issues / notes
 - Outbound calls only between 9:00 and 21:00 IST (calling guardrails). Plan voice work inside that window.
 - Toolchain choices and their risks (tsup unmaintained, eslint-config-next peers on ESLint 10, TS capped at 6.0): ADR-008.
 - `test:scenarios` is a placeholder that parses `tests/scenarios/scenarios.yaml` (13 scenarios incl. 3b); the runner is Step 7.
-- `compile:packs`, `keys:generate`, `db:migrate`, `seed` are stubs that exit 1 until Steps 1, 3, 5–6.
+- `keys:generate`, `db:migrate`, `seed` are stubs that exit 1 until Steps 3, 5–6. `compile:packs` is real and runs
+  inside `pnpm build` (so CI compiles both packs every run); output in `policy-packs/compiled/` is git-ignored.
+- Param shapes for actions no scenario uses (upi.raise_limit, card.reset_pin, profile.*, dispute.charge,
+  account.add_owner, loan.new, wire.international) were invented minimally in `packages/shared/src/actions.ts`.
 - Pure-module lint rule (no I/O imports, no `Date.now`/`Math.random`/`fetch` in gate, grants, ledger, pass, shared) is
   covered by `tests/tooling/eslint-boundaries.test.ts`. Don't name files `db.ts`/`bolna.ts`/`hub.ts` inside those folders.

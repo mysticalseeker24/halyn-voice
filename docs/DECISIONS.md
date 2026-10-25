@@ -33,3 +33,13 @@ Format: one entry per decision, newest at the bottom. Use `/new-adr`. Never rewr
 **Decision.** pnpm 12.15 (catalog in `pnpm-workspace.yaml`, `allowBuilds`, default 1-day release-age gate) and Node 24 in CI (Vitest 5 and Wrangler need ≥ 22). TypeScript 6.0.x, because typescript-eslint 8 supports `<6.1`. ESLint 10 flat config. Vitest 5 everywhere. Workers tests use `@cloudflare/vitest-plugin` 1.x, which is `@cloudflare/vitest-pool-workers` renamed (the old package is deprecated on npm and caps Vitest at 4), with Istanbul coverage. Each Worker's `build` is `wrangler deploy --dry-run`.
 **Consequences.** tsup's README says it is no longer maintained: if it breaks, move the two libraries to tsdown. eslint-config-next 16's react / jsx-a11y / import plugins declare ESLint ≤ 9 peers; they load and pass on ESLint 10 today, and if one crashes we pin ESLint 9 in `apps/web` only. The TiDB MCP server needs `--with "mcp<2"` until pytidb supports the mcp 2.x SDK.
 **Alternatives.** TypeScript 7 (blocked by typescript-eslint); vitest-pool-workers 0.23 (deprecated).
+
+## ADR-009 · Ids are `<prefix>_<ULID>`; seed ids stay readable — Accepted (2026-10-26)
+**Context.** DATA_MODEL said bare ULIDs, but the seed, scenarios and PASS.md use readable ids (`ten_aero`, `cus_saksham`, `pass_demo`).
+**Decision.** Every Halyn id is `<prefix>_<body>` (max 64): a ULID body for generated rows, a readable body for seed rows. Prefix-pinned schemas (`ten_`, `cus_`, `pass_`, `req_`). A grant's `jti` stays a bare ULID.
+**Consequences.** Ids are self-describing in logs and the ledger, and a schema rejects an id of the wrong kind (a Pass id sent as a request id).
+
+## ADR-010 · Bolna boundary: lenient envelope, strict params, deny instead of 400 — Accepted (2026-10-26)
+**Context.** Bolna can add fields to tool calls, an LLM can produce bad params, and the caller must always hear an outcome (invariant 2).
+**Decision.** Tool requests strip unknown keys; everything Halyn returns is strict. `propose_action` validates the envelope only; an unknown action or params failing the strict per-action schema become a recorded `deny` with `E_FAIL_CLOSED`. Caller quotes are trimmed to the last 5 × 300 chars. Compiled policy packs are re-checked at load against the code's critical / money-moving sets, so a stale or edited pack in KV cannot relax invariant 5.
+**Consequences.** A Bolna payload change can't break a live call, and `params_hash` still binds exact, strictly validated params.
