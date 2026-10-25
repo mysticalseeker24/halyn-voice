@@ -1,0 +1,18 @@
+pnpm-lock.yaml
+**/dist/
+**/.next/
+**/.turbo/
+**/.wrangler/
+**/.vitest/
+**/coverage/
+**/playwright-report/
+**/test-results/
+**/worker-configuration.d.ts
+**/next-env.d.ts
+policy-packs/compiled/
+# Hand-written docs, prompts, specs and the Claude hook keep their own layout.
+**/*.md
+.claude/
+policy-packs/*.yaml
+tests/scenarios/*.yaml
+scripts/hooks/
