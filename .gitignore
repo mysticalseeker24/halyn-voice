@@ -1,0 +1,21 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.dev.vars
+**/.dev.vars
+.wrangler/
+.next/
+.turbo/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.log
+.DS_Store
+# generated
+policy-packs/compiled/
+scripts/out/
+# raw recordings and clone audio stay out of git (R2 only)
+*.wav
+*.mp3
