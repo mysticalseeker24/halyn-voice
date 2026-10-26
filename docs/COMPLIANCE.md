@@ -40,4 +40,4 @@ If declined or no answer by Tue Oct 27: text mode only; Saksham plays the clone 
 ## Session log
 | Date | Calls | Agents changed | restricted all false? | Violations | Notes |
 |---|---|---|---|---|---|
-| | | | | | |
+| 2026-10-26 (Day-0 setup, with go-ahead) | 0 | Created 4 test agents (Aero test graph, Confirm test, Assistant, polite test caller); number A relinked from the old listener (kept) to the Aero test agent | Yes, 4/4 | None (checked 2026-10-27 01:50 IST) | Calls deferred: window closed. Guardrails 9–21 on the 3 outbound agents |

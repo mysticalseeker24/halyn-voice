@@ -17,6 +17,8 @@ Tagline: *Don't trust the voice. Trust the permission.*
 | Need | File |
 |---|---|
 | Current status, next step, open issues (auto-loaded above) | `docs/STATE.md` |
+| Starting a new chat; working conventions (pnpm 12, IST time, commits, secrets) | `docs/HANDOFF.md` |
+| Day-0 feasibility checks: Bolna facts, test agents, run order, results | `docs/DAY0.md` |
 | What the product is, threats, parts, business | `docs/PRODUCT.md` |
 | The 12 scenarios with exact expected outcomes (**the acceptance spec**) | `docs/SCENARIOS.md` + `tests/scenarios/scenarios.yaml` |
 | System design, components, flows, failure behaviour | `docs/ARCHITECTURE.md` |

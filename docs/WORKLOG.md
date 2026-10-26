@@ -2,6 +2,27 @@
 
 Newest at the top. One entry per session via `/handoff`: what changed, tests run (with counts), what's next, anything risky.
 
+## 2026-10-26/27 · Step 5 (API skeleton, Hub, TiDB) + Day-0 setup — end of chat #1
+- Step 3 leftovers: RUNBOOK key-generation step; STATE stub note fixed.
+- Step 5 (api-builder): `src/env.ts` (Zod env per route group; `/health` needs none), `src/http/*` (error envelope,
+  structured masked logs), `src/auth/*` (Bolna guard: IP ∈ list AND constant-time secret, same 401; HMAC-SHA256
+  session tokens, separate from Ed25519), `src/web/*` (`/web/session` with optional `x-demo-code`, `/web/me`, `/ws`),
+  `src/db/*` (Drizzle mysql-core schema for all 14 tables with `tenant_id`, tenant-first queries, peppered phone hash),
+  `drizzle/` migrations, `pnpm db:migrate --db …`, `pnpm seed`, `src/hub/*` (HubDO: serial ledger lane with
+  `nextLedgerEntry`, SQLite outbox flushed to TiDB in seq order with backoff, idempotency with in-flight dedupe,
+  confirmations with first-answer-wins and alarm timeout, Hibernation WebSockets with role tags; RPCs return results).
+  New reason codes `E_UNAUTHORIZED`, `E_BAD_REQUEST`, `E_NOT_FOUND` (shared + GATE.md). ADR-013, ADR-014.
+- TiDB: created and migrated `halyn_dev` and `halyn_test`; `halyn_dev` seeded with a test number and throwaway key.
+- Day-0 (bolna-voice-engineer, with Saksham's go-ahead): Bolna docs research (`docs/DAY0.md`), `scripts/bolna/*.ts`
+  REST helpers (+ tests), 4 test agents created (all `restricted: false`), number A relinked (old listener kept),
+  probe Worker deployed (`tools/day0-probe`). Checks 9 ✅, 11 ⚠ (TiDB 654–2220 ms, D1 170–403 ms from a cron),
+  12 ✅ (Sarvam 261–687 ms). Calls not placed: the session's clock read UTC as IST (Git Bash `date` ignores `TZ`), and
+  the real time (21:37 IST) was past the calling window. Voice takes recorded by Saksham (`scripts/out/voice/`).
+- Tests (`pnpm verify`, cache bypassed): all green — api 572 unit (97.6 % lines), int 19 (incl. the TiDB suite
+  locally), shared 564, sdk 46, tooling 37, web 2, aero-core 1, scenarios 1, build ✓.
+- Next: commit/push Step 5 (ask first), Day-0 calls from 09:00 IST, voice clone, secrets + re-seed, Step 6.
+  Risks: TiDB latency vs the 300 ms tool budget; two days to freeze.
+
 ## 2026-10-26 · Step 3 — grants, ledger, Pass core, SDK
 - Shared (one implementation, ADR-012): `crypto.ts` (SHA-256, strict base64url, constant-time compare, params hash,
   Ed25519 JWK/JWKS import, EdDSA compact JWS that checks alg/typ/kid and the signature before parsing claims),
