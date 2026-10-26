@@ -7,6 +7,16 @@
     },
     "test:scenarios": {
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/tests/scenarios/**"]
+    },
+    "test:int": {
+      "cache": false,
+      "env": ["TIDB_TEST_DATABASE_URL"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/scripts/lib/**",
+        "$TURBO_ROOT$/scripts/db-migrate.ts",
+        "$TURBO_ROOT$/scripts/test-db-setup.ts"
+      ]
     }
   }
 }

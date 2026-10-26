@@ -20,6 +20,9 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test:unit # coverage thresholds are enforced in every package's test:unit
       - run: pnpm test:int
+        env:
+          # The gated TiDB suite (ADR-013) runs when this secret exists, and skips with a warning otherwise.
+          TIDB_TEST_DATABASE_URL: ${{ secrets.TIDB_TEST_DATABASE_URL }}
       - run: pnpm test:scenarios
       - run: pnpm build
       - name: Secret scan
