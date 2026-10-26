@@ -39,7 +39,9 @@
     "//#typecheck:root": {
       "dependsOn": ["^build"]
     },
-    "//#test:unit:root": {},
+    "//#test:unit:root": {
+      "dependsOn": ["^build"]
+    },
     "//#pack:compile": {
       "dependsOn": ["^build"],
       "inputs": ["policy-packs/*.yaml", "scripts/compile-packs.ts"],

@@ -22,7 +22,7 @@
     "verify": "pnpm run lint && pnpm run typecheck && pnpm run test:unit && pnpm run test:int && pnpm run test:scenarios && pnpm run build",
     "compile:packs": "turbo run pack:compile",
     "pack:compile": "tsx scripts/compile-packs.ts",
-    "keys:generate": "tsx scripts/keys-generate.ts",
+    "keys:generate": "turbo run build --filter=@halyn/shared --output-logs=errors-only && tsx scripts/keys-generate.ts",
     "db:migrate": "tsx scripts/db-migrate.ts",
     "seed": "tsx scripts/seed.ts",
     "deploy:api": "pnpm --filter @halyn/api run deploy",
