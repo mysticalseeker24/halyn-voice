@@ -23,6 +23,7 @@ Tagline: *Don't trust the voice. Trust the permission.*
 | Tables and columns | `docs/DATA_MODEL.md` |
 | Every endpoint, request/response, auth | `docs/API.md` |
 | Policy engine rules and reason codes | `docs/GATE.md` + `policy-packs/*.yaml` |
+| Every action: params, tiers per region, Aero Core route | `docs/ACTIONS.md` |
 | Halyn Pass protocol | `docs/PASS.md` |
 | Bolna agents, graph nodes, tools, events | `docs/BOLNA.md` + `prompts/` + `agents/` |
 | Bolna platform compliance (**hard rules**) | `docs/COMPLIANCE.md` |
