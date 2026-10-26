@@ -19,6 +19,13 @@ Bolna's published rules; where a rule is unclear we ask Bolna first; every test 
 2. AI + recording disclosure in every greeting; the Assistant says it's an AI calling for Saksham with his permission.
 3. Outbound only to numbers Saksham owns.
 4. Voice clone = Saksham's own voice, consented, never a Bolna agent voice, labelled in the video.
+   Created 2026-10-27 via Sarvam's API (`POST /voices/create`, which has no consent field), one voice per take
+   (`scripts/out/voice/Take N trimmed.wav`), each named "… - AI clone of my own voice": Take A Hinglish `hi-IN`
+   `svc-cda5c816-f859-491a-8b39-b426d84e0693`; Take B English `en-IN` `svc-abd98a9c-5310-4583-85b9-bf89dfcaa055`;
+   Take C calm Hindi `hi-IN` `svc-90c91242-37e0-4581-ac86-c3def603b9aa`. **Consent record:** Saksham's recorded consent statement
+   (`scripts/out/voice/Consent Clip.m4a`, text in `docs/VOICE_SAMPLE_SCRIPT.md`, kept locally, never sent to Sarvam)
+   and his choice of the API route in the 2026-10-27 session. Used only for the Step 19 demo clips, labelled
+   "AI clone of Saksham's own voice".
 5. No workarounds around the content check.
 6. Tag `security_demo` calls.
 7. After every session: `restricted` on all agents + `list_violations`; log below.
