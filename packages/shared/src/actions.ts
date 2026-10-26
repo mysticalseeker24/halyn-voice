@@ -27,7 +27,9 @@ export const ActionIdSchema = z.enum(ACTION_IDS);
 export type ActionId = z.infer<typeof ActionIdSchema>;
 
 // Params never carry full account or card numbers: last 4 digits, payee ids or bank codes only.
-const AccountSchema = z.enum(['savings', 'current', 'checking']);
+/** The customer's own account, by type (params never carry an account number). */
+export const AccountTypeSchema = z.enum(['savings', 'current', 'checking']);
+export type AccountType = z.infer<typeof AccountTypeSchema>;
 const NameSchema = z.string().min(1).max(80);
 const IfscSchema = z.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, 'expected an IFSC code');
 const SwiftBicSchema = z.string().regex(/^[A-Z]{6}[A-Z0-9]{2}(?:[A-Z0-9]{3})?$/, 'expected a SWIFT/BIC code');
@@ -39,9 +41,9 @@ const amount = { amount_minor: PositiveAmountMinorSchema, currency: CurrencySche
  * parameters Aero Core will execute.
  */
 export const ACTION_PARAMS = {
-  'account.add_owner': z.strictObject({ account: AccountSchema, owner_name: NameSchema }),
-  'account.close': z.strictObject({ account: AccountSchema }),
-  'balance.view': z.strictObject({ account: AccountSchema }),
+  'account.add_owner': z.strictObject({ account: AccountTypeSchema, owner_name: NameSchema }),
+  'account.close': z.strictObject({ account: AccountTypeSchema }),
+  'balance.view': z.strictObject({ account: AccountTypeSchema }),
   'card.freeze': z.strictObject({ card_last4: Last4Schema }),
   'card.reset_pin': z.strictObject({ card_last4: Last4Schema }),
   'dispute.charge': z.strictObject({ card_last4: Last4Schema, ...amount, merchant: NameSchema }),
@@ -50,7 +52,7 @@ export const ACTION_PARAMS = {
   'loan.new': z.strictObject({ ...amount, tenure_months: z.int().min(1).max(360) }),
   'profile.change_email': z.strictObject({ new_email: z.email().max(254) }),
   'profile.change_mobile': z.strictObject({ new_number: E164Schema }),
-  'statement.view': z.strictObject({ account: AccountSchema }),
+  'statement.view': z.strictObject({ account: AccountTypeSchema }),
   'transfer.new_payee': z.strictObject({
     ...amount,
     payee_account_last4: Last4Schema,

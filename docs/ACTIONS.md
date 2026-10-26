@@ -3,7 +3,8 @@
 Every action an agent can propose. Params are **strict** Zod schemas in `packages/shared/src/actions.ts`: unknown keys are
 rejected, because the grant's `params_hash` binds the exact parameters Aero Core executes. Tiers come from
 `policy-packs/*.yaml`. `packages/shared/test/actions-doc.contract.test.ts` checks this table against the code and both
-packs, so a change to either must update this file.
+packs, and the Aero Core column against `CORE_ROUTES` (`packages/shared/src/core.ts`), so a change to any of them must
+update this file. GET routes take the params as the query string, POST routes as the JSON body (docs/API.md).
 
 | Action | Params | Kind | Moves money | Critical | IN | US | Aero Core | Scenarios |
 |---|---|---|---|---|---|---|---|---|

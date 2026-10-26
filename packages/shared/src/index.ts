@@ -4,6 +4,7 @@ export * from './actions';
 export * from './api';
 export * from './canonical-json';
 export * from './clock';
+export * from './core';
 export * from './crypto';
 export * from './decision';
 export * from './errors';

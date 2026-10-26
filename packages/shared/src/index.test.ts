@@ -29,6 +29,9 @@ describe('@halyn/shared public surface', () => {
     'maskDeep',
     'verifyLedgerChain',
     'ledgerHash',
+    'CORE_ROUTES',
+    'CORE_RESPONSES',
+    'AccountTypeSchema',
   ])('exports %s', (name) => {
     expect(shared).toHaveProperty(name);
   });

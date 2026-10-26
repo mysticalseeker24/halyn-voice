@@ -3,6 +3,7 @@ import {
   ACTION_IDS,
   ACTION_PARAMS,
   type ActionId,
+  coreRoute,
   isCriticalAction,
   movesMoney,
   type PolicyPackInput,
@@ -18,6 +19,7 @@ interface Row {
   critical: string;
   IN: string;
   US: string;
+  core: string;
 }
 
 function catalogRows(): Row[] {
@@ -29,7 +31,8 @@ function catalogRows(): Row[] {
         .split('|')
         .slice(1, -1)
         .map((c) => c.trim());
-      const [action = '', params = '', kind = '', money = '', critical = '', IN = '', US = ''] = cells;
+      const [action = '', params = '', kind = '', money = '', critical = '', IN = '', US = '', core = ''] =
+        cells;
       return {
         action: action.replaceAll('`', ''),
         params: params.split(',').map((p) => p.trim().replaceAll('`', '')),
@@ -38,6 +41,7 @@ function catalogRows(): Row[] {
         critical,
         IN,
         US,
+        core: core.replaceAll('`', ''),
       };
     });
 }
@@ -85,5 +89,8 @@ describe('docs/ACTIONS.md vs code and packs', () => {
     const kinds = [kindOf('policy-packs/aero-in.yaml', action), kindOf('policy-packs/aero-us.yaml', action)];
     for (const kind of kinds) if (kind) expect(row?.kind).toBe(kind);
     if (kinds.every((k) => k === undefined)) expect(row?.kind).toBe('write');
+    // The Aero Core column is CORE_ROUTES (packages/shared/src/core.ts): `METHOD /path`, or — when there is none.
+    const route = coreRoute(action);
+    expect(row?.core).toBe(route ? `${route.method} ${route.path}` : '—');
   });
 });

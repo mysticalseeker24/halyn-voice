@@ -7,7 +7,9 @@
   `ids.ts` (ULID, prefixed ids, E.164, hex, scenario ids), `region.ts`, `money.ts` (integer minor units, ₹ lakh and $
   grouping, parse/format without floats), `canonical-json.ts` (sorted keys, no whitespace — used for hashes and
   signatures), `actions.ts` (ActionId union, strict params per action, money-moving and critical sets),
-  `policy-pack.ts` (YAML source schema + normalised compiled schema + `compilePolicyPack`), `pass.ts`, `grant.ts`,
+  `core.ts` (Aero Core: `CORE_ROUTES` action → method/path, contract-tested against docs/ACTIONS.md, and the strict
+  `CORE_RESPONSES` the API's core client parses), `policy-pack.ts` (YAML source schema + normalised compiled schema +
+  `compilePolicyPack`), `pass.ts`, `grant.ts`,
   `jws.ts`, `decision.ts` (outcomes and strictness order), `events.ts` (events injected into calls), `api.ts`
   (tool and web bodies), `ws.ts` (Hub → apps messages), `clock.ts` (`Clock`, `Rng` — injected, never read here),
   `crypto.ts` (the one implementation of base64url, SHA-256, params hash, Ed25519 JWK import and EdDSA compact JWS
