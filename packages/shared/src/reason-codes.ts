@@ -33,6 +33,9 @@ export const REASON_CODES = [
   'E_GRANT_REUSED',
   'E_GRANT_EXPIRED',
   'E_PARAMS_MISMATCH',
+  'E_UNAUTHORIZED',
+  'E_BAD_REQUEST',
+  'E_NOT_FOUND',
 ] as const;
 
 export const ReasonCodeSchema = z.enum(REASON_CODES);
@@ -126,6 +129,12 @@ export const REASON_CODE_INFO: { readonly [C in ReasonCode]: ReasonCodeInfo } = 
     category: 'error',
     description: 'Request parameters do not match the grant params_hash.',
   },
+  E_UNAUTHORIZED: {
+    category: 'error',
+    description: 'Missing or invalid credentials: Bolna source IP and secret, or a web session token.',
+  },
+  E_BAD_REQUEST: { category: 'error', description: 'The request body or parameters failed validation.' },
+  E_NOT_FOUND: { category: 'error', description: 'No such route or resource for this tenant.' },
 };
 
 export function isReasonCode(value: unknown): value is ReasonCode {
