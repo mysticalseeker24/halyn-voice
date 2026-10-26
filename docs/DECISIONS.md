@@ -63,3 +63,21 @@ Format: one entry per decision, newest at the bottom. Use `/new-adr`. Never rewr
 **Context.** The tenant's Hub (one Durable Object) must keep ledger appends strictly ordered, deduplicate LLM retries, time out confirmations and fan out to WebSockets. Any `await` inside a DO lets a second request interleave, and TiDB may be slow or down.
 **Decision.** Ordered work (appends, confirmations, the alarm) runs through one in-memory promise lane. Each append computes the next hash link, then writes the entry and `ledger_head` to DO SQLite in one transaction (the outbox). The alarm flushes unpersisted rows to TiDB in seq order through a `LedgerSink` port, using `INSERT IGNORE`, with exponential backoff. One alarm multiplexes the flush and the earliest confirmation deadline. `idempotent(key, ttl, compute)` shares one in-flight compute between concurrent duplicates and stores only successful results. Confirmations: the first answer wins; later ones are recorded in `confirmation_answers` and ignored. WebSockets use the Hibernation API, tagged by role. Hub RPC methods never throw: they return `{ok, value} | {ok:false, code, message}` (the runtime reports every rejected RPC as an uncaught exception, and the error class doesn't survive serialisation), and `hub/client.ts` turns failures back into `HalynError` on the Worker's side.
 **Consequences.** The DO's SQLite is the ordering authority; TiDB's `ledger_entries` may lag by one flush interval and catches up after an outage. Callers use `hubFor(env, tenant)`, never the raw stub.
+
+## ADR-015 · Aero Core: one batch per grant; the signed action picks the route's action — Accepted (2026-10-27)
+**Context.** Step 6 needed single-use grants that survive concurrency, one `POST /core/transfers` for three actions
+(`transfer.saved`, `transfer.new_payee`, `wire.new`, per docs/ACTIONS.md), and a contract the API's core client
+(Step 7) can share. D1 batches are transactions but cannot branch between statements.
+**Decision.** `@halyn/sdk.verifyGrant` accepts `expectedAction` as a list; the grant's verified `claims.action` picks
+which action a multi-action route runs (no unverified peeking at the payload, no extra header). Every effect is ONE
+`db.batch` that starts with inserting the jti into `used_grants`; a replay fails the primary key and rolls everything
+back. Write handlers read the jti together with their own lookups first, so a replay is `E_GRANT_REUSED` before any
+business check; after a failed batch, "is the jti recorded now?" decides REUSED vs `E_FAIL_CLOSED` (no matching on
+error strings). A write the bank refuses (400/404) leaves the grant unused; a read uses its grant even on a 404.
+Races the pre-checks cannot see are stopped by the schema: `CHECK (balance_minor >= 0)` and a unique index on
+fee_waiver transactions. Routes and 200 bodies live in `packages/shared/src/core.ts` (`CORE_ROUTES`, contract-tested
+against docs/ACTIONS.md; strict `CORE_RESPONSES`). Ids that appear in params are per customer: those tables key on
+`(tenant_id, customer_ref, id)`. `pnpm seed:core` resets the demo rows and never clears `used_grants`.
+**Consequences.** A refused write can be retried with the same grant within its ≤ 120 s life (it executes only the
+exact signed params, for the same customer). Changing an Aero Core route or response means changing `core.ts`, which
+the API and Aero Core both compile against.

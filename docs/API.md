@@ -67,8 +67,30 @@ trimmed to the last 5, 300 chars each. `verify_pass` accepts spoken codes ("4 7 
 | `GET /ws` | WebSocket to the tenant Hub |
 
 ## Aero Core (`apps/aero-core`)
-`POST /core/cards/freeze` · `POST /core/fees/waive` · `POST /core/loans/emi-date` · `POST /core/transfers` ·
-`GET /core/statement` · `GET /core/balance` — every write needs `x-halyn-grant`; reads need a read grant too.
+Every route needs `x-halyn-grant` — reads too. The request's params are exactly the action's params (docs/ACTIONS.md):
+the **query string** for GET, the **JSON body** for POST. Routes and 200 bodies are `CORE_ROUTES` / `CORE_RESPONSES` in
+`packages/shared/src/core.ts` (the API's core client uses the same schemas).
+
+| Route | Actions (the grant's verified action picks one) | 200 body |
+|---|---|---|
+| `POST /core/cards/freeze` | `card.freeze` | `{action, reference, card: {last4, status: "frozen"}, already_frozen}` (idempotent) |
+| `POST /core/fees/waive` | `fee.waive` (amount and currency must equal the fee's) | `{action, reference, fee: {id, status: "waived", amount}, balance}` |
+| `POST /core/loans/emi-date` | `emi.move_date` | `{action, reference, loan: {id, emi_day, previous_emi_day}}` |
+| `POST /core/transfers` | `transfer.saved`, `transfer.new_payee` (adds an unsaved payee), `wire.new` (adds a payee by routing last 4) | `{action, reference, transaction, balance}` |
+| `GET /core/balance?account=…` | `balance.view` | `{action, account, balance, as_of}` |
+| `GET /core/statement?account=…` | `statement.view` | `{action, account, balance, transactions (newest first, ≤ 20), as_of}` |
+
+`reference` is `AERO-` + the last 6 characters of the grant's jti (speakable). Money is `{amount_minor, currency}`;
+transfers debit the customer's primary account in the transfer's currency. A transaction is
+`{id, kind, category, amount, description, payee_id, reference, created_at}` — payees by id, never a full number.
+
+Errors (standard envelope; nothing is written on any error): 401 for the grant codes below; 400 `E_BAD_REQUEST` when the
+bank refuses (fee already waived or a different amount, balance too low, loan closed, account blocked, or granted
+params outside the action's schema); 404 `E_NOT_FOUND` (no such card, fee, loan, saved payee or account **for the
+grant's customer**, or no such route); 500 `E_FAIL_CLOSED` (configuration missing, or the database refused the batch).
+**Single use:** the jti is inserted into `used_grants` in the same D1 batch as the effect, so of N concurrent requests
+with one grant exactly one executes and the rest get `E_GRANT_REUSED`. A write the bank refuses (400/404) does not
+use the grant; a read uses its grant even when the account is missing.
 
 **Grant** (`x-halyn-grant`, compact JWS, schema in `packages/shared/src/grant.ts`). Header
 `{alg: "EdDSA", kid, typ: "halyn-grant+jwt"}`. Claims:
@@ -86,11 +108,14 @@ trimmed to the last 5, 300 chars each. `verify_pass` accepts spoken codes ("4 7 
 
 Halyn signs with `signGrant` (`apps/api/src/grants`, default lifetime 60 s). Aero Core verifies with
 `@halyn/sdk.verifyGrant`, in this order: present (`E_GRANT_MISSING`) → JWS is EdDSA, `typ: halyn-grant+jwt`, known
-`kid`, valid signature → claims schema (`iss`, `aud`, version, lifetime) → action equals the route's → `sub` / `tenant`
-equal `expectedSub` / `expectedTenant` when given → `iat` at most 5 s in the future (all `E_GRANT_INVALID`) → not
-expired, no leeway (`E_GRANT_EXPIRED`) → params hash (`E_PARAMS_MISMATCH`). `E_GRANT_REUSED` is Aero Core's own
-check: insert the `jti` into `used_grants` atomically with the write. Params name a resource only within one customer
-(a card's last 4 digits are not unique), so Aero Core acts on `claims.sub`'s accounts or passes `expectedSub`.
+`kid`, valid signature → claims schema (`iss`, `aud`, version, lifetime) → action is the route's (or one of the route's,
+`expectedAction` may be a list) → `sub` / `tenant` equal `expectedSub` / `expectedTenant` when given → `iat` at most
+5 s in the future (all `E_GRANT_INVALID`) → not expired, no leeway (`E_GRANT_EXPIRED`) → params hash
+(`E_PARAMS_MISMATCH`; a repeated query key, a body that is not JSON or is over 4 KB never matches). `E_GRANT_REUSED`
+is Aero Core's own check: insert the `jti` into `used_grants` atomically with the write. A request without the header is
+refused before its params are read. Aero Core passes `expectedTenant` = its `AERO_TENANT_ID` (`ten_aero`). Params
+name a resource only within one customer (a card's last 4 digits are not unique), so Aero Core acts on `claims.sub`'s
+rows only (it has no other way to know the customer).
 
 **Canonical JSON** (`packages/shared/src/canonical-json.ts`) is what every hash and signature covers: keys sorted by
 UTF-16 code units at every depth, no whitespace, numbers and strings exactly as `JSON.stringify` writes them;

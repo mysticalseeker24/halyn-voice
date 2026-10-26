@@ -13,14 +13,22 @@ Cloud Starter cluster, a Vercel account, the Bolna API key, the Sarvam API key. 
 3. TiDB Cloud Starter cluster → `TIDB_HOST`, `TIDB_PORT`, `TIDB_USERNAME`, `TIDB_PASSWORD` in `.env`. The scripts build the
    connection from these. Databases (ADR-013): `halyn_dev` for wrangler dev, `halyn_test` for the DB test suite,
    `halyn` for the demo. `pnpm db:migrate` creates them on first use.
-4. `pnpm --filter api exec wrangler d1 create aero-core` (and `aero-core-dev`), `wrangler kv namespace create halyn-config`, `wrangler r2 bucket create halyn-files` — put ids in `wrangler.toml`.
+4. `pnpm --filter @halyn/aero-core exec wrangler d1 create aero-core`, `pnpm --filter @halyn/api exec wrangler kv namespace create halyn-config`,
+   `pnpm --filter @halyn/api exec wrangler r2 bucket create halyn-files` — put the ids in each `wrangler.toml` (go-ahead
+   first: these create Cloudflare resources). Local development and tests need none of them.
 5. Signing keys: `pnpm keys:generate halyn-YYYY-MM` writes `scripts/out/keys/<kid>.private.jwk.json` and
    `<kid>.jwks.json` (git-ignored) and prints the `wrangler secret put` commands for `HALYN_SIGNING_KEY` and
    `HALYN_PUBLIC_JWKS` (api) and `HALYN_PUBLIC_JWKS` (aero-core). It never prints the private key. Set `HALYN_KEY_ID`
    to the kid. Then the other secrets: `wrangler secret put BOLNA_API_KEY` (and the rest of `.env.example`) for
    `api` and `aero-core`.
 6. `pnpm db:migrate --db halyn_dev` (also `--db halyn_test`, `--db halyn`; default `halyn_dev`) applies `apps/api/drizzle`.
-   After a schema change: `pnpm --filter @halyn/api db:generate` writes a new migration (commit it). D1 migrations: Step 6.
+   After a schema change: `pnpm --filter @halyn/api db:generate` writes a new migration (commit it).
+   Aero Core's D1: `pnpm seed:core` applies `apps/aero-core/migrations` to the **local** D1 (`.wrangler/state`, what
+   `wrangler dev` uses) and runs `apps/aero-core/seed/seed.sql`; re-run it to reset the demo state (card active, fee due,
+   EMI on the 5th, balances) before a demo. It never clears `used_grants`. `--write-only` only regenerates the SQL file.
+   Deployed D1 (go-ahead first): `pnpm seed:core --remote --yes`. After an Aero Core schema change:
+   `pnpm --filter @halyn/aero-core db:generate` (commit the new migration). For `wrangler dev`, Aero Core needs
+   `HALYN_PUBLIC_JWKS` in `apps/aero-core/.dev.vars`; `AERO_TENANT_ID` is a var in its `wrangler.toml`.
    Then `pnpm seed --db halyn_dev`: it needs `CUSTOMER_PHONE`, `PHONE_HASH_PEPPER` and `HALYN_SIGNING_KEY` in `.env`
    (`--keys-file scripts/out/keys/<kid>.private.jwk.json` also works). For a dry run without the real number:
    `--test-number +919000000003`. Re-running is safe (upserts).
@@ -37,6 +45,8 @@ Cloud Starter cluster, a Vercel account, the Bolna API key, the Sarvam API key. 
 | Scenarios (text) | `pnpm test:scenarios` |
 | Integration incl. the TiDB suite | `pnpm test:int` (the DB part skips with a warning without TiDB credentials) |
 | API locally | `pnpm --filter @halyn/api dev` → http://127.0.0.1:8787/health |
+| Aero Core locally | `pnpm seed:core`, then `pnpm --filter @halyn/aero-core dev` → http://127.0.0.1:8788/health |
+| Reset the demo bank | `pnpm seed:core` (local) · `pnpm seed:core --remote --yes` (deployed, go-ahead first) |
 | E2E | `pnpm test:e2e` |
 | Deploy API / Aero Core | `pnpm deploy:api` · `pnpm deploy:core` |
 | Deploy web | `pnpm deploy:web` (or Vercel Git integration) |

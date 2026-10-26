@@ -26,13 +26,20 @@ Databases: `halyn_dev` (wrangler dev), `halyn_test` (DB test suite), `halyn` (de
 | `test_results` | id, tenant_id, run_id, scenario_id, outcome, expected, passed, metrics (JSON), evidence_ref | |
 
 ## D1 (Aero Core, SQLite) — the mock bank, physically separate
-| Table | Columns |
-|---|---|
-| `accounts` | id, customer_ref, region, type, balance_minor, currency, status |
-| `payees` | id, customer_ref, name, account_last4, ifsc_or_routing_last4, added_at, saved |
-| `transactions` | id, account_id, kind, amount_minor, currency, payee_id, reference, grant_jti, created_at |
-| `used_grants` | jti (PK), used_at |
-| `loans`, `cards`, `fees` | minimal columns for scenarios 1, 2, 5 |
+Schema: `apps/aero-core/src/db/schema.ts` (Drizzle `sqlite-core`); migrations: `apps/aero-core/migrations/` (drizzle-kit
+SQL, committed; `wrangler d1 migrations apply aero-core`). Every table has `tenant_id` and every query filters on it and
+on `customer_ref` (= the grant's `sub`). Ids that appear in action params (`fee_late_oct`, `loan_personal_1`,
+`payee_mom`) are unique per customer, so those tables key on `(tenant_id, customer_ref, id)`. Money is INTEGER minor units
++ `currency` (`INR`/`USD`); times are UTC ISO-8601 strings; booleans are 0/1.
+| Table | Columns | Keys and checks |
+|---|---|---|
+| `accounts` | tenant_id, id, customer_ref, region, type (savings/current/checking), currency, balance_minor, is_primary, status (active/blocked), opened_at | PK (tenant_id, id); unique (tenant, customer, type); one primary per (tenant, customer, currency); **CHECK balance_minor ≥ 0** |
+| `cards` | tenant_id, id, customer_ref, account_id, last4, status (active/frozen), frozen_at, updated_by_grant | PK (tenant_id, id); unique (tenant, customer, last4) |
+| `fees` | tenant_id, customer_ref, id, account_id, description, amount_minor, currency, status (due/waived), charged_at, waived_at, waived_by_grant | PK (tenant_id, customer_ref, id); amount > 0 |
+| `loans` | tenant_id, customer_ref, id, account_id, description, emi_minor, currency, emi_day, status (active/closed), updated_at, updated_by_grant | PK (tenant_id, customer_ref, id); emi_day 1–28 |
+| `payees` | tenant_id, customer_ref, id, name, account_last4, ifsc (IN), routing_last4 (US), saved, added_at, added_by_grant | PK (tenant_id, customer_ref, id); new payees from `transfer.new_payee` / `wire.new` are added unsaved |
+| `transactions` | tenant_id, id, customer_ref, account_id, kind (credit/debit), category (salary/card/fee/fee_waiver/emi/transfer/wire), amount_minor, currency, description, payee_id, fee_id, reference, grant_jti, created_at | PK (tenant_id, id); index (tenant, account, created_at); **unique (tenant, customer, fee_id) where category = fee_waiver** (a fee is credited once); amount > 0 |
+| `used_grants` | jti (PK), tenant_id, customer_ref, action, request_id, used_at | inserted in the same D1 batch as the effect (invariant 1) |
 
 ## Ledger chain (invariant 6)
 - `hash = SHA-256(prev_hash ‖ canonical_json({seq, tenant_id, type, ref_id, payload, created_at}))`, lower-case hex;
@@ -67,5 +74,15 @@ WebSockets use the Hibernation API with one tag per socket: role = stage | conso
 TiDB (deterministic: fixed ids and clock, idempotent upserts): tenant `ten_aero`; customers `cus_saksham` (IN) and
 `cus_saksham_us` (US) with the number from `CUSTOMER_PHONE` (hashed); both compiled policy packs; Pass `pass_demo` for the
 assistant (number B) with scopes `statement.view`, `card.freeze`, `emi.move_date` (max 1), signed with `HALYN_SIGNING_KEY`
-(its passkey signature is a placeholder until Step 10). D1 (Step 6): accounts, card ending 8812, fee ₹600, payees
-Mom/Landlord, loan with EMI on the 5th.
+(its passkey signature is a placeholder until Step 10).
+
+D1 (`pnpm seed:core`; rows from `apps/aero-core/src/seed/seed-data.ts`, written to `apps/aero-core/seed/seed.sql`).
+Re-running resets the demo customers' rows (never `used_grants`). Tests seed fresh customers from the same template.
+| | `cus_saksham` (IN) | `cus_saksham_us` (US) |
+|---|---|---|
+| Account | `savings`, INR, ₹5,20,000 (`52000000`), primary | `checking`, USD, $12,450 (`1245000`), primary |
+| Card | ending `8812` (scenario 1) | ending `2207` |
+| Fee | `fee_late_oct` ₹600 (`60000`), due (scenario 2) | `fee_us_late_oct` $35 (`3500`), due |
+| Loan | `loan_personal_1`, EMI ₹12,500 on the 5th (scenario 5 moves it to the 10th) | — |
+| Saved payees | `payee_mom` (Mom, ending 5521, `AERO0000003`), `payee_landlord` (Landlord, ending 7734, `AERO0000004`) | `payee_us_landlord` (ending 6610, routing ending 0042) |
+| Statement | 7 lines, Oct 1–22 (salary, card, fee, EMI, rent, transfer to Mom) | 4 lines |

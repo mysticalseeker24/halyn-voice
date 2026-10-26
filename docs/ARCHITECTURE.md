@@ -11,7 +11,7 @@
 | Halyn API | Cloudflare Worker (Hono) | Tools, web REST, Gate, Signals, Pass, Confirm orchestration, Test runner | Bolna REST, TiDB, Hub DO, Aero Core, R2, KV, Sarvam |
 | Hub | Durable Object (one per tenant, SQLite) | WebSocket fan-out (Hibernation API), confirmation timers (alarms), ordered ledger appends, idempotency cache | Halyn API, web apps |
 | TiDB Starter | TiDB Cloud (MySQL) | System of record (`docs/DATA_MODEL.md`) | Halyn API via HTTP serverless driver |
-| Aero Core | Separate Worker + D1 | Mock bank; every write requires a valid grant (`@halyn/sdk.verifyGrant`) | Called only by Halyn API |
+| Aero Core | Separate Worker + D1 | Mock bank; every route (reads too) requires a valid single-use grant (`@halyn/sdk.verifyGrant`; jti recorded in the same D1 batch as the effect) | Called only by Halyn API |
 | R2 / KV | Cloudflare | Clone clips, ledger exports, test reports / compiled policy packs, agent ids | Halyn API, scripts |
 | Web | Vercel (Next.js) | `/stage`, `/console`, `/aero`, `/assistant` | Halyn API REST + Hub WebSocket |
 

@@ -22,8 +22,12 @@ spending call minutes. Real calls are the last layer, not the first.
   HTTP and the clock.
 - Inject `clock` and `rng` everywhere; tests use fixed time.
 - Every bug fix starts with a failing test.
-- Coverage: ≥ 95% lines and branches for `packages/shared`, `apps/api/src/{gate,pass,ledger,grants}`; ≥ 80% elsewhere
-  (`vitest --coverage`, thresholds enforced in config).
+- Coverage: ≥ 95% lines and branches for `packages/shared`, `packages/sdk`, `apps/api/src/{gate,pass,ledger,grants}`
+  and Aero Core's grant check (`apps/aero-core/src/grant`, `src/core/commit.ts`); ≥ 80% elsewhere (`vitest --coverage`,
+  thresholds enforced in config).
+- Aero Core tests sign grants with a throwaway Ed25519 key generated per run (`apps/aero-core/vitest.config.ts`) and
+  seed a fresh customer per test from the demo template; the integration suite covers every 401 code and a concurrent
+  double-spend of one grant (exactly one succeeds).
 - `pnpm verify` = lint + typecheck + unit + int + scenarios + build. CI runs the same.
 - Record a real Bolna payload into `tests/fixtures/bolna/` the first time you see one (mask numbers to last 4).
 - Voice smoke results go to `docs/STATE.md` scenario table and `docs/COMPLIANCE.md` session log.
