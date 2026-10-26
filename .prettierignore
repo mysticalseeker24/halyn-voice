@@ -9,6 +9,8 @@ pnpm-lock.yaml
 **/test-results/
 **/worker-configuration.d.ts
 **/next-env.d.ts
+**/*.bundled_*.mjs
+**/*.timestamp-*.mjs
 policy-packs/compiled/
 # Hand-written docs, prompts, specs and the Claude hook keep their own layout.
 **/*.md

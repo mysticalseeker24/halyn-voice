@@ -77,6 +77,9 @@ export default defineConfig([
     '**/test-results/',
     '**/worker-configuration.d.ts',
     '**/next-env.d.ts',
+    // Temp files tsup and Vite write next to their configs while a build or test runs in parallel with lint.
+    '**/*.bundled_*.mjs',
+    '**/*.timestamp-*.mjs',
     'policy-packs/compiled/',
   ]),
   js.configs.recommended,
