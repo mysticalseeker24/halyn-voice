@@ -32,7 +32,9 @@
   "devDependencies": {
     "@eslint/js": "catalog:",
     "@halyn/shared": "workspace:*",
+    "@tidbcloud/serverless": "catalog:",
     "@types/node": "catalog:",
+    "drizzle-orm": "catalog:",
     "eslint": "catalog:",
     "eslint-config-prettier": "catalog:",
     "globals": "catalog:",

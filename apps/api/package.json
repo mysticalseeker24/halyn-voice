@@ -11,17 +11,21 @@
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc -p tsconfig.json",
     "test:unit": "vitest run --project unit --coverage",
-    "test:int": "vitest run --project int",
-    "test:scenarios": "vitest run --project scenarios"
+    "test:int": "vitest run --project int --project db",
+    "test:scenarios": "vitest run --project scenarios",
+    "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
     "@halyn/shared": "workspace:*",
+    "@tidbcloud/serverless": "catalog:",
+    "drizzle-orm": "catalog:",
     "hono": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@cloudflare/vitest-plugin": "catalog:",
     "@vitest/coverage-istanbul": "catalog:",
+    "drizzle-kit": "catalog:",
     "fast-check": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
