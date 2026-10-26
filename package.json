@@ -25,6 +25,7 @@
     "keys:generate": "turbo run build --filter=@halyn/shared --output-logs=errors-only && tsx scripts/keys-generate.ts",
     "db:migrate": "tsx scripts/db-migrate.ts",
     "seed": "tsx scripts/seed.ts",
+    "seed:core": "tsx scripts/seed-core.ts",
     "deploy:api": "pnpm --filter @halyn/api run deploy",
     "deploy:core": "pnpm --filter @halyn/aero-core run deploy",
     "deploy:web": "pnpm dlx vercel deploy --prod --cwd apps/web"

@@ -2,7 +2,7 @@
 // Deterministic demo seed (docs/DATA_MODEL.md "Seed"): tenant ten_aero, the IN customer and the US twin, both policy
 // packs, and Pass pass_demo for the assistant. Upserts, so re-running is safe. The registered number comes from
 // CUSTOMER_PHONE (env only) and is never printed; --test-number swaps in a +9190000000NN test number for dry runs.
-// Aero Core's D1 seed (accounts, cards, fees, loans, payees) is Step 6.
+// Aero Core's D1 seed (accounts, cards, fees, loans, payees, transactions) is `pnpm seed:core` (scripts/seed-core.ts).
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';

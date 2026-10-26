@@ -12,3 +12,9 @@ enabled = true
 binding = "DB"
 database_name = "aero-core"
 migrations_dir = "migrations"
+
+# Non-secret settings. HALYN_PUBLIC_JWKS (Halyn's public keys) is a secret: `wrangler secret put HALYN_PUBLIC_JWKS`
+# in production, apps/aero-core/.dev.vars locally (docs/RUNBOOK.md).
+[vars]
+# The Halyn tenant this bank is: every grant must name it, and every row carries it.
+AERO_TENANT_ID = "ten_aero"

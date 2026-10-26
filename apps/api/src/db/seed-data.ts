@@ -12,7 +12,7 @@ import type { customers, policyPacks, tenants } from './schema';
 
 // The demo seed (docs/DATA_MODEL.md "Seed"), built deterministically: fixed ids and a fixed clock, and Ed25519
 // signatures are deterministic, so the same inputs always give the same rows. scripts/seed.ts writes them to TiDB.
-// Aero Core's D1 rows (accounts, cards, fees, loans, payees) are Step 6.
+// Aero Core's D1 rows (same ids: ten_aero, cus_saksham, cus_saksham_us) come from apps/aero-core/src/seed.
 
 /** The seed's clock: every created_at and the Pass issue time. */
 export const SEED_TIME_MS = Date.UTC(2026, 9, 25, 0, 0, 0);
