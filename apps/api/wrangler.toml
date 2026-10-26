@@ -24,3 +24,11 @@ binding = "CONFIG"
 [[r2_buckets]]
 binding = "FILES"
 bucket_name = "halyn-files"
+
+# Non-secret settings. Secrets (HALYN_TOOL_SECRET, SESSION_SECRET, TIDB_DATABASE_URL, signing keys, peppers, API keys)
+# come from `wrangler secret put` in production and apps/api/.dev.vars locally — names in .env.example.
+[vars]
+DEFAULT_TENANT_ID = "ten_aero"
+BOLNA_SOURCE_IPS = "13.203.39.153,13.126.9.249,13.202.133.53"
+WEB_ORIGIN = "http://localhost:3000"
+RP_ID = "localhost"
