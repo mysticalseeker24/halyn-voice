@@ -1,10 +1,11 @@
 # STATE — read at the start of every session, update at the end (`/handoff`)
 
-_Last updated: 2026-10-26 by the Step 1 session (packages/shared)._
+_Last updated: 2026-10-26 by the Step 2 session (Gate)._
 
 ## Where we are
-- Phase: **Step 1 done** (packages/shared, test-first). Step 0 scaffold pushed and CI green (run 40222732303).
-  Shared: 360 tests, 100% coverage; `pnpm compile:packs` writes both packs; `pnpm verify` green locally.
+- Phase: **Step 2 done locally** (the Gate + coaching/distress lexicons, test-first, then a test-engineer pass).
+  `pnpm verify` green; api 391 unit tests, `src/gate` 99.2% statements / 99.2% branches, lexicons 100%. Every
+  scenario's Gate decision and `reasons_include` match. Not yet committed. Steps 0 and 1 are on `main`, CI green.
 - Tier target: Tier 1 (scenarios 1, 2, 3 end to end) by **Mon Oct 26, night**.
 - Freeze: **Wed Oct 28, 23:59 IST**. Video Oct 29. Post Oct 30. Submit Oct 31.
 
@@ -64,8 +65,15 @@ _Last updated: 2026-10-26 by the Step 1 session (packages/shared)._
 | 12 Velocity split | ☐ | — | text only |
 
 ## Next step
-**Step 2** in `PROMPTS.md`: the Gate (apps/api/src/gate) test-first on top of `@halyn/shared` (compiled packs,
-`parseActionParams`, `actionAmount`, `outcomeRank`, reason codes), plus the coaching lexicon.
+Commit + push Step 2, then **Step 3** in `PROMPTS.md`: grants, ledger, Pass core and `@halyn/sdk` (WebCrypto).
+
+## Carry into Steps 5–7 (found by the Step 2 test-engineer)
+- With proof `app_session`, check `caller.app_session_customer_id === customer_id` before calling the Gate.
+- The `propose_action` handler must pass the **raw** body's `params` to the Gate / `parseActionParams` (Zod's record
+  parse drops an own `__proto__` key; the Gate already re-validates the raw params and fails closed).
+- Only call `toDecision(gate, request_id, resolution)` with a resolution when the Gate outcome was `step_up`.
+- Velocity (`S_VELOCITY`) applies to every action, as GATE.md says; a balance check right after two transfers is
+  tier 1 (still allowed with proof). Revisit only if the Stage's reason list looks confusing.
 
 ## Known issues / notes
 - Outbound calls only between 9:00 and 21:00 IST (calling guardrails). Plan voice work inside that window.
@@ -73,7 +81,7 @@ _Last updated: 2026-10-26 by the Step 1 session (packages/shared)._
 - `test:scenarios` is a placeholder that parses `tests/scenarios/scenarios.yaml` (13 scenarios incl. 3b); the runner is Step 7.
 - `keys:generate`, `db:migrate`, `seed` are stubs that exit 1 until Steps 3, 5–6. `compile:packs` is real and runs
   inside `pnpm build` (so CI compiles both packs every run); output in `policy-packs/compiled/` is git-ignored.
-- Param shapes for actions no scenario uses (upi.raise_limit, card.reset_pin, profile.*, dispute.charge,
-  account.add_owner, loan.new, wire.international) were invented minimally in `packages/shared/src/actions.ts`.
+- Action params, tiers and Aero Core routes are catalogued in `docs/ACTIONS.md` (checked against code and packs by
+  a contract test). Four agent-tier actions have no Aero Core route; an approval of one becomes a handoff (Step 7).
 - Pure-module lint rule (no I/O imports, no `Date.now`/`Math.random`/`fetch` in gate, grants, ledger, pass, shared) is
   covered by `tests/tooling/eslint-boundaries.test.ts`. Don't name files `db.ts`/`bolna.ts`/`hub.ts` inside those folders.

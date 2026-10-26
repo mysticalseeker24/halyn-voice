@@ -43,3 +43,8 @@ Format: one entry per decision, newest at the bottom. Use `/new-adr`. Never rewr
 **Context.** Bolna can add fields to tool calls, an LLM can produce bad params, and the caller must always hear an outcome (invariant 2).
 **Decision.** Tool requests strip unknown keys; everything Halyn returns is strict. `propose_action` validates the envelope only; an unknown action or params failing the strict per-action schema become a recorded `deny` with `E_FAIL_CLOSED`. Caller quotes are trimmed to the last 5 × 300 chars. Compiled policy packs are re-checked at load against the code's critical / money-moving sets, so a stale or edited pack in KV cannot relax invariant 5.
 **Consequences.** A Bolna payload change can't break a live call, and `params_hash` still binds exact, strictly validated params.
+
+## ADR-011 · Gate clarifications where GATE.md left a choice — Accepted (2026-10-26)
+**Context.** Read literally, the tier table broke GATE.md's own monotonicity property (a tier-0 read with no proof denies, one signal later it steps up), and several codes and post-approval outcomes were unspecified.
+**Decision.** The nine rules in GATE.md → "Clarifications": fail closed on unoffered actions / bad params / wrong currency; reads without proof always deny and tier 0 is only for reads and protective actions; every hold carries `H_SPECIALIST`; fixed base-tier codes and order; signals use pack weights; distress before protective with a narrow lexicon; Pass scope also needs `pass_eligible`; exact limit arithmetic; post-approval cap → hold, tier 4 → delayed allow.
+**Consequences.** The Gate is monotone for every valid pack, so the fast-check property can range over arbitrary packs, not only the two real ones. Saksham can override any rule; the tests name each one.

@@ -9,8 +9,9 @@ src/auth/               bolnaGuard (IP allowlist + x-halyn-secret), session auth
 src/tools/              lookup_customer, verify_pass, propose_action, get_pass_code, confirm_result, check_decision
 src/web/                routes for the four apps
 src/hub/                HubDO: WebSockets (Hibernation API), alarms (confirm timeout), ledger append ordering, idempotency
-src/gate/               PURE: decide(), tiers, limits, reason codes  (≥95% coverage, property tests)
-src/signals/            unregistered number, bursts, unusual hour, velocity, coaching (lexicon + Sarvam LLM w/ 1.5 s budget)
+src/gate/               PURE: decide(), resolveStepUp(), toDecision(), input schemas  (≥95% coverage, property tests)
+src/signals/            coaching-lexicon.ts + distress-lexicon.ts (PURE keyword layers, ≥95%); later: unregistered
+                        number, bursts, unusual hour, velocity, Sarvam coaching LLM (1.5 s budget, I/O)
 src/pass/               issue, sign, code mint/verify, revoke  (≥95%)
 src/grants/             sign grant (Ed25519 via WebCrypto), params hash  (≥95%)
 src/ledger/             canonical entry, hash, verify  (≥95%)
@@ -19,7 +20,7 @@ src/bolna/              REST client: events, outbound calls, executions (typed, 
 src/core-client/        calls Aero Core with x-halyn-grant
 src/db/                 Drizzle schema (mysql-core) + queries (always filter tenant_id)
 src/test-runner/        scenarios.yaml runner (text mode), voice mode orchestration
-test/                   unit, int (vitest-pool-workers), contract (fixtures), security
+test/                   int (Workers pool), scenarios, contract (fixtures), security, fixtures/ (gate.ts: packs + builders)
 ```
 
 ## Rules here

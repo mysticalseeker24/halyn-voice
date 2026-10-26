@@ -56,6 +56,35 @@ After `step_up`: Confirm sends passkey + callback in parallel. `approved` → al
 (tier 4: schedule after 24 h; new payee above `cap_first_24h_minor` → `hold`). `declined` → deny `C_DECLINED`.
 60 s no answer → deny `C_TIMEOUT`.
 
+## Clarifications (2026-10-26, ADR-011)
+Where the rules above leave a choice, the Gate does this. Each one is tested.
+1. **Before step 1:** an action the region's pack does not offer, params that fail the action's schema, or an amount
+   in a currency other than the pack's → `deny` `E_FAIL_CLOSED`.
+2. **Reads without proof always deny.** With proof `none` a read (`read: true`) is `deny` `I_NO_PROOF` at every tier,
+   never `step_up`; otherwise one extra signal would turn a deny into a step-up (more permissive). Policy packs may give
+   tier 0 only to reads and protective actions, so no write can be denied at tier 0 and then stepped up at tier 1.
+3. **Every `hold` includes `H_SPECIALIST`**, because every hold creates a handoff to a human.
+4. **Reason codes**, unique, in this order: the base-tier code (tier 0 `P_TIER0`, 2 `P_TIER2`, 3 `P_TIER3_STEP_UP`,
+   4 `P_TIER4_HOLD_24H`; tier 1 has none; human-only actions have none), every signal that fired, the Pass code, then
+   the codes of the rule that decided. When the tier table decides, its row code for the *computed* tier is added
+   (same mapping; ≥ 5 → `H_SPECIALIST`; tier 1 → `P_WITHIN_LIMIT` only on an `allow`), plus `P_OVER_LIMIT` when a limit
+   is exceeded and `I_NO_PROOF` when proof is `none` and the outcome is not `allow`. Earlier rules add their own code
+   (`R_READBACK_NOT_CONFIRMED`, `T_DISTRESS`, `P_HUMAN_ONLY…`, `S_COACHING`, `P_PROTECTIVE`). A fail-closed decision
+   carries only `E_FAIL_CLOSED`. Scenario 3: `P_TIER3_STEP_UP, S_UNREGISTERED_NUMBER, P_TIER4_HOLD_24H, I_NO_PROOF`.
+5. **Signals** add the pack's weight when their condition holds and are reported whenever it holds, for every action.
+   `unregistered_number` is ignored when proof is `app_session` or the channel is `web`.
+6. **Distress and the human-only perimeter come before protective** (first match wins as listed), so a distressed
+   caller is held even for a card freeze. The distress lexicon is kept narrow (bereavement, self-harm, abuse,
+   medical emergency) so ordinary panic about a lost card still freezes it at once.
+7. **Pass in scope** needs all three: the action is in the Pass scopes, uses are left (`max_uses` absent = no cap), and
+   the pack marks the action `pass_eligible`.
+8. **Limits:** over when `counters.amount_minor + amount > limit.amount_minor` or `counters.count + 1 > limit.count`
+   (counters cover the current period, supplied by the caller).
+9. **After step-up** (`approved`): a new payee above `cap_first_24h_minor` → `hold` with `C_APPROVED`, `P_OVER_LIMIT`,
+   `H_SPECIALIST`; else tier ≥ 4 → `allow` with `C_APPROVED`, `P_TIER4_HOLD_24H` and execution after `hold_hours`
+   (24 when the pack sets none); else `allow` `C_APPROVED`. `declined` → `deny` `C_DECLINED`; `timeout` → `deny`
+   `C_TIMEOUT`. The clock is used only here.
+
 ## Reason codes (complete list lives in `packages/shared/src/reason-codes.ts`)
 `P_PROTECTIVE P_TIER0 P_WITHIN_LIMIT P_TIER2 P_TIER3_STEP_UP P_TIER4_HOLD_24H P_OVER_LIMIT P_HUMAN_ONLY
 P_HUMAN_ONLY_ABOVE_LIMIT S_UNREGISTERED_NUMBER S_CALL_BURST S_UNUSUAL_HOUR S_LOW_LIVENESS S_VELOCITY S_COACHING
@@ -73,6 +102,12 @@ E_PARAMS_MISMATCH`
 ## Coaching score
 - Layer 1, keywords (Hindi, English, Hinglish) from `apps/api/src/signals/coaching-lexicon.ts` — e.g. safe account,
   verification account, officer said, don't tell anyone, digital arrest, RBI account, customs, parcel seized. Each
-  cue adds weight; ≥ 2 strong cues → 0.7.
+  cue adds weight; ≥ 2 strong cues → 0.7. As implemented: quotes are normalised (NFKC, lower-case, punctuation
+  removed, Devanagari nukta folded) and each cue counts once; 0 strong cues → 0, 1 → 0.4, ≥ 2 → 0.7 + 0.1 per further
+  strong cue; the weak cue (urgency) adds 0.05; capped at 1. So one strong cue plus urgency stays below 0.6. Cues are
+  reported by id, never as the caller's words.
+- Distress (step 2) comes from `apps/api/src/signals/distress-lexicon.ts`: four narrow categories (bereavement,
+  self-harm, abuse, medical emergency) reported by id. Fear about a lost or stolen card is not distress (clarification 6).
+- Both lexicon files are pure (ESLint purity rule) and covered at ≥ 95%.
 - Layer 2, Sarvam chat model over `caller_quotes` returns `{probability, cues[]}` within 1.5 s; final score =
   max(layer1, layer2). LLM down or slow → layer 1 alone. The lexicon lives in code only, never in a Bolna prompt.

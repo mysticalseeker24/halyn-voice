@@ -2,6 +2,28 @@
 
 Newest at the top. One entry per session via `/handoff`: what changed, tests run (with counts), what's next, anything risky.
 
+## 2026-10-26 · Step 2 — the Gate, lexicons, action catalog
+- `docs/ACTIONS.md`: every action's params, kind, money/critical flags, tier per region, Aero Core route, scenarios;
+  a contract test checks it against code and both packs (verified by mutating the doc). No input needed from Saksham:
+  the invented shapes belong to actions that are human-only or have no Aero Core route.
+- GATE.md "Clarifications" 1–9 + ADR-011 settle what the doc left open (notably: reads without proof always deny and
+  tier 0 is only for reads/protective, which makes the Gate monotone for every valid pack).
+- Shared: `Clock` (+ `fixedClock`), tier-0 rule in source and compiled pack schemas, `__proto__` param regressions.
+- `apps/api/src/gate`: `decide()` (pure, Zod-validated inputs, fail closed), `resolveStepUp()` (cap → hold, tier ≥ 4 →
+  delayed allow), `toDecision()`; `apps/api/src/signals`: coaching (English/Hinglish/Hindi, strong/weak cues, integer
+  scoring) and distress (narrow: bereavement, self-harm, abuse, medical) lexicons, both under the purity lint rule.
+- Built by api-builder (one run stopped by Saksham, a second finished it), then a test-engineer pass: invariant map
+  (every rule/clarification → a test), 10 code mutations all caught by properties, 2 new properties, and 3 bugs fixed
+  test-first — invisible characters / variants defeating the coaching lexicon, over-broad Hinglish distress phrases,
+  and a `__proto__` params key silently dropped instead of failing closed.
+- Tests (`pnpm verify`, cache bypassed): lint ✓, typecheck ✓, unit: api 391 (gate 99.2/99.2/100/100, lexicons 100),
+  shared 390 (100%), tooling 15, web 2, sdk 1, aero-core 1; int 5; scenarios 1; build + both packs ✓.
+- Gate per scenario: 1 allow · 2 allow · 3/3b step_up → deny (C_DECLINED / C_TIMEOUT) · 4 hold (coaching 0.95) ·
+  5 allow, allow · 6 step_up → deny · 7 deny · 8 deny · 9 hold · 10 hold (IN compare: step_up) · 11 step_up ·
+  12 allow ×2 then step_up (S_VELOCITY).
+- Next: commit + push, then Step 3. Risks: lexicon recall on real STT output is untested until voice smoke; distress
+  narrowing choices (person-named only) await Saksham's review.
+
 ## 2026-10-26 · Step 1 — packages/shared, test-first
 - Built by the api-builder subagent (tests red first), reviewed in the parent session.
 - Modules: `errors` (HalynError), `reason-codes` (31 codes = docs/GATE.md), `ids` (ULID, `<prefix>_<id>`, E.164,
