@@ -40,6 +40,13 @@ if (rel.startsWith('prompts/') || rel.startsWith('agents/')) {
   for (const re of banned) if (re.test(text)) problems.push(`Prompt/agent file contains "${re.source}". Bolna prompts must be protective only, with no real institution names or scam narratives (detection lives in code).`);
 }
 
+// 4. Saksham's name: सक्षम (short "Sa"), never a long-vowel or श spelling (CLAUDE.md §8). The wrong spellings are
+// built from code points so this file never contains them.
+const cp = (hex) => hex.split(' ').map((h) => String.fromCharCode(parseInt(h, 16))).join('');
+const misspelt = ['0938 093e 0915 094d 0937 092e', '0938 093e 0915 094d 0936 092e', '0938 0915 094d 0936 092e'].map(cp);
+if (misspelt.some((w) => text.includes(w)) || /Sa{2}ksham|Saksha{2}m/.test(text))
+  problems.push('Misspelt name: Saksham is "सक्षम मिश्रा" in Devanagari (short "Sa"), "Saksham" in Roman script.');
+
 if (problems.length) {
   console.error(`[halyn hook] ${rel}:\n- ${problems.join('\n- ')}`);
   process.exit(2);

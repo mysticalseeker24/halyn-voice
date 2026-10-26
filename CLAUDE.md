@@ -175,6 +175,7 @@ A bug fix always starts with a failing test that reproduces it.
 | Item | Value |
 |---|---|
 | Repo | github.com/mysticalseeker24/halyn-voice |
+| Builder's name | **Saksham Mishra** — Devanagari **सक्षम मिश्रा** (short "Sa", as in "SAKSHAM"). Never a long "Saa" spelling; use exactly this in every Hindi prompt, script and TTS line (the file hook flags misspellings) |
 | Number A (Aero line) | +91 80653 56344 · phone id `9a3b9852-ae7e-4b7c-bab9-f1f0bf4b24d2` · currently linked to the OLD Kavach listener `1ad15c7b-3483-4c9e-a336-e371ce112b98` (to relink in Day-0, with go-ahead) |
 | Number B (Confirm, Assistant, test callers) | +91 80653 56379 · phone id `b6875116-e8b9-4174-9c71-08a87cd1dc62` |
 | Bolna API | `https://api.bolna.ai` · event injection `POST /v1/call/{run_id}/events` · outbound `POST /call` |

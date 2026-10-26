@@ -14,7 +14,7 @@ cleanest one per language.
 - Each take 10–15 seconds. Do each one twice. Save to `scripts/out/voice/` (git-ignored; audio is never committed).
 
 ## Take A — Hinglish, Hindi-led (main take: the demo's clone speaks Hindi)
-हेलो, मैं साक्षम मिश्रा बोल रहा हूँ। मुझे अपने सेविंग्स अकाउंट के बारे में एक छोटा सा काम करवाना था।
+हेलो, मैं सक्षम मिश्रा बोल रहा हूँ। मुझे अपने सेविंग्स अकाउंट के बारे में एक छोटा सा काम करवाना था।
 थोड़ा जल्दी कर दीजिए, मैं अभी एक मीटिंग में हूँ। मेरा कस्टमर नंबर है — चार, सात, दो, नौ, एक, पाँच। थैंक यू।
 
 *Romanised (read whichever is easier):* Hello, main Saksham Mishra bol raha hoon. Mujhe apne savings account ke baare
@@ -26,7 +26,7 @@ Hi, this is Saksham Mishra. I'm calling about my savings account. Could you plea
 date of my next EMI? I'd also like to check one recent transaction. Thanks a lot for your help.
 
 ## Take C — calm Hindi (backup, slower and warmer)
-नमस्ते, मैं साक्षम बोल रहा हूँ। आज मौसम बहुत अच्छा है, तो सोचा अभी फ़ोन कर लूँ। आप आराम से बताइए,
+नमस्ते, मैं सक्षम बोल रहा हूँ। आज मौसम बहुत अच्छा है, तो सोचा अभी फ़ोन कर लूँ। आप आराम से बताइए,
 मुझे कोई जल्दी नहीं है। धन्यवाद, आपका दिन अच्छा रहे।
 
 *Romanised:* Namaste, main Saksham bol raha hoon. Aaj mausam bahut achha hai, toh socha abhi phone kar loon. Aap aaraam
