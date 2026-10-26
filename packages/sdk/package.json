@@ -21,7 +21,8 @@
     "test:unit": "vitest run --coverage"
   },
   "dependencies": {
-    "@halyn/shared": "workspace:*"
+    "@halyn/shared": "workspace:*",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "catalog:",

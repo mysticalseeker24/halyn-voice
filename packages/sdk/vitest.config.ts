@@ -6,9 +6,9 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.test.ts'],
-      // docs/TESTING.md: ≥ 80% outside the pure core (Step 3 raises the SDK to 95%).
-      thresholds: { lines: 80, branches: 80, functions: 80, statements: 80 },
+      exclude: ['src/**/*.test.ts', 'src/__fixtures__/**'],
+      // PROMPTS.md Step 3: the SDK a bank installs is held to the pure-module bar.
+      thresholds: { lines: 95, branches: 95, functions: 95, statements: 95 },
     },
   },
 });
