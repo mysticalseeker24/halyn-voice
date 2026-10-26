@@ -20,8 +20,11 @@ export type VerifyGrantResult =
 export interface VerifyGrantOptions {
   /** Halyn's public JWKS: the object, or the JSON string from an env var. */
   jwks: unknown;
-  /** The action this route performs; a grant for any other action is invalid. */
-  expectedAction: ActionId;
+  /**
+   * The action this route performs, or the list when one route serves several (e.g. `POST /core/transfers`); a grant
+   * for any other action is invalid. The verified action is `claims.action`.
+   */
+  expectedAction: ActionId | readonly ActionId[];
   /** The exact params about to be executed; their canonical SHA-256 must equal the grant's params_hash. */
   params: unknown;
   /** Current time in epoch milliseconds (`Date.now()`). */
@@ -75,7 +78,9 @@ export async function verifyGrant(
   const parsed = GrantClaimsSchema.safeParse(jws.payload);
   if (!parsed.success) return fail('E_GRANT_INVALID');
   const claims = parsed.data;
-  if (claims.action !== options.expectedAction) return fail('E_GRANT_INVALID');
+  const expected: readonly ActionId[] =
+    typeof options.expectedAction === 'string' ? [options.expectedAction] : options.expectedAction;
+  if (!expected.includes(claims.action)) return fail('E_GRANT_INVALID');
   if (options.expectedSub !== undefined && claims.sub !== options.expectedSub) return fail('E_GRANT_INVALID');
   if (options.expectedTenant !== undefined && claims.tenant !== options.expectedTenant)
     return fail('E_GRANT_INVALID');

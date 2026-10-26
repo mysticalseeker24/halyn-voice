@@ -34,6 +34,10 @@ of `params` equals `params_hash`. Nothing in the payload is trusted before the s
 **Single use is yours.** The grant's `jti` must be recorded atomically with the write (Aero Core inserts it into its
 D1 `used_grants` table in the same batch), so a replayed grant fails with `E_GRANT_REUSED`.
 
+**One route, several actions.** `expectedAction` also takes a list, for a route that executes more than one action
+(Aero Core's `POST /core/transfers` serves `transfer.saved`, `transfer.new_payee` and `wire.new`). The grant's signed
+`claims.action` must be in the list, and it tells you which one to run; an empty list accepts nothing.
+
 **So is the customer.** Params identify a resource only within one customer (a card's last 4 digits are not unique),
 so act on the accounts of `grant.claims.sub`, or pass `expectedSub` (and `expectedTenant` if one core serves several
 Halyn tenants) and a grant issued for anyone else is `E_GRANT_INVALID`.

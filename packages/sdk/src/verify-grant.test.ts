@@ -145,6 +145,30 @@ describe('verifyGrant', () => {
       });
     });
 
+    it('a route serving several actions accepts any of them, and only those', async () => {
+      const { k, c, token } = await setup();
+      const transfers = ['transfer.saved', 'transfer.new_payee', 'wire.new'] as const;
+      expect(
+        await verifyGrant(token, {
+          ...OPTS,
+          jwks: k.jwks,
+          expectedAction: ['transfer.saved', 'card.freeze'],
+        }),
+      ).toEqual({ ok: true, jti: c.jti, claims: c });
+      expect(await verifyGrant(token, { ...OPTS, jwks: k.jwks, expectedAction: transfers })).toEqual({
+        ok: false,
+        code: 'E_GRANT_INVALID',
+      });
+    });
+
+    it('an empty action list accepts nothing (fail closed)', async () => {
+      const { k, token } = await setup();
+      expect(await verifyGrant(token, { ...OPTS, jwks: k.jwks, expectedAction: [] })).toEqual({
+        ok: false,
+        code: 'E_GRANT_INVALID',
+      });
+    });
+
     it.each([
       ['another audience', { aud: 'halyn-api' }],
       ['another issuer', { iss: 'mallory' }],
