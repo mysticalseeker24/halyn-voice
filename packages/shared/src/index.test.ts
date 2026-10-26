@@ -19,6 +19,16 @@ describe('@halyn/shared public surface', () => {
     'ProposeActionRequestSchema',
     'OutcomeEventSchema',
     'WsMessageSchema',
+    'newUlid',
+    'newId',
+    'paramsHash',
+    'signCompactJws',
+    'verifyCompactJws',
+    'importSigningKey',
+    'importVerifyKeys',
+    'maskDeep',
+    'verifyLedgerChain',
+    'ledgerHash',
   ])('exports %s', (name) => {
     expect(shared).toHaveProperty(name);
   });
