@@ -71,6 +71,14 @@ trimmed to the last 5, 300 chars each. `verify_pass` accepts spoken codes ("4 7 
 | `request_id` | the `action_requests` id (`req_…`) |
 | `iat` · `exp` | Unix seconds, `0 < exp − iat ≤ 120` (invariant 1) |
 
+Halyn signs with `signGrant` (`apps/api/src/grants`, default lifetime 60 s). Aero Core verifies with
+`@halyn/sdk.verifyGrant`, in this order: present (`E_GRANT_MISSING`) → JWS is EdDSA, `typ: halyn-grant+jwt`, known
+`kid`, valid signature → claims schema (`iss`, `aud`, version, lifetime) → action equals the route's → `sub` / `tenant`
+equal `expectedSub` / `expectedTenant` when given → `iat` at most 5 s in the future (all `E_GRANT_INVALID`) → not
+expired, no leeway (`E_GRANT_EXPIRED`) → params hash (`E_PARAMS_MISMATCH`). `E_GRANT_REUSED` is Aero Core's own
+check: insert the `jti` into `used_grants` atomically with the write. Params name a resource only within one customer
+(a card's last 4 digits are not unique), so Aero Core acts on `claims.sub`'s accounts or passes `expectedSub`.
+
 **Canonical JSON** (`packages/shared/src/canonical-json.ts`) is what every hash and signature covers: keys sorted by
 UTF-16 code units at every depth, no whitespace, numbers and strings exactly as `JSON.stringify` writes them;
 anything that is not plain JSON data (NaN, Infinity, BigInt, Dates, class instances, cycles) fails closed.

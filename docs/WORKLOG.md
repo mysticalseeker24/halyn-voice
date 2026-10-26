@@ -2,6 +2,26 @@
 
 Newest at the top. One entry per session via `/handoff`: what changed, tests run (with counts), what's next, anything risky.
 
+## 2026-10-26 · Step 3 — grants, ledger, Pass core, SDK
+- Shared (one implementation, ADR-012): `crypto.ts` (SHA-256, strict base64url, constant-time compare, params hash,
+  Ed25519 JWK/JWKS import, EdDSA compact JWS that checks alg/typ/kid and the signature before parsing claims),
+  `newUlid`/`newId`, `Rng`, `mask.ts` (phone/card/account numbers incl. spaced, dashed and Devanagari forms → last 4),
+  `ledger.ts` (entry schema and types, hash chain from a zero genesis, `verifyLedgerChain` with optional anchor).
+- api: `grants/signGrant` (exact params hash, 1–120 s, ULID jti), `ledger/nextLedgerEntry` (masked payload),
+  `pass/` (issue rejects critical / unoffered / non-eligible scopes; sign/verify tokens; code mint by rejection
+  sampling, pepper hash, 5 min, bound number; verify single use, tenant-bound, cumulative failures, lock at 5;
+  revoke), `platform/crypto-rng.ts` (the only `getRandomValues`).
+- sdk: `verifyGrant` (missing / invalid / expired / params mismatch, optional sub and tenant binding),
+  `verifyLedger`, `proposeAction`, README with a 10-line Aero Core route. `pnpm keys:generate` writes JWK + JWKS to
+  `scripts/out/keys` (git-ignored) and never prints the private key.
+- test-engineer pass: invariant map, 6 mutations all caught; bugs fixed test-first — JWKS accepted a private `d`,
+  masking missed real number formats, Pass-code verify had no tenant binding; gaps closed — ledger anchor (re-chain /
+  truncation), `verifyGrant` sub/tenant binding, batched ledger hashing (~210 ms / 10 000 entries).
+- Fixed a lint race: tsup/Vite temp config files (`*.bundled_*.mjs`, `*.timestamp-*.mjs`) are now ignored.
+- Tests (`pnpm verify`, cache bypassed): lint ✓, typecheck ✓, unit: shared 564 (100/99.7), api 479 (grants, ledger,
+  pass, platform 100; gate 99.2), sdk 46 (100), tooling 22, web 2, aero-core 1; int 5; scenarios 1; build ✓.
+- Next: commit + push after go-ahead; Step 4 (Day-0 calls) needs the calling window and a wallet check.
+
 ## 2026-10-26 · Step 2 — the Gate, lexicons, action catalog
 - `docs/ACTIONS.md`: every action's params, kind, money/critical flags, tier per region, Aero Core route, scenarios;
   a contract test checks it against code and both packs (verified by mutating the doc). No input needed from Saksham:

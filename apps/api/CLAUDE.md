@@ -12,9 +12,10 @@ src/hub/                HubDO: WebSockets (Hibernation API), alarms (confirm tim
 src/gate/               PURE: decide(), resolveStepUp(), toDecision(), input schemas  (≥95% coverage, property tests)
 src/signals/            coaching-lexicon.ts + distress-lexicon.ts (PURE keyword layers, ≥95%); later: unregistered
                         number, bursts, unusual hour, velocity, Sarvam coaching LLM (1.5 s budget, I/O)
-src/pass/               issue, sign, code mint/verify, revoke  (≥95%)
-src/grants/             sign grant (Ed25519 via WebCrypto), params hash  (≥95%)
-src/ledger/             canonical entry, hash, verify  (≥95%)
+src/pass/               PURE: issue, sign/verify token, code mint/verify (rows in, updates out), revoke  (≥95%)
+src/grants/             PURE: signGrant (Ed25519 via @halyn/shared crypto, params hash, jti)  (≥95%)
+src/ledger/             PURE: nextLedgerEntry (masked payload, chain hash), verifyLedger  (≥95%)
+src/platform/           runtime adapters for pure modules: cryptoRng (the only getRandomValues call)
 src/confirm/            orchestration: passkey prompt + Bolna callback, first answer wins
 src/bolna/              REST client: events, outbound calls, executions (typed, mocked in tests)
 src/core-client/        calls Aero Core with x-halyn-grant

@@ -1,11 +1,11 @@
 # STATE — read at the start of every session, update at the end (`/handoff`)
 
-_Last updated: 2026-10-26 by the Step 2 session (Gate)._
+_Last updated: 2026-10-26 by the Step 3 session (grants, ledger, Pass, SDK)._
 
 ## Where we are
-- Phase: **Step 2 done locally** (the Gate + coaching/distress lexicons, test-first, then a test-engineer pass).
-  `pnpm verify` green; api 391 unit tests, `src/gate` 99.2% statements / 99.2% branches, lexicons 100%. Every
-  scenario's Gate decision and `reasons_include` match. Not yet committed. Steps 0 and 1 are on `main`, CI green.
+- Phase: **Step 3 done locally** (grants, ledger, Pass core, `@halyn/sdk`, keys:generate; api-builder then a
+  test-engineer security pass). `pnpm verify` green; grants/ledger/pass/sdk 100% coverage, shared 100/99.7, gate 99.2.
+  Not yet committed. Steps 0–2 are on `main`, CI green.
 - Tier target: Tier 1 (scenarios 1, 2, 3 end to end) by **Mon Oct 26, night**.
 - Freeze: **Wed Oct 28, 23:59 IST**. Video Oct 29. Post Oct 30. Submit Oct 31.
 
@@ -65,7 +65,16 @@ _Last updated: 2026-10-26 by the Step 2 session (Gate)._
 | 12 Velocity split | ☐ | — | text only |
 
 ## Next step
-Commit + push Step 2, then **Step 3** in `PROMPTS.md`: grants, ledger, Pass core and `@halyn/sdk` (WebCrypto).
+Commit + push Step 3 (after Saksham's go-ahead), then **Step 4** in `PROMPTS.md`: 📞 Day-0 checks (`/day0-checks`,
+09:00–21:00 IST, wallet check and go-ahead before any call). Steps 5–7 can follow without calls.
+
+## Carry into Steps 5–13 (found in Step 3)
+- No Halyn signing keys exist yet: run `pnpm keys:generate halyn-2026-10` before Step 5/8 and load them as secrets
+  (the CLI prints the `wrangler secret put` commands; it never prints the private key).
+- `verify_pass` handler: pass the call's `tenant_id` to `verifyPassCode` and answer only `{valid:false}` (never the
+  internal reason). `/web/ledger/verify`: anchor to the Hub's `ledger_head` and verify incrementally (ADR-012).
+- Aero Core (Step 6): call `verifyGrant` with `expectedSub`/`expectedTenant` and act only on `claims.sub`'s accounts;
+  jti single use stays in the same D1 batch as the write.
 
 ## Carry into Steps 5–7 (found by the Step 2 test-engineer)
 - With proof `app_session`, check `caller.app_session_customer_id === customer_id` before calling the Gate.
