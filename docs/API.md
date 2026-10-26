@@ -11,6 +11,19 @@ Base: Halyn API Worker. All bodies JSON, validated with Zod schemas from `packag
 | `/core/*` (Aero Core Worker) | Valid Halyn grant in `x-halyn-grant`; else 401 `E_GRANT_MISSING` / `E_GRANT_INVALID` / `E_GRANT_EXPIRED` / `E_GRANT_REUSED` / `E_PARAMS_MISMATCH` |
 | `/ws` (Hub) | Session token as query param, role tag |
 
+Details (Step 5, `apps/api/src/auth`):
+- **Bolna guard:** both checks always run; a wrong IP, a missing or wrong secret, or no credentials all get the same
+  401 `{"error":{"code":"E_UNAUTHORIZED","message":"Unauthorized"}}`. Unconfigured → 500 `E_FAIL_CLOSED`.
+- **Sessions:** `POST /web/session` (`{kind:"customer", customer_id}` or `{kind:"console"}`; when `DEMO_ACCESS_CODE` is set,
+  header `x-demo-code` too) returns `{token, tenant_id, kind, customer_id, expires_at}`. The token is a compact JWS
+  (HS256 with `SESSION_SECRET`, `typ: halyn-session+jwt`, ≤ 12 h): a different key and algorithm from grants and Passes,
+  so a session can never pass as either. The tenant always comes from the token. `GET /web/me` returns the session.
+- **WebSocket:** `GET /ws?token=<session>&role=<role>` (browsers can't set headers on a WebSocket; the query string is
+  never logged). Customers may listen as `aero` or `assistant`, console users as `stage` or `console`; anything else is 401.
+- **Errors:** 400 `E_BAD_REQUEST` (validation, with the message), 401 `E_UNAUTHORIZED`, 404 `E_NOT_FOUND`, 500
+  `E_FAIL_CLOSED` (never with internal detail). Every request writes one masked JSON log line (path only).
+- **Health:** `GET /health` → `{ok:true, service:"halyn-api"}`, no secrets or database needed.
+
 ## Bolna-facing tools
 | Endpoint | Request | Response (≤ 300 ms) |
 |---|---|---|

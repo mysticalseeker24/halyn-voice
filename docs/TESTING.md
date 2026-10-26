@@ -8,7 +8,7 @@ spending call minutes. Real calls are the last layer, not the first.
 |---|---|---|---|
 | Unit | Vitest | Pure logic: Gate, policy compile, money, canonical JSON, reason codes, coaching lexicon, Pass codes, grant sign/verify, ledger hashing | `**/*.test.ts` next to code |
 | Property | fast-check | Invariants: monotonic signals, coaching never step-up, critical never via Pass, readback false never allow, determinism, ledger tamper detection, grant params binding | `*.prop.test.ts` |
-| Worker integration | `@cloudflare/vitest-plugin` (formerly `vitest-pool-workers`; Miniflare: Worker, Durable Object, D1, KV, R2) + TiDB dev branch (or a local MySQL container) | Routes, auth (IP + secret), Hub ordering, alarms/timeouts, idempotency, Aero Core grant enforcement | `apps/*/test/int` |
+| Worker integration | `@cloudflare/vitest-plugin` (formerly `vitest-pool-workers`; Miniflare: Worker, Durable Object, D1, KV, R2) + the gated TiDB suite on `halyn_test` (ADR-013) | Routes, auth (IP + secret), Hub ordering, alarms/timeouts, idempotency, Aero Core grant enforcement | `apps/*/test/int` |
 | Contract | Recorded Bolna payloads (`tests/fixtures/bolna/*.json`) + Zod | Tool requests, webhook payloads, event bodies we send; a schema change in Bolna fails here first | `apps/api/test/contract` |
 | Scenario acceptance | Halyn Test runner, text mode | All 12 scenarios end to end through real Halyn code; Bolna and customer answers simulated from `scenarios.yaml` | `pnpm test:scenarios` |
 | UI component | Vitest + Testing Library | Approval sheet, Pass card, decision badges (colour + word) | `apps/web` |
