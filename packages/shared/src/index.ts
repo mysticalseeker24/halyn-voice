@@ -3,6 +3,7 @@
 export * from './actions';
 export * from './api';
 export * from './canonical-json';
+export * from './clock';
 export * from './decision';
 export * from './errors';
 export * from './events';

@@ -130,6 +130,23 @@ describe('parseActionParams', () => {
     expect(parsed.ok).toBe(false);
     if (!parsed.ok) expect(parsed.error.length).toBeGreaterThan(0);
   });
+
+  // A JSON body may carry an own "__proto__" key; Zod object/record parsing assigns it as the prototype, so the key
+  // vanishes and its fields become inherited (params.admin === true). Strict params must reject it instead.
+  it('rejects an own "__proto__" key from a JSON body', () => {
+    const params = JSON.parse('{"card_last4":"8812","__proto__":{"admin":true}}') as unknown;
+    expect(parseActionParams('card.freeze', params).ok).toBe(false);
+  });
+
+  it('rejects params whose prototype is not a plain object (what an earlier record parse leaves behind)', () => {
+    const params = Object.assign(Object.create({ admin: true }) as object, { card_last4: '8812' });
+    expect(parseActionParams('card.freeze', params).ok).toBe(false);
+  });
+
+  it('accepts a null-prototype object', () => {
+    const params = Object.assign(Object.create(null) as object, { card_last4: '8812' });
+    expect(parseActionParams('card.freeze', params).ok).toBe(true);
+  });
 });
 
 describe('actionAmount', () => {

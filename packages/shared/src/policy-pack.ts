@@ -95,6 +95,8 @@ export const PolicyPackSchema = z
         if (action.read) at('read', 'an action is protective or read, not both');
       }
       if (action.read && movesMoney(id)) at('read', 'a money-moving action is not a read');
+      if (action.tier === 0 && !action.read && !action.protective)
+        at('tier', 'tier 0 is only for reads and protective actions (GATE.md clarification 2)');
       if (!carriesAmount(id)) {
         if (action.limit?.amount_minor !== undefined)
           at('limit', 'amount limit on an action without an amount');
@@ -188,6 +190,8 @@ export const CompiledPolicyPackSchema = z
         at('pass_eligible', 'critical actions can never be in a Pass (invariant 5)');
       if (action.protective && (action.tier !== 0 || action.read || action.moves_money))
         at('protective', 'protective actions are tier 0, not reads and never move money');
+      if (action.tier === 0 && !action.read && !action.protective)
+        at('tier', 'tier 0 is only for reads and protective actions (GATE.md clarification 2)');
     }
   });
 export type CompiledPolicyPack = z.infer<typeof CompiledPolicyPackSchema>;

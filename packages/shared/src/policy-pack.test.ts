@@ -67,6 +67,10 @@ const INVALID: [string, Mutation][] = [
     (p) => void (p.actions['fee.waive'] = { tier: 1, limit: { per: 'year' }, pass_eligible: true }),
   ],
   ['tier 5', (p) => void (p.actions['fee.waive'] = { tier: 5, pass_eligible: true })],
+  [
+    'a tier-0 write that is neither read nor protective (GATE.md clarification 2)',
+    (p) => void (p.actions['card.reset_pin'] = { tier: 0, pass_eligible: false }),
+  ],
   ['duplicate confirm channels', (p) => void (p.confirm.channels = ['passkey', 'passkey'])],
   ['an unknown confirm channel', (p) => void (loose(p).confirm!.channels = ['sms'])],
   ['an unknown action', (p) => void (loose(p).actions!['card.melt'] = { tier: 0, pass_eligible: false })],
@@ -185,6 +189,7 @@ describe('compilePolicyPack', () => {
     ['a money-moving action marked not moving money', 'transfer.saved', { moves_money: false }],
     ['a human-only critical action marked not critical', 'account.close', { critical: false }],
     ['a protective action above tier 0', 'card.freeze', { tier: 2 }],
+    ['a tier-0 write that is neither read nor protective', 'card.reset_pin', { tier: 0 }],
   ])('rejects a tampered compiled pack: %s', (_, action, patch) => {
     const bad = structuredCloneJson(compiled) as { actions: Record<string, Record<string, unknown>> };
     Object.assign(bad.actions[action]!, patch);

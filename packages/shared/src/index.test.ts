@@ -4,6 +4,7 @@ import * as shared from './index';
 describe('@halyn/shared public surface', () => {
   it.each([
     'HalynError',
+    'fixedClock',
     'REASON_CODES',
     'UlidSchema',
     'REGION_CURRENCY',
