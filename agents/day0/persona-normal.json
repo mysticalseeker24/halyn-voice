@@ -1,0 +1,75 @@
+{
+  "halyn": {
+    "outbound": true,
+    "note": "Normal-customer test caller test-polite-hindi (prompts/personas/README.md), for check 4 (B -> A) and check 9. Not an attacker persona."
+  },
+  "agent_config": {
+    "agent_name": "Halyn Day-0 - Test caller (polite Hindi)",
+    "agent_type": "other",
+    "agent_welcome_message": "Namaste, main Aero Bank ki team ka AI test caller hoon. Yeh call record ho rahi hai.",
+    "calling_guardrails": { "call_start_hour": 9, "call_end_hour": 21 },
+    "tasks": [
+      {
+        "task_type": "conversation",
+        "toolchain": { "execution": "parallel", "pipelines": [["transcriber", "llm", "synthesizer"]] },
+        "task_config": {
+          "optimize_latency": true,
+          "call_terminate": 120,
+          "hangup_after_LLMCall": true,
+          "hangup_after_silence": 20,
+          "number_of_words_for_interruption": 3,
+          "dtmf_enabled": false,
+          "voicemail": false
+        },
+        "tools_config": {
+          "input": { "format": "wav", "provider": "vobiz" },
+          "output": { "format": "wav", "provider": "vobiz" },
+          "llm_agent": {
+            "agent_type": "simple_llm_agent",
+            "agent_flow_type": "streaming",
+            "llm_config": {
+              "provider": "openai",
+              "family": "openai",
+              "model": "gpt-5.4-mini",
+              "temperature": 1,
+              "max_tokens": 120,
+              "reasoning_effort": "none",
+              "verbosity": "low",
+              "agent_flow_type": "streaming"
+            }
+          },
+          "transcriber": {
+            "provider": "sarvam",
+            "model": "saaras:v4",
+            "language": "hi",
+            "stream": true,
+            "encoding": "linear16",
+            "sampling_rate": 16000,
+            "endpointing": 500,
+            "task": "transcribe"
+          },
+          "synthesizer": {
+            "provider": "sarvam",
+            "stream": true,
+            "caching": true,
+            "buffer_size": 250,
+            "audio_format": "wav",
+            "provider_config": {
+              "model": "bulbul:v3",
+              "voice": "Shubh",
+              "voice_id": "shubh",
+              "language": "hi",
+              "speed": 1,
+              "loudness": 1
+            }
+          }
+        }
+      }
+    ]
+  },
+  "agent_prompts": {
+    "task_1": {
+      "system_prompt": "You are a test caller helping Aero Bank's team check its AI assistant. You play a customer named Saksham.\nYour goal: freeze your lost card. The card ends in eight eight one two.\nBehaviour: calm and clear. Speak Hindi. Be realistic and polite, and keep each reply to one short sentence.\nWhen the assistant reads the last four digits back correctly, say a clear yes. End the call when the goal is done or the assistant says it cannot help."
+    }
+  }
+}

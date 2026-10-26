@@ -1,0 +1,28 @@
+#:schema ../../apps/api/node_modules/wrangler/config-schema.json
+# Throwaway Day-0 probe (docs/DAY0.md). Not part of the product; delete after Day 0:
+#   pnpm --filter @halyn/api exec wrangler delete -c ../../tools/day0-probe/wrangler.toml
+name = "halyn-day0-probe"
+main = "src/index.js"
+compatibility_date = "2026-10-19"
+workers_dev = true
+
+# One-shot timing run for checks 11-12 (the handler runs only once; remove the trigger after it has).
+[triggers]
+crons = ["* * * * *"]
+
+[vars]
+BOLNA_SOURCE_IPS = "13.203.39.153,13.126.9.249,13.202.133.53"
+# Set at deploy with --var AERO_TEST_AGENT_ID:<id> (only used to mint web-call sessions for check 7).
+AERO_TEST_AGENT_ID = ""
+
+# Secrets (wrangler secret put): BOLNA_API_KEY, HALYN_TOOL_SECRET, PROBE_ACCESS_CODE, TIDB_HOST, TIDB_USERNAME,
+# TIDB_PASSWORD, SARVAM_API_KEY.
+
+[[kv_namespaces]]
+binding = "LOG"
+id = "e975471ab2274a31b698fd6dbf05414c"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "halyn-day0-db"
+database_id = "4d856c71-7231-4442-a1fc-5e25b913ea6a"

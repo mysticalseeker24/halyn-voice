@@ -1,0 +1,111 @@
+{
+  "halyn": {
+    "outbound": true,
+    "note": "Day-0 test version of the Halyn Confirm agent (checks 1, 6, 9), from prompts/confirm-agent.md. Keypad test: Bolna's docs list DTMF as not supported on Vobiz, so speech is the expected path; dtmf_enabled is on to confirm it either way."
+  },
+  "agent_config": {
+    "agent_name": "Halyn Day-0 - Confirm test",
+    "agent_type": "other",
+    "agent_welcome_message": "Namaste {{customer_name}}, this is Aero Bank's automated security confirmation, an AI assistant. This call is recorded.",
+    "calling_guardrails": { "call_start_hour": 9, "call_end_hour": 21 },
+    "tasks": [
+      {
+        "task_type": "conversation",
+        "toolchain": { "execution": "parallel", "pipelines": [["transcriber", "llm", "synthesizer"]] },
+        "task_config": {
+          "optimize_latency": true,
+          "call_terminate": 120,
+          "hangup_after_LLMCall": true,
+          "hangup_after_silence": 20,
+          "number_of_words_for_interruption": 2,
+          "dtmf_enabled": true,
+          "voicemail": false
+        },
+        "tools_config": {
+          "input": { "format": "wav", "provider": "vobiz" },
+          "output": { "format": "wav", "provider": "vobiz" },
+          "api_tools": {
+            "tools": [
+              {
+                "key": "custom_task",
+                "name": "confirm_result",
+                "description": "Record the customer's answer to the confirmation: approve or decline.",
+                "pre_call_message": "",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "answer": { "type": "string", "description": "approve or decline" },
+                    "method": { "type": "string", "description": "speech or keypad" },
+                    "request_id": {
+                      "type": "string",
+                      "description": "The request id. Filled automatically."
+                    },
+                    "run_id": { "type": "string", "description": "Call id. Filled automatically." }
+                  },
+                  "required": ["answer", "method"]
+                }
+              }
+            ],
+            "tools_params": {
+              "confirm_result": {
+                "url": "{{PROBE_URL}}/tools/confirm_result",
+                "method": "POST",
+                "headers": { "x-halyn-secret": "{{HALYN_TOOL_SECRET}}" },
+                "param": {
+                  "answer": "%(answer)s",
+                  "method": "%(method)s",
+                  "request_id": "%(request_id)s",
+                  "run_id": "%(execution_id)s"
+                }
+              }
+            }
+          },
+          "llm_agent": {
+            "agent_type": "simple_llm_agent",
+            "agent_flow_type": "streaming",
+            "llm_config": {
+              "provider": "openai",
+              "family": "openai",
+              "model": "gpt-5.4-mini",
+              "temperature": 1,
+              "max_tokens": 150,
+              "reasoning_effort": "none",
+              "verbosity": "low",
+              "agent_flow_type": "streaming"
+            }
+          },
+          "transcriber": {
+            "provider": "sarvam",
+            "model": "saaras:v4",
+            "language": "hi",
+            "stream": true,
+            "encoding": "linear16",
+            "sampling_rate": 16000,
+            "endpointing": 500,
+            "task": "transcribe"
+          },
+          "synthesizer": {
+            "provider": "sarvam",
+            "stream": true,
+            "caching": true,
+            "buffer_size": 250,
+            "audio_format": "wav",
+            "provider_config": {
+              "model": "bulbul:v3",
+              "voice": "Priya",
+              "voice_id": "priya",
+              "language": "hi",
+              "speed": 1,
+              "loudness": 1
+            }
+          }
+        }
+      }
+    ]
+  },
+  "agent_prompts": {
+    "task_1": {
+      "system_prompt": "You are Aero Bank's automated security confirmation assistant. You are calling the customer on their registered phone to confirm one request made a moment ago. This is a test call by Aero Bank's own team.\n1. Read the request exactly: \"{{action_summary}}\".\n2. Ask: \"Did you make this request? Say yes, or press 1 and then the hash key, to approve. Say no, or press 2 and then the hash key, to decline.\"\n3. When you hear a clear yes, call confirm_result with answer approve and method speech. For a clear no, call confirm_result with answer decline and method speech. When you receive a message starting with \"dtmf_number:\", 1 means approve and 2 means decline; call confirm_result with method keypad. If the answer is unclear, ask once more; if it is still unclear, call confirm_result with answer decline.\n4. Then say \"Thank you, your choice is recorded\" and end the call.\nNever ask for an OTP, PIN, password or any account details. Never transfer the call. Reply in {{language}}. The request id is {{request_id}}."
+    }
+  }
+}

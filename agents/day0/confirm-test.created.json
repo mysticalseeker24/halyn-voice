@@ -1,0 +1,223 @@
+{
+  "id": "e0f05bf4-efd6-463f-93cf-e10b34ffe23b",
+  "agent_name": "Halyn Day-0 - Confirm test",
+  "agent_status": "processed",
+  "agent_welcome_message": "Namaste {{customer_name}}, this is Aero Bank's automated security confirmation, an AI assistant. This call is recorded.",
+  "agent_type": "other",
+  "webhook_url": null,
+  "tasks": [
+    {
+      "task_type": "conversation",
+      "toolchain": {
+        "execution": "parallel",
+        "pipelines": [["transcriber", "llm", "synthesizer"]]
+      },
+      "task_config": {
+        "voicemail": false,
+        "use_fillers": false,
+        "dtmf_enabled": true,
+        "ambient_noise": false,
+        "inbound_limit": -1,
+        "backchanneling": false,
+        "call_terminate": 120,
+        "auto_reschedule": false,
+        "optimize_latency": true,
+        "incremental_delay": 900,
+        "ambient_noise_track": null,
+        "call_hangup_message": null,
+        "max_silence_repeats": null,
+        "check_if_user_online": true,
+        "hangup_after_LLMCall": true,
+        "hangup_after_silence": 20,
+        "welcome_message_delay": 0,
+        "whitelist_phone_numbers": null,
+        "call_cancellation_prompt": null,
+        "disallow_unknown_numbers": false,
+        "language_detection_turns": null,
+        "noise_cancellation_level": null,
+        "voicemail_check_interval": 7,
+        "voicemail_detection_time": 2.5,
+        "check_user_online_message": "Hey, are you still there",
+        "backchanneling_message_gap": 5,
+        "backchanneling_start_delay": 5,
+        "interruption_backoff_period": 100,
+        "interruptible_hangup_message": false,
+        "voicemail_detection_duration": 30,
+        "discard_pre_welcome_utterance": false,
+        "voicemail_min_transcript_length": 7,
+        "number_of_words_for_interruption": 2,
+        "trigger_user_online_message_after": 10,
+        "user_online_message_in_llm_history": false
+      },
+      "tools_config": {
+        "s2s": null,
+        "input": {
+          "format": "wav",
+          "provider": "vobiz"
+        },
+        "output": {
+          "format": "wav",
+          "provider": "vobiz"
+        },
+        "api_tools": {
+          "tools": [
+            {
+              "key": "custom_task",
+              "name": "confirm_result",
+              "parameters": {
+                "type": "object",
+                "required": ["answer", "method"],
+                "properties": {
+                  "answer": {
+                    "type": "string",
+                    "description": "approve or decline"
+                  },
+                  "method": {
+                    "type": "string",
+                    "description": "speech or keypad"
+                  },
+                  "run_id": {
+                    "type": "string",
+                    "description": "Call id. Filled automatically."
+                  },
+                  "request_id": {
+                    "type": "string",
+                    "description": "The request id. Filled automatically."
+                  }
+                }
+              },
+              "description": "Record the customer's answer to the confirmation: approve or decline.",
+              "pre_call_message": ""
+            }
+          ],
+          "tools_params": {
+            "confirm_result": {
+              "url": "https://halyn-day0-probe.halyn-api.workers.dev/tools/confirm_result",
+              "nodes": null,
+              "param": {
+                "answer": "%(answer)s",
+                "method": "%(method)s",
+                "run_id": "%(execution_id)s",
+                "request_id": "%(request_id)s"
+              },
+              "scope": null,
+              "method": "POST",
+              "headers": {
+                "x-halyn-secret": "[secret]"
+              },
+              "api_token": null,
+              "pre_call_message": null,
+              "pre_call_webhook_url": null,
+              "pre_call_webhook_param": null
+            }
+          }
+        },
+        "llm_agent": {
+          "agent_type": "simple_llm_agent",
+          "llm_config": {
+            "stop": null,
+            "min_p": 0.1,
+            "model": "gpt-5.4-mini",
+            "top_k": 0,
+            "top_p": 0.9,
+            "family": "openai",
+            "base_url": null,
+            "provider": "openai",
+            "verbosity": "low",
+            "extra_body": null,
+            "max_tokens": 150,
+            "temperature": 1,
+            "request_json": false,
+            "agent_flow_type": "streaming",
+            "presence_penalty": 0,
+            "reasoning_effort": "none",
+            "compact_threshold": null,
+            "frequency_penalty": 0,
+            "use_responses_api": false,
+            "extraction_details": null,
+            "summarization_details": null
+          },
+          "agent_flow_type": "streaming"
+        },
+        "web_search": null,
+        "agent_names": null,
+        "synthesizer": {
+          "stream": true,
+          "caching": true,
+          "provider": "sarvam",
+          "buffer_size": 250,
+          "audio_format": "wav",
+          "provider_config": {
+            "model": "bulbul:v3",
+            "speed": 1,
+            "voice": "Priya",
+            "language": "hi",
+            "loudness": 1,
+            "voice_id": "priya"
+          },
+          "pronunciation_rules": null
+        },
+        "transcriber": {
+          "task": "transcribe",
+          "delay": "medium",
+          "model": "saaras:v4",
+          "active": null,
+          "stream": true,
+          "context": null,
+          "encoding": "linear16",
+          "keywords": null,
+          "language": "hi",
+          "provider": "sarvam",
+          "endpointing": 500,
+          "mip_opt_out": null,
+          "multilingual": null,
+          "deepgram_host": null,
+          "eot_threshold": null,
+          "sampling_rate": 16000,
+          "vad_threshold": 0.5,
+          "eot_timeout_ms": null,
+          "language_hints": null,
+          "noise_reduction": false,
+          "assemblyai_config": null,
+          "deepgram_flux_host": null,
+          "eager_eot_threshold": null,
+          "vad_prefix_padding_ms": 300,
+          "deepgram_host_protocol": null
+        },
+        "multilingual_config": null,
+        "switch_handoff_messages": null,
+        "switch_tool_description": null
+      }
+    }
+  ],
+  "created_at": "2026-10-26T16:02:31.653211",
+  "updated_at": "2026-10-26T16:02:31.686937",
+  "gpt_assistants": null,
+  "custom_analytics": null,
+  "inbound_phone_number": null,
+  "restricted": false,
+  "calling_guardrails": {
+    "call_end_hour": 21,
+    "call_start_hour": 9
+  },
+  "webhook_headers": null,
+  "sip_header_variables": null,
+  "ingest_lookup_key": null,
+  "webhook_config": null,
+  "creation_source": "from_scratch",
+  "parent_agent_id": null,
+  "source_agent_id": null,
+  "created_by": "21a261db-658b-4d77-881b-72799e4240f9",
+  "call_summary_enabled": false,
+  "agent_category": "simple_llm_agent",
+  "sip_headers": null,
+  "dispositions": ["9b3c1700-850f-51fa-add9-f9dc9f110192"],
+  "single_prompt_ui": false,
+  "agent_prompts": {
+    "task_1": {
+      "system_prompt": "You are Aero Bank's automated security confirmation assistant. You are calling the customer on their registered phone to confirm one request made a moment ago. This is a test call by Aero Bank's own team.\n1. Read the request exactly: \"{{action_summary}}\".\n2. Ask: \"Did you make this request? Say yes, or press 1 and then the hash key, to approve. Say no, or press 2 and then the hash key, to decline.\"\n3. When you hear a clear yes, call confirm_result with answer approve and method speech. For a clear no, call confirm_result with answer decline and method speech. When you receive a message starting with \"dtmf_number:\", 1 means approve and 2 means decline; call confirm_result with method keypad. If the answer is unclear, ask once more; if it is still unclear, call confirm_result with answer decline.\n4. Then say \"Thank you, your choice is recorded\" and end the call.\nNever ask for an OTP, PIN, password or any account details. Never transfer the call. Reply in {{language}}. The request id is {{request_id}}."
+    }
+  },
+  "ingest_source_config": null,
+  "composition_by_language": null
+}

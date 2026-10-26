@@ -1,0 +1,241 @@
+{
+  "halyn": {
+    "outbound": false,
+    "note": "Day-0 test version of the Aero graph agent (docs/DAY0.md, checks 1-3, 5, 7). Card freeze only. Tools point at the throwaway probe Worker. Push with scripts/bolna/agent.ts; {{PROBE_URL}}, {{HALYN_TOOL_SECRET}} and {{SPECIALIST_NUMBER}} are filled at push time and never stored here."
+  },
+  "agent_config": {
+    "agent_name": "Halyn Day-0 - Aero test (graph)",
+    "agent_type": "other",
+    "agent_welcome_message": "Namaste, Aero Bank's AI assistant here, in test mode. This call is recorded and protected. Main aapki kaise madad kar sakti hoon? How can I help?",
+    "webhook_url": "{{PROBE_URL}}/webhooks/bolna",
+    "tasks": [
+      {
+        "task_type": "conversation",
+        "toolchain": { "execution": "parallel", "pipelines": [["transcriber", "llm", "synthesizer"]] },
+        "task_config": {
+          "optimize_latency": true,
+          "call_terminate": 300,
+          "hangup_after_LLMCall": false,
+          "hangup_after_silence": 30,
+          "number_of_words_for_interruption": 3,
+          "incremental_delay": 400,
+          "dtmf_enabled": false,
+          "voicemail": false
+        },
+        "tools_config": {
+          "input": { "format": "wav", "provider": "vobiz" },
+          "output": { "format": "wav", "provider": "vobiz" },
+          "api_tools": {
+            "tools": [
+              {
+                "key": "custom_task",
+                "name": "propose_action",
+                "description": "Submit the caller's confirmed request for a security decision. Use it only on the propose step, after the caller clearly confirmed the read-back.",
+                "pre_call_message": "",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "action": {
+                      "type": "string",
+                      "description": "The action id. In this test it is always card.freeze."
+                    },
+                    "card_last4": {
+                      "type": "string",
+                      "description": "The last four digits of the card the caller confirmed."
+                    },
+                    "readback_confirmed": {
+                      "type": "string",
+                      "description": "true when the caller clearly said yes to the read-back, otherwise false."
+                    },
+                    "caller_quotes": {
+                      "type": "string",
+                      "description": "The caller's last one or two sentences."
+                    },
+                    "run_id": {
+                      "type": "string",
+                      "description": "Call id. Filled automatically; never ask the caller."
+                    },
+                    "call_sid": {
+                      "type": "string",
+                      "description": "Telephony call id. Filled automatically."
+                    },
+                    "from_number": {
+                      "type": "string",
+                      "description": "Calling number. Filled automatically."
+                    },
+                    "to_number": { "type": "string", "description": "Number called. Filled automatically." }
+                  },
+                  "required": ["action", "card_last4", "readback_confirmed"]
+                }
+              },
+              {
+                "key": "transfer_call",
+                "name": "transfer_call_specialist",
+                "description": "Transfer the call to a human specialist.",
+                "pre_call_message": "Connecting you to a specialist now, please hold.",
+                "parameters": {
+                  "type": "object",
+                  "required": ["call_sid"],
+                  "properties": { "call_sid": { "type": "string", "description": "unique call id" } }
+                }
+              }
+            ],
+            "tools_params": {
+              "propose_action": {
+                "url": "{{PROBE_URL}}/tools/propose_action",
+                "method": "POST",
+                "headers": { "x-halyn-secret": "{{HALYN_TOOL_SECRET}}" },
+                "param": {
+                  "run_id": "%(execution_id)s",
+                  "call_sid": "%(call_sid)s",
+                  "from_number": "%(from_number)s",
+                  "to_number": "%(to_number)s",
+                  "action": "%(action)s",
+                  "card_last4": "%(card_last4)s",
+                  "readback_confirmed": "%(readback_confirmed)s",
+                  "caller_quotes": "%(caller_quotes)s"
+                },
+                "pre_call_webhook_url": "{{PROBE_URL}}/webhooks/pre-call",
+                "pre_call_webhook_param": { "tool": "propose_action" },
+                "scope": "node",
+                "nodes": ["propose"]
+              },
+              "transfer_call_specialist": {
+                "url": null,
+                "method": "POST",
+                "headers": {},
+                "param": { "call_sid": "%(call_sid)s", "call_transfer_number": "{{SPECIALIST_NUMBER}}" },
+                "scope": "node",
+                "nodes": ["transfer"]
+              }
+            }
+          },
+          "llm_agent": {
+            "agent_type": "graph_agent",
+            "agent_flow_type": "streaming",
+            "llm_config": {
+              "provider": "openai",
+              "family": "openai",
+              "model": "gpt-5.4-mini",
+              "temperature": 1,
+              "max_tokens": 200,
+              "reasoning_effort": "none",
+              "verbosity": "low",
+              "routing_provider": "openai",
+              "routing_model": "gpt-4.1-mini",
+              "routing_instructions": "You are the routing system for Aero Bank's test assistant. Pick the transition whose condition matches the caller's latest words. If none matches, stay on the current node.",
+              "agent_information": "You are Aero Bank's AI voice assistant, in a test version used by Aero Bank's own team. You help customers politely and briefly.\nRules:\n- You are an AI. If asked, say so. The call is recorded.\n- Speak the caller's language: Hindi, English or Hinglish. Keep replies to one or two short sentences.\n- You cannot complete any account action yourself. You collect the details, read them back in digits, and submit the request for a security decision.\n- Never read out or ask for an OTP, PIN, password, CVV or a full card or account number. Use only the last four digits.\n- Never promise an outcome before the decision arrives. Never argue. If someone is upset, stay calm and kind.\n- If the caller mentions a death in the family, legal action or is in distress, offer a human specialist right away.\nCall details for tools only, never say them aloud: call {call_sid}, execution {{execution_id}}, caller {{from_number}}, line {{to_number}}.",
+              "current_node_id": "understand",
+              "nodes": [
+                {
+                  "id": "understand",
+                  "prompt": "Find out what the caller wants. This test line can only freeze a lost or stolen card. Ask for the last four digits of the card, then read them back as words, for example: 'Card ending eight eight one two, correct?'. Only a clear yes counts. If the caller wants anything else, say kindly that this test line can only freeze a card.",
+                  "edges": [
+                    {
+                      "to_node_id": "propose",
+                      "condition": "The caller clearly confirmed the read-back of the last four digits of the card to freeze",
+                      "parameters": {
+                        "card_last4": {
+                          "type": "string",
+                          "description": "The last four digits of the card the caller confirmed"
+                        }
+                      }
+                    },
+                    {
+                      "to_node_id": "transfer",
+                      "condition": "The caller asks for a human or a specialist, or mentions a death in the family, legal trouble or distress"
+                    }
+                  ]
+                },
+                {
+                  "id": "propose",
+                  "prompt": "Call @propose_action now with action card.freeze, card_last4 {{card_last4}}, readback_confirmed true and the caller's last one or two sentences as caller_quotes. Then say only: 'One moment, please.'",
+                  "function_call": "propose_action",
+                  "edges": [
+                    { "to_node_id": "working", "condition_type": "event", "event_name": "allow" },
+                    { "to_node_id": "refused", "condition_type": "event", "event_name": "deny" },
+                    {
+                      "to_node_id": "refused",
+                      "condition_type": "event",
+                      "event_name": "step_up",
+                      "priority": 1
+                    },
+                    { "to_node_id": "transfer", "condition_type": "event", "event_name": "hold" }
+                  ]
+                },
+                {
+                  "id": "working",
+                  "node_type": "static",
+                  "static_message": "Thank you, one moment while I complete this.",
+                  "edges": [{ "to_node_id": "confirmed", "condition_type": "event", "event_name": "done" }]
+                },
+                {
+                  "id": "confirmed",
+                  "prompt": "Say: 'Done. Your reference is {{reference}}.' Then ask if there is anything else.",
+                  "edges": [
+                    { "to_node_id": "understand", "condition": "The caller has another request" },
+                    { "to_node_id": "goodbye", "condition": "The caller has nothing else or says goodbye" }
+                  ]
+                },
+                {
+                  "id": "refused",
+                  "node_type": "static",
+                  "static_message": "I can't complete that on this call. Is there anything else I can help with?",
+                  "edges": [
+                    { "to_node_id": "understand", "condition": "The caller has another request" },
+                    { "to_node_id": "goodbye", "condition": "The caller has nothing else or says goodbye" }
+                  ]
+                },
+                {
+                  "id": "goodbye",
+                  "node_type": "static",
+                  "static_message": "Thank you for calling Aero Bank. Goodbye.",
+                  "function_call": "end_call",
+                  "edges": []
+                },
+                {
+                  "id": "transfer",
+                  "prompt": "Tell the caller kindly that you are connecting them to a specialist now.",
+                  "function_call": "transfer_call_specialist",
+                  "edges": []
+                }
+              ]
+            }
+          },
+          "transcriber": {
+            "provider": "sarvam",
+            "model": "saaras:v4",
+            "language": "hi",
+            "stream": true,
+            "encoding": "linear16",
+            "sampling_rate": 16000,
+            "endpointing": 500,
+            "task": "transcribe",
+            "context": "A customer is calling Aero Bank's AI assistant about a card, account or loan, in Hindi, English or Hinglish.",
+            "keywords": "Aero Bank, card, freeze, EMI, fee, savings account"
+          },
+          "synthesizer": {
+            "provider": "sarvam",
+            "stream": true,
+            "caching": true,
+            "buffer_size": 250,
+            "audio_format": "wav",
+            "provider_config": {
+              "model": "bulbul:v3",
+              "voice": "Priya",
+              "voice_id": "priya",
+              "language": "hi",
+              "speed": 1,
+              "loudness": 1
+            }
+          }
+        }
+      }
+    ]
+  },
+  "agent_prompts": {
+    "task_1": {
+      "system_prompt": "You are Aero Bank's AI voice assistant, in a test version used by Aero Bank's own team. You can only help freeze a lost or stolen card. You never complete an action yourself; you submit it for a security decision. Never ask for or read out an OTP, PIN, password, CVV or full card or account number."
+    }
+  }
+}
