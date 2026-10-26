@@ -24,6 +24,7 @@ describe('pure-module lint boundary', () => {
       "import { readFileSync } from 'node:fs';\nexport const x = readFileSync;",
     ],
     ['packages/shared/src/probe.ts', "import { Hono } from 'hono';\nexport const x = Hono;"],
+    ['apps/api/src/signals/coaching-lexicon.ts', "import { db } from '../db/client';\nexport const x = db;"],
   ])('%s rejects an I/O import', async (file, code) => {
     expect(await restrictions(code, file)).toContain('no-restricted-imports');
   });
@@ -33,6 +34,7 @@ describe('pure-module lint boundary', () => {
     ['apps/api/src/pass/probe.ts', 'export const r = Math.random();', 'no-restricted-properties'],
     ['apps/api/src/grants/probe.ts', 'export const id = crypto.randomUUID();', 'no-restricted-properties'],
     ['apps/api/src/ledger/probe.ts', 'export const d = new Date();', 'no-restricted-syntax'],
+    ['apps/api/src/signals/distress-lexicon.ts', 'export const t = Date.now();', 'no-restricted-properties'],
     [
       'packages/shared/src/probe.ts',
       "export const p = fetch('https://example.com');",
@@ -53,5 +55,7 @@ describe('pure-module lint boundary', () => {
   it('does not restrict I/O layers outside the pure folders', async () => {
     const code = "import { db } from '../db/client';\nexport const t = Date.now() + Number(Boolean(db));";
     expect(await restrictions(code, 'apps/api/src/tools/probe.ts')).toEqual([]);
+    // Only the lexicon files in signals/ are pure; the Sarvam layer (Step 11) does I/O.
+    expect(await restrictions(code, 'apps/api/src/signals/sarvam.ts')).toEqual([]);
   });
 });

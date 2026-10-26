@@ -27,6 +27,7 @@ export default defineConfig({
         'src/grants/**': pure,
         'src/ledger/**': pure,
         'src/pass/**': pure,
+        'src/signals/*-lexicon.ts': pure,
       },
     },
   },

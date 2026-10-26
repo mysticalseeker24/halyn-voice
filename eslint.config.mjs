@@ -12,6 +12,9 @@ export const pureFiles = [
   'apps/api/src/grants/**',
   'apps/api/src/ledger/**',
   'apps/api/src/pass/**',
+  // The keyword lexicons only; the rest of signals/ will call Sarvam (Step 11).
+  'apps/api/src/signals/coaching-lexicon.ts',
+  'apps/api/src/signals/distress-lexicon.ts',
   'packages/shared/src/**',
 ];
 
