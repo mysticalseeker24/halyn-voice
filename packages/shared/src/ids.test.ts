@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { seededRng } from './__fixtures__/rng';
+import { fixedClock } from './clock';
+import { HalynError } from './errors';
 import {
   Base64UrlSchema,
   E164Schema,
@@ -6,6 +9,9 @@ import {
   IdSchema,
   IsoDateTimeSchema,
   Last4Schema,
+  newId,
+  newUlid,
+  PassIdSchema,
   prefixedId,
   RunIdSchema,
   ScenarioIdSchema,
@@ -47,6 +53,44 @@ describe('IdSchema and prefixedId', () => {
     expect(ok(CustomerId, 'ten_aero')).toBe(false);
     expect(ok(CustomerId, 'cus_')).toBe(false);
     expect(() => prefixedId('Cus')).toThrow();
+  });
+});
+
+describe('newUlid and newId', () => {
+  const T = Date.UTC(2026, 9, 26, 10, 0, 0);
+  const ENCODING = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+  const decodeTime = (ulid: string) =>
+    [...ulid.slice(0, 10)].reduce((acc, c) => acc * 32 + ENCODING.indexOf(c), 0);
+
+  it('makes a valid ULID whose first 10 characters encode the clock', () => {
+    const id = newUlid(fixedClock(T), seededRng(1));
+    expect(ok(UlidSchema, id)).toBe(true);
+    expect(decodeTime(id)).toBe(T);
+  });
+
+  it('takes its 80 random bits from the rng', () => {
+    const a = newUlid(fixedClock(T), seededRng(1));
+    const b = newUlid(fixedClock(T), seededRng(2));
+    expect(a.slice(0, 10)).toBe(b.slice(0, 10));
+    expect(a.slice(10)).not.toBe(b.slice(10));
+    expect(newUlid(fixedClock(T), seededRng(1))).toBe(a);
+    const zeros = newUlid(fixedClock(0), { bytes: (n) => new Uint8Array(n) });
+    expect(zeros).toBe('0'.repeat(26));
+    const ones = newUlid(fixedClock(2 ** 48 - 1), { bytes: (n) => new Uint8Array(n).fill(255) });
+    expect(ones).toBe(`7${'Z'.repeat(25)}`);
+  });
+
+  it('builds prefixed ids', () => {
+    const id = newId('pass', fixedClock(T), seededRng(3));
+    expect(ok(PassIdSchema, id)).toBe(true);
+    expect(ok(UlidSchema, id.slice(5))).toBe(true);
+  });
+
+  it('fails closed on a clock outside 48 bits, a short rng or a bad prefix', () => {
+    expect(() => newUlid({ nowMs: () => 2 ** 48 }, seededRng(1))).toThrow(HalynError);
+    expect(() => newUlid({ nowMs: () => -1 }, seededRng(1))).toThrow(HalynError);
+    expect(() => newUlid(fixedClock(T), { bytes: () => new Uint8Array(4) })).toThrow(HalynError);
+    expect(() => newId('Bad', fixedClock(T), seededRng(1))).toThrow(HalynError);
   });
 });
 

@@ -1,8 +1,34 @@
 import { z } from 'zod';
+import type { Clock, Rng } from './clock';
 import { HalynError } from './errors';
 
 /** ULID: 26 Crockford base32 characters; the first is 0–7 so the 48-bit timestamp cannot overflow. */
 export const UlidSchema = z.string().regex(/^[0-7][0-9A-HJKMNP-TV-Z]{25}$/, 'expected a ULID');
+
+const CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+const MAX_ULID_TIME = 2 ** 48 - 1;
+
+/** A ULID from the injected clock (48-bit ms time) and rng (80 random bits). Pure: no system clock or randomness. */
+export function newUlid(clock: Clock, rng: Rng): string {
+  const ms = clock.nowMs();
+  if (!Number.isSafeInteger(ms) || ms < 0 || ms > MAX_ULID_TIME)
+    throw new HalynError('E_FAIL_CLOSED', `newUlid: clock outside the 48-bit range (${String(ms)})`);
+  const random = rng.bytes(10);
+  if (random.length !== 10) throw new HalynError('E_FAIL_CLOSED', 'newUlid: rng returned the wrong length');
+  let time = '';
+  for (let t = ms, i = 0; i < 10; i++, t = Math.floor(t / 32)) time = CROCKFORD[t % 32] + time;
+  let bits = random.reduce((acc, byte) => (acc << 8n) | BigInt(byte), 0n);
+  let tail = '';
+  for (let i = 0; i < 16; i++, bits >>= 5n) tail = CROCKFORD[Number(bits & 31n)] + tail;
+  return time + tail;
+}
+
+/** `<prefix>_<ULID>`, e.g. `pass_01JB…` (ADR-009). */
+export function newId(prefix: string, clock: Clock, rng: Rng): string {
+  if (!/^[a-z][a-z0-9]*$/.test(prefix))
+    throw new HalynError('E_FAIL_CLOSED', `invalid id prefix "${prefix}"`);
+  return `${prefix}_${newUlid(clock, rng)}`;
+}
 
 /**
  * Halyn entity id: `<prefix>_<body>`. Generated ids use a ULID body (`req_01J…`); seed ids are readable

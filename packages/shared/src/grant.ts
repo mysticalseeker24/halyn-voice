@@ -37,4 +37,6 @@ export const GrantClaimsSchema = z
   });
 export type GrantClaims = z.infer<typeof GrantClaimsSchema>;
 
-export const GrantHeaderSchema = jwsHeaderSchema('halyn-grant+jwt');
+/** Media type of a grant's JWS header. */
+export const GRANT_TYP = 'halyn-grant+jwt';
+export const GrantHeaderSchema = jwsHeaderSchema(GRANT_TYP);

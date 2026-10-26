@@ -5,6 +5,14 @@ export interface Clock {
   nowMs(): number;
 }
 
+/**
+ * Randomness injected into pure modules (ids, Pass codes), which never call `crypto.getRandomValues` themselves.
+ * The Worker passes a WebCrypto-backed rng (apps/api/src/platform/crypto-rng.ts); tests pass a seeded one.
+ */
+export interface Rng {
+  bytes(n: number): Uint8Array;
+}
+
 /** A clock frozen at one instant, for tests and replays. */
 export function fixedClock(ms: number): Clock {
   if (!Number.isSafeInteger(ms) || ms < 0)

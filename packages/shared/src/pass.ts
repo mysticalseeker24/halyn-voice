@@ -74,7 +74,9 @@ export const PassClaimsSchema = z
 export type PassClaims = z.infer<typeof PassClaimsSchema>;
 export type PassClaimsInput = z.input<typeof PassClaimsSchema>;
 
-export const PassHeaderSchema = jwsHeaderSchema('halyn-pass+jwt');
+/** Media type of a Pass's JWS header. */
+export const PASS_TYP = 'halyn-pass+jwt';
+export const PassHeaderSchema = jwsHeaderSchema(PASS_TYP);
 
 export const PassStatusSchema = z.enum(['active', 'revoked', 'locked', 'expired']);
 export type PassStatus = z.infer<typeof PassStatusSchema>;

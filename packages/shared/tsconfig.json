@@ -1,6 +1,8 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    // WebCrypto and TextEncoder types (crypto.ts); purity is enforced by ESLint, not by the lib.
+    "lib": ["ES2023", "DOM"],
     "types": []
   },
   "include": ["src/**/*.ts"]
