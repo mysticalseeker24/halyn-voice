@@ -2,6 +2,9 @@
   "$schema": "https://turborepo.com/schema.json",
   "extends": ["//"],
   "tasks": {
+    "test:unit": {
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/tests/scenarios/**", "$TURBO_ROOT$/policy-packs/*.yaml"]
+    },
     "test:scenarios": {
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/tests/scenarios/**"]
     }

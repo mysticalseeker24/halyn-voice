@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "@halyn/shared": "workspace:*",
-    "hono": "catalog:"
+    "hono": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@cloudflare/vitest-plugin": "catalog:",
