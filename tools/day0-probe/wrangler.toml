@@ -8,7 +8,7 @@ workers_dev = true
 
 # One-shot timing run for checks 11-12 (the handler runs only once; remove the trigger after it has).
 [triggers]
-crons = ["* * * * *"]
+crons = [] # the one-off cron run is done (check 11/12); [] removes the trigger on deploy
 
 [vars]
 BOLNA_SOURCE_IPS = "13.203.39.153,13.126.9.249,13.202.133.53"

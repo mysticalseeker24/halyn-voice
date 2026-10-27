@@ -255,6 +255,19 @@ export default {
     const { pathname } = url;
     if (request.method === 'POST' && pathname.startsWith('/tools/')) {
       if (!toolAuthorised(request, env)) return json({ error: 'unauthorized' }, 401);
+      // Check 11 re-measure: time TiDB and D1 from the colo that serves Bolna's real tool request (after the reply).
+      ctx.waitUntil(
+        (async () => {
+          const results = { tidb: await probeTidb(env), d1: await probeD1(env) };
+          await log(env, 'timings_on_request', {
+            check: 11,
+            tool: pathname.slice(7),
+            colo: request.cf?.colo ?? null,
+            country: request.cf?.country ?? null,
+            results,
+          });
+        })(),
+      );
       if (pathname === '/tools/propose_action') return proposeAction(request, env, ctx);
       const { parsed } = await readBody(request);
       await log(env, pathname.slice(7), {
