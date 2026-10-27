@@ -2,6 +2,43 @@
 
 Newest at the top. One entry per session via `/handoff`: what changed, tests run (with counts), what's next, anything risky.
 
+## 2026-10-27 · Step 6 (Aero Core) + check 8 voice clones + secrets — chat #2
+- Secrets: `pnpm keys:generate halyn-2026-10`; `.env` gained the signing key, JWKS, `PASS_CODE_PEPPER`,
+  `SESSION_SECRET`, `PHONE_HASH_PEPPER` (64 random chars each, never printed); `apps/api/.dev.vars` and
+  `apps/aero-core/.dev.vars` written. `halyn_dev` re-seeded with the real `CUSTOMER_PHONE` and key `halyn-2026-10`.
+- Check 8: takes measured (Take 1 16.7 s, 2 13.9 s, 3 12.9 s; noise floor −45…−50 dBFS), trimmed to WAV mono 24 kHz
+  (14.9 / 13.6 / 12.6 s) with ffmpeg from `@ffmpeg-installer` in the scratchpad (`ffmpeg-static`'s GitHub download is
+  reset on this network). Three Sarvam clones via `POST /voices/create` (A Hinglish, B English, C calm Hindi); the API
+  has no consent field, so Saksham's consent clip is the record (COMPLIANCE.md rule 4). Test lines rendered via
+  `POST /voices/clone` (multipart, not JSON). Saksham picked **voice C at 1.25× for Hindi and English** (B sounds
+  robotic); 1.25× = ffmpeg `atempo` after rendering (Sarvam's `pace` field was inconsistent). Saksham's name is
+  **सक्षम** (short "Sa"): the voice script had a long-"Saa" spelling; fixed, CLAUDE.md §8 row added, and
+  `scripts/hooks/check-file.mjs` now flags misspellings. English TTS also lengthens Roman "Saksham" (STT round trip:
+  only Devanagari सक्षम मिश्रा inside the English text is spoken right), so every spoken name — incl. Bolna
+  `{{customer_name}}` — is written in Devanagari (STATE.md "Carry into later steps" for Steps 7–8).
+- Step 6 (api-builder): `apps/aero-core` — D1 schema (accounts with `CHECK balance_minor >= 0`, cards, fees, loans,
+  payees, transactions, used_grants; tenant + customer on every query), drizzle-kit migration, deterministic seed
+  (`pnpm seed:core`, local D1 by default), routes from `CORE_ROUTES` (`packages/shared/src/core.ts`, contract-tested
+  against ACTIONS.md): balance, statement, card freeze, fee waive, EMI date, transfers (saved / new payee / wire). Every
+  route — reads too — needs a grant; the jti insert is the first statement of the effect's single `db.batch`.
+  `@halyn/sdk` `verifyGrant` takes an `expectedAction` list. ADR-015.
+- Tests (`pnpm verify`, cache bypassed): all green — aero-core unit 127 (100 % lines, 96.9 % branches; grant code and
+  `commit.ts` 100 %), aero-core int 48 (every 401 code, 12-way double-spend → exactly one write, scenario steps,
+  fast-check over transfers + replays against real D1), shared 578, sdk 48, api 572 unit + 19 int (TiDB suite locally),
+  tooling 41, web 2, scenarios 1, build ✓.
+- Review (code-reviewer): no blockers; fixed (api-builder + inline): byte-capped streaming body read (4,096 B),
+  atomic preconditions in every write batch (`src/core/preconditions.test.ts`), `E_GRANT_REUSED`/post-commit 500 carry
+  `CoreOutcomeDetails` (`executed` + reference, or `unknown`), HEAD → 405, masked cause chain in the 500 log, currency
+  joins, GET-params contract test, different-grants overdraw race. `pnpm verify` green (cache bypassed).
+- Per-commit check: each commit verified on its own in a short-path worktree (`E:/hvw`, Turbo cache on); two
+  failures were environmental (ledger perf test 1,025 ms vs 1,000 under CPU contention; workerd crash 0xC0000409 in
+  untouched api int tests) and passed on re-run.
+- Day-0: probe redeployed with `timings_on_request` (check 11 on Bolna's real tool request) and its cron removed.
+  Calls still not placed (02:33 IST, outside the window); go-ahead given for 09:00.
+- Saksham: no freeze cut — build the whole product end to end; work token-lean (usage limits hit twice this chat).
+- Next (chat #3): Day-0 calls 09:00, Step 7 → Step 8 with Step 9 in parallel. Open: bank refusals are 400
+  `E_BAD_REQUEST` (maybe `E_CORE_REJECTED`); D1 `aero-core` not created remotely yet.
+
 ## 2026-10-26/27 · Step 5 (API skeleton, Hub, TiDB) + Day-0 setup — end of chat #1
 - Step 3 leftovers: RUNBOOK key-generation step; STATE stub note fixed.
 - Step 5 (api-builder): `src/env.ts` (Zod env per route group; `/health` needs none), `src/http/*` (error envelope,
