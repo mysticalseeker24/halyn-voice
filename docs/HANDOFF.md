@@ -25,8 +25,10 @@ non-protective prompt wording and misspellings of Saksham's name).
    He likes **more, smaller commits** (8+ per push is fine), conventional messages ending with
    `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Before pushing, verify **each** commit on its own:
    `bash scripts/verify-commits.sh <scratch-logdir> $(git rev-list --reverse origin/main..HEAD)` (worktree `E:/hvw`,
-   Turbo cache on; re-run a commit that hits a known environmental flake listed in the script). Push uses the
-   repo-local credential helper `!gh auth git-credential`; then `gh run watch <id> --exit-status` in the background.
+   Turbo cache on; re-run a commit that hits a known environmental flake listed in the script). Push with
+   `GCM_INTERACTIVE=never GIT_TERMINAL_PROMPT=0 git -c credential.helper= -c 'credential.helper=!gh auth git-credential'
+   push origin main` — a plain `git push` hangs on the system Git Credential Manager (it runs before the repo's `gh`
+   helper). Then `gh run watch <id> --exit-status` in the background.
 5. **Step workflow:** read the `PROMPTS.md` step and only the docs it names → the subagents the step names
    (api-builder builds test-first; test-engineer attacks it: invariant map, mutation checks, failing test before every
    fix) → review their diff yourself → `pnpm verify` with `TURBO_FORCE=true` (zero ESLint/Prettier warnings) →
