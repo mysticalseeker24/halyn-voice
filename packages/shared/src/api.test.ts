@@ -166,6 +166,25 @@ describe('error envelope', () => {
     });
     expect(ok(ErrorEnvelopeSchema, { error: { code: 'NOT_A_CODE', message: 'x' } })).toBe(false);
   });
+
+  it('may carry flat, small details (optional: every envelope without them still parses)', () => {
+    const details = { outcome: 'executed', reference: 'AERO-X3Z5B7', used_at: '2026-10-27T04:30:00.000Z' };
+    const envelope = errorEnvelope('E_GRANT_REUSED', 'The grant has already been used', details);
+    expect(envelope).toEqual({
+      error: { code: 'E_GRANT_REUSED', message: 'The grant has already been used', details },
+    });
+    expect(ErrorEnvelopeSchema.parse(envelope)).toEqual(envelope);
+    expect('details' in errorEnvelope('E_FAIL_CLOSED', 'x').error).toBe(false);
+    const withDetails = (details: unknown) =>
+      ok(ErrorEnvelopeSchema, { error: { code: 'E_FAIL_CLOSED', message: 'x', details } });
+    expect(withDetails({ n: 1, b: true, nil: null })).toBe(true);
+    expect(withDetails({ nested: { a: 1 } })).toBe(false);
+    expect(withDetails({ list: ['a'] })).toBe(false);
+    expect(withDetails({ long: 'x'.repeat(201) })).toBe(false);
+    expect(withDetails({ '': 'empty key' })).toBe(false);
+    expect(withDetails(Object.fromEntries(Array.from({ length: 17 }, (_, i) => [`k${i}`, i])))).toBe(false);
+    expect(withDetails('executed')).toBe(false);
+  });
 });
 
 describe('web', () => {

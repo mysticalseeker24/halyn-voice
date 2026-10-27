@@ -3,12 +3,14 @@
 - Zod schemas for every API body, Bolna payload, WebSocket message, policy pack, Pass claims, grant claims.
 - `src/` is pure (ESLint purity rule): no `node:` imports, no clock, no randomness. Don't name files `db.ts`,
   `bolna.ts`, `hub.ts` or `core-client.ts` here (the rule blocks importing those names).
-- Files: `reason-codes.ts` (single source of all codes; equals the list in docs/GATE.md), `errors.ts` (`HalynError`),
+- Files: `reason-codes.ts` (single source of all codes; equals the list in docs/GATE.md), `errors.ts` (`HalynError`, optional public
+  `details` → `error.details` in the envelope),
   `ids.ts` (ULID, prefixed ids, E.164, hex, scenario ids), `region.ts`, `money.ts` (integer minor units, ₹ lakh and $
   grouping, parse/format without floats), `canonical-json.ts` (sorted keys, no whitespace — used for hashes and
   signatures), `actions.ts` (ActionId union, strict params per action, money-moving and critical sets),
   `core.ts` (Aero Core: `CORE_ROUTES` action → method/path, contract-tested against docs/ACTIONS.md, and the strict
-  `CORE_RESPONSES` the API's core client parses), `policy-pack.ts` (YAML source schema + normalised compiled schema +
+  `CORE_RESPONSES` the API's core client parses, plus `CoreOutcomeDetailsSchema` — the `error.details` outcome hint;
+  GET routes may only take string/enum params), `policy-pack.ts` (YAML source schema + normalised compiled schema +
   `compilePolicyPack`), `pass.ts`, `grant.ts`,
   `jws.ts`, `decision.ts` (outcomes and strictness order), `events.ts` (events injected into calls), `api.ts`
   (tool and web bodies), `ws.ts` (Hub → apps messages), `clock.ts` (`Clock`, `Rng` — injected, never read here),

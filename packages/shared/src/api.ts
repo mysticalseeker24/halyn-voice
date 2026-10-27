@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { HandoffStatusSchema } from './decision';
+import type { ErrorDetails } from './errors';
 import { OutcomeEventSchema } from './events';
 import {
   CustomerIdSchema,
@@ -105,13 +106,25 @@ export const CheckDecisionResponseSchema = z.discriminatedUnion('status', [
 
 // ── Errors ─────────────────────────────────────────────────────────────────────────────────────────
 
+/** `error.details`: flat and small (≤ 16 scalar values). Aero Core's outcome hint is `CoreOutcomeDetailsSchema`. */
+export const ErrorDetailsSchema = z
+  .record(z.string().min(1).max(64), z.union([z.string().max(200), z.number(), z.boolean(), z.null()]))
+  .refine((details) => Object.keys(details).length <= 16, 'at most 16 details');
+
 export const ErrorEnvelopeSchema = z.strictObject({
-  error: z.strictObject({ code: ReasonCodeSchema, message: z.string().min(1).max(500) }),
+  error: z.strictObject({
+    code: ReasonCodeSchema,
+    message: z.string().min(1).max(500),
+    /** Optional, so every envelope without it still parses. */
+    details: ErrorDetailsSchema.optional(),
+  }),
 });
 export type ErrorEnvelope = z.infer<typeof ErrorEnvelopeSchema>;
 
-export function errorEnvelope(code: ReasonCode, message: string): ErrorEnvelope {
-  return { error: { code, message } };
+export function errorEnvelope(code: ReasonCode, message: string, details?: ErrorDetails): ErrorEnvelope {
+  return details === undefined
+    ? { error: { code, message } }
+    : { error: { code, message, details: { ...details } } };
 }
 
 // ── Web (/web/*, session token) — only the endpoints docs/API.md specifies well enough so far ────────

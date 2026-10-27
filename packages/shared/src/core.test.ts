@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { ACTION_IDS } from './actions';
+import { ACTION_IDS, ACTION_PARAMS } from './actions';
 import {
   CORE_ACTION_IDS,
   CORE_RESPONSES,
   CORE_ROUTES,
+  CoreOutcomeDetailsSchema,
   CoreReferenceSchema,
   coreEndpoints,
   coreRoute,
@@ -56,6 +57,17 @@ describe('CORE_ROUTES (docs/ACTIONS.md, Aero Core column)', () => {
     expect(isCoreAction('wire.new')).toBe(true);
     for (const value of ['toString', '__proto__', 'constructor', 'account.close', '', 'wire.new '])
       expect(isCoreAction(value)).toBe(false);
+  });
+
+  it('GET routes take only string or enum params (a query string carries strings only)', () => {
+    const gets = CORE_ACTION_IDS.filter((action) => CORE_ROUTES[action].method === 'GET');
+    expect(gets).toEqual(['balance.view', 'statement.view']);
+    for (const action of gets) {
+      const fields = Object.entries(ACTION_PARAMS[action].shape);
+      expect(fields.length, action).toBeGreaterThan(0);
+      for (const [key, field] of fields)
+        expect(['string', 'enum'], `${action}.${key}`).toContain(field.def.type);
+    }
   });
 
   it('groups actions by endpoint: one route can serve several actions', () => {
@@ -138,6 +150,27 @@ describe('Aero Core response schemas', () => {
         .success,
     ).toBe(false);
     expect(CORE_RESPONSES['transfer.saved'].safeParse({ action: 'wire.new' }).success).toBe(false);
+  });
+
+  it('outcome details: executed (with what to reconcile by) or unknown', () => {
+    const executed = {
+      outcome: 'executed',
+      reference: 'AERO-X3Z5B7',
+      request_id: 'req_01JBK2W4Z8Q3N5R7T9V1X3Z5B7',
+      used_at: AT,
+    } as const;
+    expect(CoreOutcomeDetailsSchema.parse(executed)).toEqual(executed);
+    expect(CoreOutcomeDetailsSchema.parse({ outcome: 'unknown' })).toEqual({ outcome: 'unknown' });
+    for (const bad of [
+      { ...executed, reference: 'X-1' },
+      { ...executed, used_at: 'yesterday' },
+      { ...executed, extra: 1 },
+      { outcome: 'executed', reference: 'AERO-X3Z5B7' },
+      { outcome: 'unknown', reference: 'AERO-X3Z5B7' },
+      { outcome: 'maybe' },
+      {},
+    ])
+      expect(CoreOutcomeDetailsSchema.safeParse(bad).success, JSON.stringify(bad)).toBe(false);
   });
 
   it('references are AERO- plus 6 Crockford base32 characters', () => {

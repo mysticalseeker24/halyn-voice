@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ACTION_IDS, type ActionId, AccountTypeSchema } from './actions';
-import { IdSchema, IsoDateTimeSchema, Last4Schema } from './ids';
+import { IdSchema, IsoDateTimeSchema, Last4Schema, RequestIdSchema } from './ids';
 import { CurrencySchema, PositiveMoneySchema } from './money';
 
 // Aero Core, the mock bank (apps/aero-core): which route executes each action, and what it answers. The API's core
@@ -61,6 +61,23 @@ export function coreEndpoints(): CoreEndpoint[] {
 
 /** A speakable reference for a write: `AERO-` + 6 Crockford base32 characters (no I, L, O, U). */
 export const CoreReferenceSchema = z.string().regex(/^AERO-[0-9A-HJKMNP-TV-Z]{6}$/, 'expected AERO-XXXXXX');
+
+/**
+ * Aero Core's outcome hint, sent as `error.details` where the error alone would be ambiguous (docs/API.md → Aero Core).
+ * `executed`: the grant's jti is in used_grants, so its effect committed — on 401 `E_GRANT_REUSED`, or a 500 after the
+ * commit; reconcile by `reference`. `unknown`: the batch failed and Aero Core could not check whether it committed;
+ * retry with the same grant (it answers 200, `E_GRANT_REUSED` + executed, or a refusal). No details: nothing executed.
+ */
+export const CoreOutcomeDetailsSchema = z.discriminatedUnion('outcome', [
+  z.strictObject({
+    outcome: z.literal('executed'),
+    reference: CoreReferenceSchema,
+    request_id: RequestIdSchema,
+    used_at: IsoDateTimeSchema,
+  }),
+  z.strictObject({ outcome: z.literal('unknown') }),
+]);
+export type CoreOutcomeDetails = z.infer<typeof CoreOutcomeDetailsSchema>;
 
 /** A balance: integer minor units, never negative (Aero Core refuses any write that would overdraw). */
 export const CoreBalanceSchema = z.strictObject({
