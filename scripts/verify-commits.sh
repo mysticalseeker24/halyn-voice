@@ -3,8 +3,8 @@
 # Usage (Git Bash, repo root): bash scripts/verify-commits.sh <logdir> <sha>...   e.g. $(git rev-list --reverse origin/main..HEAD)
 # Runs in a git worktree at a SHORT path (workerd breaks under long Windows paths), default E:/hvw; override with
 # HVW=<dir>. Creates the worktree if missing. Turbo's cache is on, so unchanged packages replay. Prints one line per
-# commit; logs go to <logdir>. Known environmental flakes (re-run that commit): the ledger performance test over
-# 1,000 ms under CPU contention, and a workerd crash (exit -1073740791 / 0xC0000409) — avoid running two suites at once.
+# commit; logs go to <logdir>. Known environmental flake (re-run that commit): a workerd crash (exit -1073740791 /
+# 0xC0000409) when two Workers test suites run at once — avoid running suites in parallel.
 set -u
 LOGDIR="$1"; shift
 WT="${HVW:-E:/hvw}"
