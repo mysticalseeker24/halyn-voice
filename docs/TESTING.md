@@ -26,8 +26,11 @@ spending call minutes. Real calls are the last layer, not the first.
   and Aero Core's grant check (`apps/aero-core/src/grant`, `src/core/commit.ts`); ≥ 80% elsewhere (`vitest --coverage`,
   thresholds enforced in config).
 - Aero Core tests sign grants with a throwaway Ed25519 key generated per run (`apps/aero-core/vitest.config.ts`) and
-  seed a fresh customer per test from the demo template; the integration suite covers every 401 code and a concurrent
-  double-spend of one grant (exactly one succeeds).
+  seed a fresh customer per test from the demo template; the integration suite covers every 401 code (REUSED with its
+  outcome details), a concurrent double-spend of one grant (exactly one succeeds) and different grants racing one
+  balance (never below zero; losers leave no jti). Unit tests change D1 between a handler's read and its batch for
+  every write (`src/core/preconditions.test.ts`: nothing written) and stream oversized, multibyte and invalid-UTF-8
+  bodies at the byte cap (`src/grant/params.test.ts`, with a fast-check property).
 - `pnpm verify` = lint + typecheck + unit + int + scenarios + build. CI runs the same.
 - Record a real Bolna payload into `tests/fixtures/bolna/` the first time you see one (mask numbers to last 4).
 - Voice smoke results go to `docs/STATE.md` scenario table and `docs/COMPLIANCE.md` session log.

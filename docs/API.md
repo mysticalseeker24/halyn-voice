@@ -1,7 +1,8 @@
 # API contract
 
 Base: Halyn API Worker. All bodies JSON, validated with Zod schemas from `packages/shared`. Errors:
-`{ "error": { "code": "<REASON_CODE>", "message": "..." } }`.
+`{ "error": { "code": "<REASON_CODE>", "message": "...", "details"?: {…} } }` (`ErrorEnvelopeSchema`; `details` is
+optional, flat — at most 16 string/number/boolean/null values — and so far only Aero Core sends it, see below).
 
 ## Auth
 | Surface | Auth |
@@ -84,13 +85,36 @@ the **query string** for GET, the **JSON body** for POST. Routes and 200 bodies 
 transfers debit the customer's primary account in the transfer's currency. A transaction is
 `{id, kind, category, amount, description, payee_id, reference, created_at}` — payees by id, never a full number.
 
-Errors (standard envelope; nothing is written on any error): 401 for the grant codes below; 400 `E_BAD_REQUEST` when the
-bank refuses (fee already waived or a different amount, balance too low, loan closed, account blocked, or granted
-params outside the action's schema); 404 `E_NOT_FOUND` (no such card, fee, loan, saved payee or account **for the
-grant's customer**, or no such route); 500 `E_FAIL_CLOSED` (configuration missing, or the database refused the batch).
-**Single use:** the jti is inserted into `used_grants` in the same D1 batch as the effect, so of N concurrent requests
-with one grant exactly one executes and the rest get `E_GRANT_REUSED`. A write the bank refuses (400/404) does not
-use the grant; a read uses its grant even when the account is missing.
+Errors (standard envelope). Configuration is checked first, so missing or invalid config is 500 `E_FAIL_CLOSED` even
+for a request without a grant. Then: 401 for the grant codes below; 400 `E_BAD_REQUEST` when the bank refuses (fee
+already waived or a different amount, balance too low, loan closed, account blocked, or granted params outside the
+action's schema); 404 `E_NOT_FOUND` (no such card, fee, loan, saved payee or account **for the grant's customer**, or
+no such route or method); 405 for `HEAD` on any core path (`Allow` names the route's method; Hono would otherwise run
+the GET handler and spend a read grant); 500 `E_FAIL_CLOSED` (the database refused the batch, or a precondition
+stopped holding between the handler's read and its batch). **Single use:** the jti is inserted into `used_grants` in
+the same D1 batch as the effect, so of N concurrent requests with one grant exactly one executes and the rest get
+`E_GRANT_REUSED`. A write the bank refuses (400/404/500) does not use the grant; a read uses its grant even when the
+account is missing. **Atomic preconditions:** a D1 batch cannot branch, so each write's precondition is re-checked
+inside its batch — the `used_grants` insert takes `customer_ref` from a subquery that yields a row only while it holds
+(transfers: the same active primary account in the transfer's currency with enough balance, and for `transfer.saved`
+the payee still saved; `fee.waive`: the fee still due with the same amount, currency and account, the account in the
+fee's currency; `card.freeze`: the card still there; `emi.move_date`: the loan still active and on the day read). If it
+no longer holds the whole batch aborts: no jti, no transaction, no payee.
+
+**Outcome hint (`error.details`, `CoreOutcomeDetailsSchema` in `packages/shared/src/core.ts`).** An error without
+`details` means nothing executed. Otherwise:
+
+| Response | `details` | Meaning |
+|---|---|---|
+| 401 `E_GRANT_REUSED` | `{outcome: "executed", reference, request_id, used_at}` (the first use) | the grant executed earlier |
+| 500 `E_FAIL_CLOSED` | `{outcome: "executed", reference, request_id, used_at}` | the batch committed but its result could not be read |
+| 500 `E_FAIL_CLOSED` | `{outcome: "unknown"}` | the batch failed and Aero Core could not check whether it committed |
+
+**The API's core client (Step 7) must:** treat 200 as executed; treat `E_GRANT_REUSED` on a retry of **its own**
+grant as "already executed earlier — reconcile by `reference`", **never** as "not executed" (only Halyn holds the
+grant, so nobody else can have used it); treat a 500 with `outcome: "executed"` the same way; on a timeout, a lost
+response or `outcome: "unknown"`, retry once with the **same** grant while it is valid (it answers 200, REUSED +
+executed, or a refusal) and fail closed if the outcome is still unknown; treat every other error as not executed.
 
 **Grant** (`x-halyn-grant`, compact JWS, schema in `packages/shared/src/grant.ts`). Header
 `{alg: "EdDSA", kid, typ: "halyn-grant+jwt"}`. Claims:
@@ -111,9 +135,11 @@ Halyn signs with `signGrant` (`apps/api/src/grants`, default lifetime 60 s). Aer
 `kid`, valid signature → claims schema (`iss`, `aud`, version, lifetime) → action is the route's (or one of the route's,
 `expectedAction` may be a list) → `sub` / `tenant` equal `expectedSub` / `expectedTenant` when given → `iat` at most
 5 s in the future (all `E_GRANT_INVALID`) → not expired, no leeway (`E_GRANT_EXPIRED`) → params hash
-(`E_PARAMS_MISMATCH`; a repeated query key, a body that is not JSON or is over 4 KB never matches). `E_GRANT_REUSED`
-is Aero Core's own check: insert the `jti` into `used_grants` atomically with the write. A request without the header is
-refused before its params are read. Aero Core passes `expectedTenant` = its `AERO_TENANT_ID` (`ten_aero`). Params
+(`E_PARAMS_MISMATCH`; a repeated query key, a body that is not JSON, not valid UTF-8, or over 4,096 **bytes** never
+matches). `E_GRANT_REUSED` is Aero Core's own check: insert the `jti` into `used_grants` atomically with the write. A
+request without the header is refused before its params are read. With a header, the body must be read before the
+signature can be checked (the hash covers it), so it is capped as it streams in: once more than 4,096 bytes have
+arrived (with or without a `content-length`) reading stops and the stream is cancelled. Aero Core passes `expectedTenant` = its `AERO_TENANT_ID` (`ten_aero`). Params
 name a resource only within one customer (a card's last 4 digits are not unique), so Aero Core acts on `claims.sub`'s
 rows only (it has no other way to know the customer).
 

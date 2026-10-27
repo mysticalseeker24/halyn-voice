@@ -81,3 +81,18 @@ against docs/ACTIONS.md; strict `CORE_RESPONSES`). Ids that appear in params are
 **Consequences.** A refused write can be retried with the same grant within its ≤ 120 s life (it executes only the
 exact signed params, for the same customer). Changing an Aero Core route or response means changing `core.ts`, which
 the API and Aero Core both compile against.
+**Amended (2026-10-27, Step 6 review).** (1) *Atomic preconditions.* Because a batch cannot branch, a precondition the
+handler read (account active, fee due, loan open, card present, enough balance, payee saved) could stop holding
+before the batch and the batch would still commit the jti and part of the effect. Each write now passes its
+precondition to `recordGrant`: `used_grants.customer_ref` (NOT NULL) comes from a subquery that returns a row only
+while the precondition holds, so a stale read aborts the whole batch (`E_FAIL_CLOSED`, nothing written). The schema
+backstops stay. Chosen over a trigger or a second round trip: same single batch, no schema change. (2) *REUSED is
+ambiguous for Halyn's own retries.* A batch that committed but whose answer was lost, retried, is `E_GRANT_REUSED`.
+Kept as 401 (the double-spend contract is unchanged), but the error now carries the first use as `error.details`
+(`CoreOutcomeDetailsSchema`: `{outcome: "executed", reference, request_id, used_at}`; the shared envelope gained an
+optional `details`). A 500 after a commit says `executed`; a failed batch Aero Core could not check says `unknown`.
+**The API's core client must treat REUSED on a retry of its own grant as "already executed — reconcile by
+reference", never as "not executed"** (only Halyn holds the grant), and resolve `unknown` or a lost answer by retrying
+the same grant once. (3) The body is capped at 4,096 bytes as it streams in (it is read before the signature can be
+checked); invalid UTF-8 never matches. (4) `HEAD` on a core path is 405 (Hono would run the GET handler and spend a
+read grant).

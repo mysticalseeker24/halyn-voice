@@ -39,7 +39,7 @@ on `customer_ref` (= the grant's `sub`). Ids that appear in action params (`fee_
 | `loans` | tenant_id, customer_ref, id, account_id, description, emi_minor, currency, emi_day, status (active/closed), updated_at, updated_by_grant | PK (tenant_id, customer_ref, id); emi_day 1–28 |
 | `payees` | tenant_id, customer_ref, id, name, account_last4, ifsc (IN), routing_last4 (US), saved, added_at, added_by_grant | PK (tenant_id, customer_ref, id); new payees from `transfer.new_payee` / `wire.new` are added unsaved |
 | `transactions` | tenant_id, id, customer_ref, account_id, kind (credit/debit), category (salary/card/fee/fee_waiver/emi/transfer/wire), amount_minor, currency, description, payee_id, fee_id, reference, grant_jti, created_at | PK (tenant_id, id); index (tenant, account, created_at); **unique (tenant, customer, fee_id) where category = fee_waiver** (a fee is credited once); amount > 0 |
-| `used_grants` | jti (PK), tenant_id, customer_ref, action, request_id, used_at | inserted in the same D1 batch as the effect (invariant 1) |
+| `used_grants` | jti (PK), tenant_id, customer_ref, action, request_id, used_at | inserted first in the same D1 batch as the effect (invariant 1); for writes `customer_ref` (NOT NULL) comes from the write's precondition subquery, so a precondition that no longer holds aborts the whole batch (ADR-015). `request_id` + `used_at` are returned as `error.details` on `E_GRANT_REUSED` |
 
 ## Ledger chain (invariant 6)
 - `hash = SHA-256(prev_hash ‖ canonical_json({seq, tenant_id, type, ref_id, payload, created_at}))`, lower-case hex;
