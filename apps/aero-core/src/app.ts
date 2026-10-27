@@ -26,6 +26,12 @@ export function createApp(deps: AppDeps = { clock: systemClock, rng: cryptoRng }
 
   app.get('/health', (c) => c.json({ ok: true, service: 'aero-core' }));
 
+  // Hono serves HEAD with the GET handler: an empty reply that would still use up a read grant. Refuse it first.
+  app.use('/core/*', async (c, next) => {
+    if (c.req.raw.method !== 'HEAD') return next();
+    return c.json({ error: { code: 'E_BAD_REQUEST', message: 'HEAD is not supported on core routes' } }, 405);
+  });
+
   for (const endpoint of coreEndpoints()) {
     app.on(endpoint.method, endpoint.path, async (c) => {
       const env = requireCoreEnv(c.env);

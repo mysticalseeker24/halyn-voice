@@ -44,6 +44,16 @@ describe('Aero Core app', () => {
     });
   });
 
+  it('HEAD on a core route → 405 before the grant is read, so the grant stays usable', async () => {
+    const sub = await seedCustomer();
+    const params = { account: 'savings' };
+    const { token } = await mintGrant({ action: 'balance.view', params, sub, iat: NOW_MS / 1000 });
+    const get = coreRequest('balance.view', params, token);
+    const head = await send(new Request(get.url, { method: 'HEAD', headers: get.headers }));
+    expect(head.status).toBe(405);
+    expect((await reply(send(coreRequest('balance.view', params, token)))).status).toBe(200);
+  });
+
   it('runs the action of a valid grant (end to end through the router)', async () => {
     const sub = await seedCustomer();
     const params = { account: 'savings' };
