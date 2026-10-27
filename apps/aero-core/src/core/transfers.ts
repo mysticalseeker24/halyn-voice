@@ -1,8 +1,8 @@
 import { type CoreResponse, HalynError } from '@halyn/shared';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, exists, gte, sql } from 'drizzle-orm';
 import { accounts, payees, transactions } from '../db/schema';
 import type { CoreProposal } from '../grant/require-grant';
-import { commit, recordGrant, rejectIfUsed, usedGrantLookup } from './commit';
+import { commit, committedWithoutResult, recordGrant, rejectIfUsed, usedGrantLookup } from './commit';
 import { type ExecContext, referenceFor } from './context';
 
 // POST /core/transfers executes three actions (the grant's verified action picks one):
@@ -10,7 +10,9 @@ import { type ExecContext, referenceFor } from './context';
 //   transfer.new_payee  → adds an unsaved payee (account last 4 + IFSC, optional name), then pays it
 //   wire.new            → adds an unsaved payee (account last 4 + routing last 4), then wires to it
 // The money leaves the customer's primary account in the transfer's currency. Balances never go negative: refused
-// up front, and the accounts CHECK (balance_minor >= 0) rolls back a racing overdraft.
+// up front, re-checked inside the batch (the precondition), and the accounts CHECK (balance_minor >= 0) is the
+// backstop. The precondition also requires the account to be the same active primary account in the transfer's
+// currency and, for transfer.saved, the payee to be still saved — whatever changed after the read, nothing is written.
 
 export type TransferProposal = Extract<
   CoreProposal,
@@ -32,6 +34,9 @@ function primaryAccountLookup(ctx: ExecContext, currency: string) {
     .limit(1);
 }
 
+const payeeIs = (ctx: ExecContext, payeeId: string) =>
+  and(eq(payees.tenant_id, ctx.tenant), eq(payees.customer_ref, ctx.customer), eq(payees.id, payeeId));
+
 async function readState(ctx: ExecContext, currency: string, payeeId: string | null) {
   const { db } = ctx;
   if (payeeId === null) {
@@ -44,12 +49,43 @@ async function readState(ctx: ExecContext, currency: string, payeeId: string | n
     db
       .select({ id: payees.id, name: payees.name, saved: payees.saved })
       .from(payees)
-      .where(
-        and(eq(payees.tenant_id, ctx.tenant), eq(payees.customer_ref, ctx.customer), eq(payees.id, payeeId)),
-      )
+      .where(payeeIs(ctx, payeeId))
       .limit(1),
   ]);
   return { used, account: account[0], payee: payee[0] };
+}
+
+/** Inside the batch: the same active primary account, in this currency, still holding the amount (+ the saved payee). */
+function precondition(
+  ctx: ExecContext,
+  accountId: string,
+  currency: 'INR' | 'USD',
+  amount: number,
+  savedPayee: string | null,
+) {
+  return ctx.db
+    .select({ customer_ref: accounts.customer_ref })
+    .from(accounts)
+    .where(
+      and(
+        eq(accounts.tenant_id, ctx.tenant),
+        eq(accounts.customer_ref, ctx.customer),
+        eq(accounts.id, accountId),
+        eq(accounts.currency, currency),
+        eq(accounts.is_primary, true),
+        eq(accounts.status, 'active'),
+        gte(accounts.balance_minor, amount),
+        savedPayee === null
+          ? undefined
+          : exists(
+              ctx.db
+                .select({ one: sql`1` })
+                .from(payees)
+                .where(and(payeeIs(ctx, savedPayee), eq(payees.saved, true))),
+            ),
+      ),
+    )
+    .limit(1);
 }
 
 export async function transfer(
@@ -60,7 +96,7 @@ export async function transfer(
   const { amount_minor, currency } = proposed.params;
   const saved = proposed.action === 'transfer.saved' ? proposed.params.payee_id : null;
   const state = await readState(ctx, currency, saved);
-  rejectIfUsed(state.used);
+  rejectIfUsed(ctx, state.used);
   const { account, payee } = state;
   if (!account) throw new HalynError('E_NOT_FOUND', `No ${currency} account for this customer`);
   if (account.status !== 'active') throw new HalynError('E_BAD_REQUEST', 'This account cannot make payments');
@@ -138,18 +174,20 @@ export async function transfer(
         eq(accounts.tenant_id, ctx.tenant),
         eq(accounts.customer_ref, ctx.customer),
         eq(accounts.id, account.id),
+        eq(accounts.currency, currency),
       ),
     )
     .returning({ balance_minor: accounts.balance_minor });
   const insertTxn = db.insert(transactions).values(txn);
+  const grant = recordGrant(ctx, precondition(ctx, account.id, currency, amount_minor, saved));
 
   const after = await commit(ctx, async () => {
-    if (!newPayee) return (await db.batch([recordGrant(ctx), debit, insertTxn]))[1];
-    return (await db.batch([recordGrant(ctx), db.insert(payees).values(newPayee), debit, insertTxn]))[2];
+    if (!newPayee) return (await db.batch([grant, debit, insertTxn]))[1];
+    return (await db.batch([grant, db.insert(payees).values(newPayee), debit, insertTxn]))[2];
   });
   const balance = after[0];
-  // The read above proved the account exists, and nothing deletes accounts; this only guards the type.
-  if (!balance) throw new HalynError('E_FAIL_CLOSED', 'The account disappeared');
+  // The precondition proved the account inside the same transaction, so the debit returned it; this guards the type.
+  if (!balance) throw committedWithoutResult(ctx);
   return {
     action: proposed.action,
     reference,

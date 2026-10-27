@@ -1,4 +1,10 @@
-import { base64urlEncode, coreEndpoints, utf8 } from '@halyn/shared';
+import {
+  base64urlEncode,
+  coreEndpoints,
+  CoreOutcomeDetailsSchema,
+  ErrorEnvelopeSchema,
+  utf8,
+} from '@halyn/shared';
 import { exports } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 import { rows, seedCustomer } from '../fixtures/env';
@@ -177,25 +183,63 @@ describe('401 E_GRANT_EXPIRED', () => {
 });
 
 describe('401 E_GRANT_REUSED', () => {
-  it('the same grant twice: the first executes, the replay is refused and changes nothing', async () => {
+  // Only Halyn holds a grant, so REUSED on a retry of its own grant means "executed earlier" (e.g. the first answer
+  // was lost). The error carries the first use, so the API's core client can reconcile instead of saying "denied".
+  async function usedRow(jti: string) {
+    const [row] = await rows<{ request_id: string; used_at: string }>(
+      'SELECT request_id, used_at FROM used_grants WHERE jti = ?',
+      jti,
+    );
+    return row;
+  }
+
+  it('the same grant twice: the first executes, the replay is refused, changes nothing, and names the first use', async () => {
     const sub = await seedCustomer();
     const grant = await mintGrant({ action: 'transfer.saved', params: SAVED, sub });
-    expect((await fetchCore(coreRequest('transfer.saved', SAVED, grant.token))).status).toBe(200);
+    const first = await fetchCore(coreRequest('transfer.saved', SAVED, grant.token));
+    expect(first.status).toBe(200);
     const replay = await fetchCore(coreRequest('transfer.saved', SAVED, grant.token));
+    const use = await usedRow(grant.jti);
     expect(replay).toEqual({
       status: 401,
-      body: { error: { code: 'E_GRANT_REUSED', message: 'The grant has already been used' } },
+      body: {
+        error: {
+          code: 'E_GRANT_REUSED',
+          message: 'The grant has already been used',
+          details: {
+            outcome: 'executed',
+            reference: first.body.reference,
+            request_id: grant.claims.request_id,
+            used_at: use?.used_at,
+          },
+        },
+      },
+    });
+    expect(
+      CoreOutcomeDetailsSchema.parse(ErrorEnvelopeSchema.parse(replay.body).error.details),
+    ).toMatchObject({
+      outcome: 'executed',
     });
     expect(await state(sub, grant.jti)).toEqual({ balance: OPENING - 490000, txns: 1, used: 1 });
   });
 
-  it('a read grant is single use too', async () => {
+  it('a read grant is single use too, and its replay names the first use', async () => {
     const sub = await seedCustomer();
     const params = { account: 'savings' };
     const grant = await mintGrant({ action: 'balance.view', params, sub });
     expect((await fetchCore(coreRequest('balance.view', params, grant.token))).status).toBe(200);
-    expect((await fetchCore(coreRequest('balance.view', params, grant.token))).body).toMatchObject({
-      error: { code: 'E_GRANT_REUSED' },
+    const replay = await fetchCore(coreRequest('balance.view', params, grant.token));
+    expect(replay.body).toEqual({
+      error: {
+        code: 'E_GRANT_REUSED',
+        message: 'The grant has already been used',
+        details: {
+          outcome: 'executed',
+          reference: `AERO-${grant.jti.slice(-6)}`,
+          request_id: grant.claims.request_id,
+          used_at: (await usedRow(grant.jti))?.used_at,
+        },
+      },
     });
   });
 });
