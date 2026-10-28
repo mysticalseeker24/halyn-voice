@@ -6,7 +6,7 @@ and the docs disagree, the docs win — then update this file.
 ## Agents
 | Agent | Kind | Number | STT · TTS · LLM | Key settings | Tools |
 |---|---|---|---|---|---|
-| `aero-hi` Aero voice agent | Graph agent, inbound + web | A | Sarvam `saaras:v4` (hi, Hinglish) · Sarvam `bulbul:v3` · `gpt-5.4-mini` temp 1 | `call_terminate` 600, interruption words 3, endpointing 300 ms, recording on | `lookup_customer`, `verify_pass`, `propose_action`, `check_decision` (fallback), transfer |
+| `aero-hi` Aero voice agent | Graph agent, inbound + web | A | Sarvam `saaras:v4` (hi, Hinglish) · Sarvam `bulbul:v4-flash` `simran_enhi_banking_expressive` 1.1× (Saksham's pick, 2026-10-28) · `gpt-5.4-mini` temp 1 | `call_terminate` 600, interruption words 3, endpointing 300 ms, recording on | `lookup_customer`, `verify_pass`, `propose_action`, `check_decision` (fallback), transfer |
 | `aero-en` Aero voice agent (US) | Same graph | Web only | Sarvam English · English voice | Same | Same |
 | `halyn-confirm` | **Graph**, outbound | B | Sarvam hi/en | speech only (DTMF off), `call_terminate` 120, guardrails 9–21; `ask` → `record` → `bye` (static, `end_call`) on the `recorded` event | `confirm_result` |
 | `assistant` Saksham's Assistant | Simple, outbound | B | English | `call_terminate` 180, guardrails 9–21 | `get_pass_code` |

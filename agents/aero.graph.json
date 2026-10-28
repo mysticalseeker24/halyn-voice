@@ -298,11 +298,11 @@
             "buffer_size": 200,
             "audio_format": "wav",
             "provider_config": {
-              "model": "bulbul:v3",
-              "voice": "Simran",
-              "voice_id": "simran",
+              "model": "bulbul:v4-flash",
+              "voice": "Simran (Banking Expressive)",
+              "voice_id": "simran_enhi_banking_expressive",
               "language": "hi",
-              "speed": 1.15,
+              "speed": 1.1,
               "loudness": 1
             }
           }
