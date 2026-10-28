@@ -22,7 +22,8 @@ non-protective prompt wording and misspellings of Saksham's name).
    `node --env-file=.env` / `process.loadEnvFile`. Before every push: CI's secret-pattern scan over the new commits
    **and** a check that no literal `.env` value appears in `git log -p origin/main..HEAD`.
 4. **Commits and pushes:** at the end of each step, **ask Saksham before committing and pushing** (show the split).
-   He likes **more, smaller commits** (8+ per push is fine), conventional messages ending with
+   He wants **more than 7–8 small commits per step** and **nothing left behind** (no deferred pieces inside a step's
+   scope; real blockers are named in STATE.md), conventional messages ending with
    `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Before pushing, verify **each** commit on its own:
    `bash scripts/verify-commits.sh <scratch-logdir> $(git rev-list --reverse origin/main..HEAD)` (worktree `E:/hvw`,
    Turbo cache on; re-run a commit that hits a known environmental flake listed in the script). Push with

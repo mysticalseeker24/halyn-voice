@@ -2,6 +2,30 @@
 
 Newest at the top. One entry per session via `/handoff`: what changed, tests run (with counts), what's next, anything risky.
 
+## 2026-10-28 · Steps 7 (tools, Confirm, runner) + 9 (Aero app, Stage v1) — chat #3
+- Step 7 (api-builder, Opus): six Bolna tools + webhook, Bolna REST client, core client, Confirm (passkey + callback,
+  first answer wins, 60 s), WebAuthn verifier on WebCrypto, web routes (aero home, approvals incl. decline, passkey
+  registration, ledger, stage run/region), CORS allow-list, `core_update`, text-mode runner. ADR-016 (Hub = call-time
+  read model + Gate in its lane; TiDB mirror), ADR-017 (core client by outcome, `E_CORE_REJECTED`), ADR-018
+  (passkeys), ADR-019 (runner + `scenarios.json` twin). Migration `0001_hub_mirror`; Aero Core D1 migration 0001
+  (`accounts.last4`, `loans.outstanding_minor`).
+- Saksham's decision: **invariant 7 strict** — the 10 s window/`idem_seq` were removed; scenario 12 = one call per
+  transfer. test-engineer (Sonnet): invariant map 1–10 in TESTING.md, fail-closed / tenant-isolation / race / surface
+  / WebAuthn fuzz suites, 11/11 mutations killed.
+- Gaps closed (nothing deferred): ADR-020 Hub sweep for approved-never-claimed and stuck-`executing` requests (same
+  grant re-presented, else deny + reconcile handoff); an unknown outcome counts towards limits; code-review fixes —
+  late answers after the deadline settle as timeout, callback answers need the real Confirm execution id, ADR-021
+  one-time `/ws` tickets (web `useHub` fetches one per (re)connect), cached web sessions parsed with Zod,
+  reduced-motion test.
+- Step 9 (web-builder, Sonnet): `useHub`, typed client on `@halyn/shared`, Aero app (home, alerts, approval sheet,
+  passkey registration, Hindi/English, demo-code prompt), Stage v1 (1920×1080), framer-motion; screens in
+  `docs/screens/`.
+- Tests: `TURBO_FORCE=true pnpm verify` green — shared 673, sdk 48, api unit 836+, api int 43 (incl. the TiDB suite
+  on `halyn_test`), aero-core 160 + 49, web 92, tooling 41; scenarios 14 passed + 1 skipped (10); web e2e 12/12.
+- Not done (Saksham paused for token budget): Day-0 calls; `db:migrate` + `seed` on `halyn_dev`; Step 8.
+- Risks: Bolna contract fixtures are still `synthetic-from-docs` until Day-0 recordings; the Confirm callback leg
+  needs the real run id on the Confirm call (Day-0 check 2).
+
 ## 2026-10-27 · Step 6 (Aero Core) + check 8 voice clones + secrets — chat #2
 - Secrets: `pnpm keys:generate halyn-2026-10`; `.env` gained the signing key, JWKS, `PASS_CODE_PEPPER`,
   `SESSION_SECRET`, `PHONE_HASH_PEPPER` (64 random chars each, never printed); `apps/api/.dev.vars` and

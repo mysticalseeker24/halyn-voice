@@ -1,11 +1,27 @@
 # STATE — read at the start of every session, update at the end (`/handoff`)
 
-_Last updated: 2026-10-28 03:00 IST, end of chat #2 (Step 6 + review fixes pushed; secrets set; voice clones made;
-probe redeployed). New chats start from `docs/HANDOFF.md`._
+_Last updated: 2026-10-28 09:10 IST, chat #3 (Steps 7 + 9 built, attacked, reviewed and pushed). New chats start from
+`docs/HANDOFF.md`._
 
 ## Where we are
-- **On `main`:** Steps 0–3, 5, 6 and the Day-0 prep. Step 6 went out in the chat #2 push (17 commits after
-  `c691496`) — check `gh run list --limit 1` for its CI result.
+- **On `main`:** Steps 0–3, 5, 6, **7, 9** and the Day-0 prep. Steps 7 + 9 went out in the chat #3 push — check
+  `gh run list --limit 1` for its CI result. **Saksham paused here (token budget): wait for his go-ahead before
+  Day-0 calls or Step 8.**
+- **Step 7 — done:** the six Bolna tools + `/webhooks/bolna`, typed Bolna client, core client (ADR-017), Confirm
+  (passkey + callback, first answer wins, 60 s), passkey verify on WebCrypto (ADR-018, 0.23 ms), `/web/aero/home`,
+  approvals options/verify/decline, passkey registration, `/web/ledger`, `/web/stage/run|region`, CORS allow-list
+  (`WEB_ORIGIN`), `core_update` broadcasts, text-mode runner (ADR-019). **ADR-016:** the tenant Hub holds the call-time
+  read model and runs the Gate in its lane; TiDB is a mirror (no TiDB on any tool path; `propose_action` 9 ms median
+  in Miniflare). **Invariant 7 strict** (Saksham's call): same `(run_id, params_hash)` = same request for the whole
+  call; scenario 12 runs each transfer as its own call. **ADR-020:** the Hub alarm sweeps requests approved-but-never-
+  claimed or stuck `executing` (≥ 30 s): same grant re-presented, else deny `E_FAIL_CLOSED` + reconcile handoff; an
+  unknown outcome counts towards limits. Review fixes: late answers after the deadline settle as timeout; a callback
+  answer needs the real Confirm execution id; **ADR-021:** `/ws` takes a one-time 30 s ticket (`POST /web/ws-ticket`),
+  never the session token. Aero Core: `accounts.last4`, `loans.outstanding_minor` (D1 migration 0001). TiDB migration
+  `0001_hub_mirror` (`customers.spoken_name`) — applied to `halyn_test` by the DB suite, **not yet to `halyn_dev`**.
+- **Step 9 — done:** `useHub` (ticket per (re)connect, backoff, refetch), typed client on `@halyn/shared` schemas, Aero
+  app (home, alerts, approval sheet, passkey registration, Hindi/English, demo-code prompt), Stage v1 (1920×1080, no
+  scroll), framer-motion (reduced motion respected). Screens in `docs/screens/`.
 - **Step 6 — done:** `apps/aero-core` D1 schema + migration, deterministic `pnpm seed:core` (local D1), grant-checked
   routes from `CORE_ROUTES` (`packages/shared/src/core.ts`), jti insert first in each effect's single `db.batch`.
   Review fixes: body read byte-capped at 4,096 B as it streams; every write's precondition re-checked inside the batch
@@ -92,34 +108,47 @@ This machine's network can't open `*.workers.dev` (Cloudflare anycast times out)
 | ffmpeg | Not installed system-wide. `npm i @ffmpeg-installer/ffmpeg @ffprobe-installer/ffprobe` in a scratch folder works (`ffmpeg-static`'s GitHub download is reset on this network) |
 
 ## Scenario status (12)
-Gate-level decision + reasons for all 13 (incl. 3b) pass in unit tests (`apps/api/src/gate/scenarios.test.ts`).
-| # | Text mode (full runner, Step 7) | Voice | Notes |
+Text mode = `pnpm test:scenarios` (real Gate/Pass/ledger/Hub/Aero Core in Miniflare; Bolna + answers simulated):
+**14 passed, 1 skipped** (scenario 10).
+| # | Text mode | Voice | Notes |
 |---|---|---|---|
-| 1 Freeze card (Hindi) | ☐ | ☐ | |
-| 2 Fee waiver | ☐ | ☐ | |
-| 3 Clone attack | ☐ | ☐ | hero |
-| 4 Coached customer | ☐ | ☐ | hero |
-| 5 Assistant in Pass | ☐ | ☐ | |
-| 6 Assistant beyond Pass | ☐ | ☐ | |
-| 7 Unknown AI, no Pass | ☐ | — | text only |
-| 8 Bystander cross-talk | ☐ | — | text only |
-| 9 Distress → human | ☐ | — | text only |
-| 10 Region US (browser) | ☐ | ☐ | |
-| 11 Prompt injection | ☐ | — | text only |
-| 12 Velocity split | ☐ | — | text only |
+| 1 Freeze card (Hindi) | ✅ | ☐ | |
+| 2 Fee waiver | ✅ | ☐ | |
+| 3 Clone attack (+3b timeout) | ✅ | ☐ | hero |
+| 4 Coached customer | ✅ | ☐ | hero |
+| 5 Assistant in Pass | ✅ | ☐ | |
+| 6 Assistant beyond Pass | ✅ | ☐ | assumes the Pass was presented at call start (ADR-019) |
+| 7 Unknown AI, no Pass | ✅ | — | text only |
+| 8 Bystander cross-talk | ✅ | — | text only |
+| 9 Distress → human | ✅ | — | text only |
+| 10 Region US (browser) | pending (Step 12) | ☐ | browser calls carry the app session |
+| 11 Prompt injection | ✅ | — | text only |
+| 12 Velocity split | ✅ | — | text only; each transfer its own call (strict invariant 7) |
 
-## Next steps (in order)
-1. Confirm the chat #2 push is green in CI.
-2. From 09:00 IST: Day-0 calls (`docs/DAY0.md` run order). Check 11 = `read-log.mjs` entries `timings_on_request`.
-   Afterwards `restricted` on all agents, `list_violations`, COMPLIANCE.md log, results here + DAY0.md, `/pull-call`
-   fixtures into `tests/fixtures/bolna` (Step 7 contract tests), then delete the probe + its KV/D1.
-3. **Step 7** (api-builder on Opus, then test-engineer on Sonnet) → **Step 8** (bolna-voice-engineer; deploy + agents
-   + relink A need go-aheads). **Step 9 in parallel** (web-builder, Sonnet; owns `apps/web` only).
-4. Steps 10–20 in order. Step 19 renders the clone's lines in voice C then `atempo=1.25`, name in Devanagari;
+## Next steps (in order) — **only after Saksham's go-ahead**
+1. Confirm the chat #3 push is green in CI.
+2. Day-0 calls (09:00–21:00 IST, `docs/DAY0.md` run order; the approval must be re-given). Check 11 = `read-log.mjs`
+   entries `timings_on_request`. Afterwards `restricted` on all agents, `list_violations`, COMPLIANCE.md log, results
+   here + DAY0.md, `/pull-call` real fixtures into `tests/fixtures/bolna` (replace the `synthetic-from-docs` ones; the
+   contract test picks its schema by file name), then delete the probe + its KV/D1.
+3. `pnpm db:migrate` + `pnpm seed` on `halyn_dev` (migration 0001, spoken names).
+4. **Step 8** (bolna-voice-engineer; deploy + agents + relink A + calls need go-aheads) — see Carry-forwards below.
+5. Steps 10–20 in order. Step 19 renders the clone's lines in voice C then `atempo=1.25`, name in Devanagari;
    `scripts/clone-clips.ts` should refuse Roman "Saksham" in TTS text.
 
 ## Carry into later steps
-- Step 6 → Step 7 core client (`apps/api/src/core-client`): read Aero Core errors by `error.details`
+- **Step 8:** the Aero graph needs two more event edges — `working` deny→`refused` and `awaiting_confirmation`
+  hold→`protect` (docs/BOLNA.md). Deploy: upload compiled packs to KV (`pack:<tenant>:<region>`); secrets
+  `BOLNA_CONFIRM_AGENT_ID`, `NUMBER_B`, `CUSTOMER_PHONE`, `WEB_ORIGIN` (comma-separated allow-list); the `AERO_CORE`
+  service binding; the Hub needs Aero Core + `HALYN_SIGNING_KEY` (ADR-020). The Confirm callback leg needs the Confirm
+  call's real run id (Day-0 check 2 or the webhook call-sid map); otherwise passkey + timeout only.
+- **Steps 11/13:** approved tier-4 changes become a handoff until the Console release flow exists.
+- **Steps 15/17:** live Stage runs act on the demo customer's real Aero Core rows (re-seed with `pnpm seed:core`; Step
+  17 needs a demo reset), and 3b (60 s) / 12 (ten transfers) don't fit a Worker's 30 s `waitUntil` → run long scenarios
+  inside the Hub (alarm-stepped) for the Stage/Test UI.
+- **Step 12:** scenario 10 (browser calls carry the app session); the Stage region switch is already wired.
+- Step 6 → Step 7 core client (**done in Step 7, ADR-017**; kept as the reference) (`apps/api/src/core-client`): read
+  Aero Core errors by `error.details`
   (`CoreOutcomeDetailsSchema`): `E_GRANT_REUSED` on a retry of Halyn's own grant = **executed earlier** (use
   `details.reference`), never "not executed"; 500 with `{outcome:"unknown"}` = reconcile, fail closed to the caller; no
   `details` = nothing written. Bank refusals are 400 `E_BAD_REQUEST` (no dedicated code; Step 7 may add
@@ -149,9 +178,8 @@ Gate-level decision + reasons for all 13 (incl. 3b) pass in unit tests (`apps/ap
 ## Known issues / notes
 - Outbound calls only 09:00–21:00 IST (guardrails, and `call.ts` refuses outside it).
 - Toolchain choices and risks: ADR-008. Gate clarifications: ADR-011 / GATE.md. Crypto + ledger anchor: ADR-012.
-- `test:scenarios` is still a placeholder (parses scenarios.yaml); the runner is Step 7.
 - `db:migrate` / `seed` are real (TiDB); D1: `pnpm seed:core` (local). `compile:packs` runs inside `pnpm build`.
 - Action params, tiers and Aero Core routes: `docs/ACTIONS.md` (contract-tested). Four agent-tier actions have no
-  Aero Core route; an approval of one becomes a handoff (Step 7).
+  Aero Core route; an approval of one becomes a handoff (built in Step 7).
 - Pure-module lint rule covers gate/grants/ledger/pass/shared + the two lexicons (`tests/tooling/eslint-boundaries.test.ts`).
   Don't name files `db.ts`/`bolna.ts`/`hub.ts`/`core-client.ts` inside those folders.
