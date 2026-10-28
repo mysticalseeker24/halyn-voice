@@ -4,6 +4,8 @@ export default defineConfig({
   test: {
     // src/: unit and property tests next to the code. test/: contract tests that read the repo's own specs.
     include: ['src/**/*.test.ts', 'test/**/*.test.ts'],
+    // Property tests run 100+ async cases; under pnpm verify's parallel load 5 s is not enough (290 ms alone).
+    testTimeout: 20_000,
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
