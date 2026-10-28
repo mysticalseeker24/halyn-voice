@@ -21,6 +21,8 @@ const API = [
   'NUMBER_B',
   'CUSTOMER_PHONE',
   'BOLNA_CONFIRM_AGENT_ID',
+  'BOLNA_ASSISTANT_AGENT_ID',
+  'NUMBER_A',
 ] as const;
 const CORE = ['HALYN_PUBLIC_JWKS'] as const;
 
