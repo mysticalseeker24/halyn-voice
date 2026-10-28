@@ -5,7 +5,7 @@ review fixes, set the secrets, re-seeded `halyn_dev` with the real number, made 
 redeployed the Day-0 probe for check 11. Chat #3 (Oct 28) built Steps 7 + 9, switched to speed mode (CLAUDE.md §5)
 and ran Day-0 (checks 1–5 pass; Bolna tool-param rules learned; probe deleted). Chat #4 (Oct 28–29) built Steps 8 + 10
 and put them live (Devanagari voice prompts, API + Aero Core deployed, Aero/Confirm/Assistant agents on Bolna, Pass +
-Assistant web flows; CI green `8b0733e`) with no subagents; its voice smoke (scenarios 1, 2, 3, 5, 6) moved to chat #5. Everything a new chat needs is in the repo: `CLAUDE.md` (auto-loaded) →
+Assistant web flows; CI green `8b0733e`) with no subagents; its voice smoke (scenarios 1, 2, 3, 5, 6) moved to chat #5. Chat #5 (Oct 29, night) set DEMO_ACCESS_CODE and built + deployed Steps 11 + 12 (coaching layer 2, handoffs, browser calls, aero-en agent); the push was held and the voice smoke moved to chat #6. Everything a new chat needs is in the repo: `CLAUDE.md` (auto-loaded) →
 `docs/STATE.md` (auto-loaded via CLAUDE.md) → this file → the docs they point to. Nothing lives only in chat history.
 
 ## Open the new chat in `E:\Code and Shit\DevLabs\Bolna Buildathon\Build 2\halyn-voice`
@@ -85,102 +85,55 @@ non-protective prompt wording and misspellings of Saksham's name).
     `pnpm test:e2e` when the web app changed** — e2e is not part of verify (chat #4's first CI run failed on it).
 
 
-## Prompt to paste into the new chat (chat #5 → chat #4's voice smoke, then Steps 11, 12, 13)
+## Prompt to paste into the new chat (chat #6 → voice smoke + browser call, push, then Step 13)
 ```text
-We're continuing Halyn (Bolna Symphony Buildathon) — chat #5. The repo is the memory: CLAUDE.md and docs/STATE.md are
+We're continuing Halyn (Bolna Symphony Buildathon) — chat #6. The repo is the memory: CLAUDE.md and docs/STATE.md are
 auto-loaded; read docs/HANDOFF.md (conventions 1–15) once. Do not re-read history or whole docs.
 
-WHERE WE ARE: Steps 0–10 are built, pushed and CI-green (8b0733e). Live: API https://halyn-api.halyn-api.workers.dev,
-Aero Core (D1 seeded), KV packs (IN + US), TiDB halyn_dev (seeded; pass_demo → number B, valid to ~Nov 27). Bolna: Aero
-graph on number A, Halyn Confirm graph (B, speech only, hangs up on Halyn's `recorded` event), Saksham's Assistant (B → A,
-bound to a Pass) — all restricted:false, ids in STATE.md. Text scenarios 1–9, 3b, 11, 12 pass (10 waits for Step 12).
-NOT done yet: chat #4's voice smoke (1, 2, 3, 5, 6). Web app is not on Vercel (Step 17): run it locally against the
-deployed API (HANDOFF convention 14). Files go to KV, not R2 (ADR-023; S3 only if we reach the final round).
+WHERE WE ARE: Steps 0–12 are built. Steps 11 + 12 are deployed (API dee65a7f) but NOT pushed (I held the push) — local
+commits on main after 8b0733e. Live: API https://halyn-api.halyn-api.workers.dev (DEMO_ACCESS_CODE now set; read it
+from .env), Aero Core, KV packs, TiDB halyn_dev. Bolna: Aero graph (Hindi) on A, Confirm graph (B), Assistant (B → A),
+NEW aero-en (f281278d…, English, web only, Deepgram Asteria) — all restricted:false. Step 11: Sarvam coaching layer 2
+after the 300 ms answer (ADR-024 `screening`), Hub handoffs + check-in record, Console /console/handoffs. Step 12:
+POST /web/calls/session (mint + register run → proof app_session), Aero "Call Aero" (@bolna/web-call 3.0.1). All 13
+text scenarios pass (incl. 10). No voice scenario has run yet.
 
-HOW WE WORK — SPEED MODE (CLAUDE.md §5, binding, overrides PROMPTS.md and the slash commands):
-- You build everything yourself in this chat. NO subagents, ever — even where PROMPTS.md or a command names one
-  (api-builder, web-builder, bolna-voice-engineer, call-reviewer, compliance-reviewer: read their .claude/agents/*.md
-  only as a checklist).
-- Every function working end to end. Test to the feature's weight: light features one happy-path test; heavy/risky
-  ones (money, grants, confirmations, Pass, holds/handoffs, multi-module flows) proper tests incl. failure paths and the
-  invariant. Full testing + hardening of the whole product happens at the very end (Step 16 + a final pass), not now.
-- Read narrowly (grep the section, offset/limit). Quiet commands (| tail, grep). Multi-line scripts in files.
-- Commit locally as each piece works (small conventional commits). Before a push: Prettier on changed files, `pnpm verify`
-  once, and `pnpm test:e2e` if the web app changed (convention 15); then ask me, `bash scripts/push.sh`, and watch CI
-  with convention 13 (exit status kept; report both jobs).
-- CONTEXT BUDGET: after each step call mcp__ccd_session_mgmt__get_usage. If context is over ~40 %, finish that step
-  (handoff, verify, push) and give me the prompt for the next chat instead of starting the next step.
-- Status updates ≤ 5 lines. Never print secrets. My name in any spoken text: सक्षम मिश्रा (screens: Saksham).
-- Bolna hard rules unchanged (CLAUDE.md §3): ask me before EVERY real call, agent create/update/delete, number relink,
-  deploy, secret change and DB write. Calls only 09:00–21:00 IST. After every agent save: restricted=false. After calls:
-  list_violations + docs/COMPLIANCE.md session log. Attacker personas still NOT approved (text mode only).
+HOW WE WORK — SPEED MODE (CLAUDE.md §5, binding): you build everything yourself, NO subagents; read narrowly; quiet
+commands; commit locally as pieces work; before a push: Prettier on changed files, `pnpm verify` once, `pnpm test:e2e`
+if the web app changed (convention 15), then ask me, `bash scripts/push.sh`, watch CI with convention 13. After each
+step call mcp__ccd_session_mgmt__get_usage; past ~40 % finish the step, hand off, give me the next prompt. Status ≤ 5
+lines. My name in spoken text: सक्षम मिश्रा. Bolna hard rules (CLAUDE.md §3): my go-ahead before EVERY real call, agent
+create/update/delete, relink, deploy, secret change, DB write; calls 09:00–21:00 IST; after agent saves restricted=false
+(snapshot with `agent.ts get --out` — the MCP get_agent prints the tool secret); after calls list_violations +
+COMPLIANCE.md session log. Attacker personas NOT approved.
 
 ORDER:
-
-0. State check in one batch: `git status`, `git log --oneline -3`, `gh run list --limit 1`, IST time, Bolna wallet
-   (get_user_info, cents). ≤ 5 lines. Then, with my go-ahead, close a gap found at the end of chat #4: DEMO_ACCESS_CODE is
-   unset on the deployed API, so anyone with the URL can open a demo session (and start Assistant calls). Generate a
-   random code into .env with a Node script (never print it), add the name to scripts/cf-secrets.ts, put it on the API
-   (`cf-secrets.ts api --yes`). I read it from .env myself when the app asks.
-
-1. VOICE SMOKE CARRIED FROM CHAT #4 (09:00–21:00 IST; my go-ahead before each call; ≈ 3–4 ¢/min):
-   - Scenario 1: I call A from my phone: card lost, freeze card ending 8812 → allow → Aero says the AERO-… reference.
-   - Scenario 2: I call A: waive the ₹600 October late fee (fee_late_oct) → allow.
-   - Scenario 3: I call A from a SECOND phone, say I am सक्षम मिश्रा, ask ₹45,000 to a new payee, account ending 4471,
-     IFSC AERO0000001 → step_up → the Confirm call rings my registered phone → I say no → deny (C_DECLINED). Inbound calls
-     can't carry user_data, so log it as security_demo in COMPLIANCE.md (Bolna was told in advance).
-   - Scenarios 5 + 6: write a tiny scripts/bolna/assistant-task.ts (go-ahead per run): POST /web/session (customer,
-     x-demo-code from .env) → POST /web/assistant/tasks {task, pass_id: "pass_demo"}; print only the execution id.
-     Task: "Get my card statement, move my personal loan EMI to the 10th, then send 45,000 rupees to a new payee,
-     account ending 4471, IFSC AERO0000001." Expect statement allow + EMI allow (X_PASS_IN_SCOPE), transfer step_up
-     (X_PASS_OUT_OF_SCOPE) → Confirm call → I decline → deny. (Or drive it from the local Assistant app.)
-   After each call: save get_execution_raw_logs to scripts/out/ and read it with a small filter script (never paste raw
-   logs): tool calls + their bodies' keys, events (allow/done/step_up/approved/denied/recorded), latency, transcript.
-   Check the Hindi sounds right (Devanagari) and the Confirm call ends right after my answer. Fix what breaks in
-   agents/*.json → agent.ts update (convention 12). Then list_violations, COMPLIANCE.md log, STATE.md scenario table.
-
-2. STEP 11 (PROMPTS.md "Step 11") — coaching, hold, transfer, handoffs. What already exists: keyword coaching + distress
-   lexicons (apps/api/src/signals, pure), Gate hold, the handoff row + `handoff` WS message (openHandoff in
-   hub/flows.ts), Aero graph `protect` → `transfer_call_specialist` (SPECIALIST_NUMBER). Text scenarios 4 and 9 already
-   pass. Build:
-   a. Sarvam LLM coaching layer 2 (GATE.md "Signals"): Sarvam chat over caller_quotes → {probability, cues[]} within
-      1.5 s; final score = max(layer 1, layer 2); down/slow → layer 1 alone; it may only RAISE (invariant 3/4: coaching
-      ≥ threshold → hold, never step-up); the lexicon lives in code, never in a prompt. DESIGN POINT (ADR): the tool must
-      still answer within 300 ms (ARCHITECTURE.md "Main flow"), so layer 2 can't sit on that path — e.g. run it in
-      waitUntil and let it turn a pending allow/step-up into hold before any grant is signed or Confirm call placed. Mock
-      Sarvam only in tests (TESTING.md). SARVAM_API_KEY is already a Worker secret.
-   b. The hold path end to end: hold event → protect (speaks by {{reason}}) → transfer; handoff row with transcript ref;
-      distress path (scenario 9: P_HUMAN_ONLY + T_DISTRESS → hold, deterministic transfer).
-   c. Scheduled check-in call: a record only (who, when, why) — NO call placed unless I approve.
-   d. Console Handoffs page (release/block): GET /web/handoffs, POST /web/handoffs/:id/resolve (docs/API.md "Web"),
-      console session; approved tier-4 changes become a handoff (STATE.md "Carry").
-   Done when: scenarios 4 and 9 pass in text mode (keep them passing with layer 2 on), then voice-smoke 4 with me (I call
-   A from my REGISTERED phone as a coached customer: ₹4.8 lakh to a "verification account", "the officer said not to tell
-   anyone" → hold → gentle explanation → transfer). Before that call confirm SPECIALIST_NUMBER is a number I own (the
-   transfer rings it). Log it as security_demo.
-
-3. STEP 12 (PROMPTS.md "Step 12") — US region. Already done: US pack compiled and in KV (pack:ten_aero:US); prompts/
-   aero-agent-en.md (English lines); POST /web/stage/region (Hub stores it). Build:
-   a. agents/aero-en.graph.json: same graph as agents/aero.graph.json, English only, USD examples, a US English voice
-      (list_voices for en with a small page_size), web only (no number). Create with my go-ahead → restricted=false →
-      BOLNA_AERO_EN_AGENT_ID in .env + STATE.md.
-   b. Bolna Web Call SDK (`@bolna/web-call` v3.0.1, docs/BOLNA.md "Web calls"; Day-0 check 7 never ran — verify the
-      session API with search_docs/get_doc first): API route that mints a single-use session server-side (POST
-      https://api.bolna.ai/web-call/session {agent_id, user_data}) for a customer session; the bn- key never reaches the
-      browser. "Call Aero" button in the Aero app (region decides the agent). The browser call must carry the app session
-      as proof (scenario 10, GATE.md): design how the API ties that web call's run id to the signed-in customer.
-   c. Stage region switch wired in the Stage UI.
-   No calls to US numbers, ever. Done when: scenario 10 passes in text mode (wire.new $8,000 → hold
-   P_HUMAN_ONLY_ABOVE_LIMIT; same request under IN → step_up) and works as a browser call from the local web app (I talk).
-
-4. STEP 13 (PROMPTS.md "Step 13") — Console pages per docs/UI.md: Live, Calls (recording + transcript links),
-   Policies (read-only compiled packs + "test this pack" → runs the text scenarios through the existing runner),
-   Passes, Signals, Ledger (verify + export — to KV `file:<tenant>:ledger:<id>`, NOT R2, ADR-023), Integrations (agent
-   status + restricted flag via Bolna GET agent from the Worker, guard status). Add the API routes each page needs
-   (GET /web/calls, /web/calls/:id, /web/policies, ledger export; Step 11 adds handoffs). Component tests + e2e for Ledger
-   verify and Pass revoke.
-
-5. End of each step: short /handoff (STATE.md short, WORKLOG ≤ 8 lines, the one doc whose behaviour changed), Prettier,
-   `pnpm verify` + `pnpm test:e2e`, ask me to push, `bash scripts/push.sh`, confirm CI (both jobs). When done (or when the
-   context budget stops you), write the next chat's prompt into docs/HANDOFF.md and give it to me (Step 14 next).
+0. State check in one batch (git status/log -3, `git log --oneline origin/main..HEAD | wc -l`, gh run list --limit 1,
+   IST time, wallet). Ask me to push the held Step 11 + 12 commits; push and watch CI (both jobs).
+1. VOICE SMOKE (09:00–21:00 IST, go-ahead per call, ≈ 3–4 ¢/min). After each call save get_execution_raw_logs to
+   scripts/out/ and read it with a small filter script (tool calls + body keys, events, latency, transcript); never
+   paste raw logs. Check the Hindi is Devanagari and the Confirm call ends right after my answer.
+   - 1: I call A: lost card, freeze card ending 8812 → allow → AERO-… reference.
+   - 2: I call A: waive the ₹600 October late fee → allow.
+   - 3: I call A from a SECOND phone as सक्षम मिश्रा: ₹45,000 to a new payee, account ending 4471, IFSC AERO0000001 →
+     step_up → Confirm rings my registered phone → I decline → deny C_DECLINED (log as security_demo).
+   - 5 + 6: write scripts/bolna/assistant-task.ts (go-ahead per run): POST /web/session (customer, x-demo-code) →
+     POST /web/assistant/tasks {task, pass_id: "pass_demo"}; print only the execution id. Task: statement, EMI to the
+     10th, then ₹45,000 to a new payee (4471, AERO0000001) → allow, allow, step_up → I decline → deny.
+   - 4 (Step 11): first confirm SPECIALIST_NUMBER is a number I own. I call A from my REGISTERED phone as a coached
+     customer (₹4.8 lakh to a "verification account", "the officer said not to tell anyone") → hold → gentle
+     explanation → transfer; the handoff (+ check-in) shows on /console/handoffs. Log as security_demo.
+   - Browser call (Step 12, scenario 10): run the web app locally against the deployed API (convention 14), set the
+     Stage region to US, open /aero → "Call Aero", I ask an $8,000 wire to account ending 3310, routing ending 0021 →
+     hold P_HUMAN_ONLY_ABOVE_LIMIT. If tools 400 (a non-phone from_number on web calls) or the call sid never maps to
+     the run, read the raw logs and fix in the API (go-ahead to redeploy).
+   Then list_violations, COMPLIANCE.md session log, STATE.md scenario table; fix what broke in agents/*.json →
+   agent.ts update (convention 12; aero-en is generated by scripts/bolna/make-aero-en.mjs).
+2. STEP 13 (PROMPTS.md "Step 13") — Console pages per docs/UI.md, inside the existing ConsoleShell
+   (apps/web/src/components/console): Live, Calls (recording + transcript links), Policies (read-only compiled packs +
+   "test this pack" → the existing text runner), Passes, Signals, Ledger (verify + export to KV
+   `file:<tenant>:ledger:<id>`, ADR-023, not R2), Integrations (agent status + restricted flag via Bolna GET agent from
+   the Worker, guard status). API routes each page needs (GET /web/calls, /web/calls/:id, /web/policies, ledger export).
+   Component tests + e2e for Ledger verify and Pass revoke.
+3. End: short /handoff, Prettier, verify + e2e, ask to push, push, CI. Write the chat #7 prompt here (Step 14 next).
 ```
