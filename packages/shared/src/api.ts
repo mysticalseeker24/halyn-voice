@@ -193,6 +193,7 @@ export const PassDraftSchema = z.strictObject({
   scopes: PassScopesSchema,
   expires_in_days: z.int().min(1).max(30),
 });
+export type PassDraft = z.input<typeof PassDraftSchema>;
 /** POST /web/passes/options → request options whose challenge binds the draft (`ApprovalOptionsResponseSchema`). */
 export const PassOptionsRequestSchema = PassDraftSchema;
 /** POST /web/passes: the same draft and the passkey assertion over its challenge. */
@@ -206,6 +207,7 @@ export const PassSummarySchema = z.strictObject({
   issued_at: IsoDateTimeSchema,
   expires_at: IsoDateTimeSchema,
 });
+export type PassSummary = z.infer<typeof PassSummarySchema>;
 export const IssuePassResponseSchema = z.strictObject({ pass: PassSummarySchema, token: CompactJwsSchema });
 export const ListPassesResponseSchema = z.strictObject({ passes: z.array(PassSummarySchema) });
 export const RevokePassResponseSchema = z.strictObject({ pass: PassSummarySchema });

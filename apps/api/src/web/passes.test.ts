@@ -45,7 +45,7 @@ describe('issuing a Pass with passkey consent', () => {
     expect(issued.pass).toMatchObject({ assistant_numbers: [ASSISTANT], status: 'active', scopes: draft.scopes });
     const verified = await verifyPassToken(
       issued.token,
-      await importVerifyKeys(String(h.env.HALYN_PUBLIC_JWKS)),
+      await importVerifyKeys(String((h.env as unknown as Record<string, unknown>).HALYN_PUBLIC_JWKS)),
       h.clock.nowMs(),
     );
     expect(verified.ok && verified.claims.pid).toBe(issued.pass.id);
@@ -129,5 +129,35 @@ describe('the Assistant task', () => {
     const late = await night.web('/web/assistant/tasks', task, await night.customerToken());
     expect(late.status).toBe(400);
     expect(night.bolna.calls).toEqual([]);
+  });
+});
+
+describe('the Assistant app hears the call', () => {
+  it('gets a system line when the code is minted and the masked transcript when the call ends', async () => {
+    const token = await h.customerToken();
+    const res = await h.web('/web/assistant/tasks', { task: 'Get my statement.', pass_id: 'pass_demo' }, token);
+    const { execution_id } = (await res.json()) as { execution_id: string };
+    const assistant = await h.listen('assistant');
+    await h.tool('get_pass_code', { run_id: execution_id, from_number: ASSISTANT });
+    await h.settle();
+    await h.fetch('/webhooks/bolna', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-halyn-secret': 'test-tool-secret-0123456789abcdef0123456789',
+        'cf-connecting-ip': '13.203.39.153',
+      },
+      body: JSON.stringify({
+        id: execution_id,
+        status: 'completed',
+        transcript: 'assistant: Hello, I am calling for my customer.\nuser: Your account ending 9876543210 is fine.',
+      }),
+    });
+    await h.settle();
+    const lines = assistant.filter((m) => m.type === 'call_update');
+    expect(lines.map((m) => m.type === 'call_update' && m.agent)).toEqual(['assistant', 'aero']);
+    const transcript = lines.at(-1);
+    expect(transcript?.type === 'call_update' && transcript.text).toContain('Hello, I am calling');
+    expect(JSON.stringify(transcript)).not.toContain('9876543210');
   });
 });

@@ -1,4 +1,11 @@
-import { BolnaExecutionSchema, HalynError, isTerminalExecution, OkResponseSchema } from '@halyn/shared';
+import {
+  BolnaExecutionSchema,
+  HalynError,
+  isTerminalExecution,
+  maskNumbers,
+  OkResponseSchema,
+  RunIdSchema,
+} from '@halyn/shared';
 import type { Context } from 'hono';
 import type { AppDeps } from '../flow/context';
 import type { AppEnv } from '../http/app-env';
@@ -8,7 +15,8 @@ import { toolContext } from './common';
  * POST /webhooks/bolna — Bolna's execution record (agent webhook, several times per call; and the tools' pre-call
  * webhook). Decisions never depend on it: it maps a call's call_sid to its run id (the fallback when `%(execution_id)s`
  * does not substitute) and records when the call ended and its recording. Unreadable bodies are acknowledged and
- * ignored, so Bolna does not retry them.
+ * ignored, so Bolna does not retry them. When a call ends, its transcript (numbers masked, last 2,000 characters) goes
+ * to the apps as one `call_update` — the Assistant app and the Stage show it; a repeat simply replaces it.
  */
 export function bolnaWebhook(deps: AppDeps) {
   return async (c: Context<AppEnv>) => {
@@ -30,6 +38,33 @@ export function bolnaWebhook(deps: AppDeps) {
       recording_url: execution.telephony_data?.recording_url ?? null,
       purpose: typeof purpose === 'string' ? purpose.slice(0, 32) : null,
     });
+    const run = RunIdSchema.safeParse(execution.id);
+    if (isTerminalExecution(execution.status) && execution.transcript && run.success)
+      c.executionCtx.waitUntil(
+        ctx.flow.hub
+          .broadcast(
+            {
+              type: 'call_update',
+              at: new Date(ctx.flow.clock.nowMs()).toISOString(),
+              run_id: run.data,
+              agent: agentKind(c.env, execution.agent_id),
+              speaker: 'system',
+              text: maskNumbers(execution.transcript).slice(-2000),
+            },
+            ['assistant', 'stage', 'console'],
+          )
+          .then(
+            () => undefined,
+            () => undefined,
+          ),
+      );
     return c.json(OkResponseSchema.parse({ ok: true }));
   };
+}
+
+function agentKind(env: unknown, agent_id: string | null | undefined): 'aero' | 'confirm' | 'assistant' {
+  const ids = env as { BOLNA_CONFIRM_AGENT_ID?: unknown; BOLNA_ASSISTANT_AGENT_ID?: unknown };
+  if (agent_id && agent_id === ids.BOLNA_CONFIRM_AGENT_ID) return 'confirm';
+  if (agent_id && agent_id === ids.BOLNA_ASSISTANT_AGENT_ID) return 'assistant';
+  return 'aero';
 }

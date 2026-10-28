@@ -117,6 +117,24 @@ export function getPassCode(deps: AppDeps) {
     if (!calling) throw refused();
     const minted = await ctx.flow.hub.mintPassCode({ pass_id, calling_number: calling });
     if (!minted.ok) throw refused();
+    c.executionCtx.waitUntil(
+      ctx.flow.hub
+        .broadcast(
+          {
+            type: 'call_update',
+            at: new Date(ctx.flow.clock.nowMs()).toISOString(),
+            run_id: body.run_id,
+            agent: 'assistant',
+            speaker: 'system',
+            text: 'Halyn issued a one-time Pass code for this call (5 minutes, single use).',
+          },
+          ['assistant', 'stage'],
+        )
+        .then(
+          () => undefined,
+          () => undefined,
+        ),
+    );
     return c.json(GetPassCodeResponseSchema.parse({ code: minted.code }));
   };
 }

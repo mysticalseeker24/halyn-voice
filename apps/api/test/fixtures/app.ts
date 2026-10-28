@@ -268,7 +268,7 @@ export async function appHarness(options: AppHarnessOptions = {}): Promise<AppHa
     },
     async listen(role) {
       // As the apps do (ADR-021): trade the session for a one-time ticket, then open the socket with the ticket.
-      const token = role === 'aero' ? await customerToken() : await harness.consoleToken();
+      const token = role === 'aero' || role === 'assistant' ? await customerToken() : await harness.consoleToken();
       const issued = await harness.web('/web/ws-ticket', { role }, token);
       if (issued.status !== 200) throw new Error(`no WebSocket ticket for ${role}: ${issued.status}`);
       const { ticket } = WsTicketResponseSchema.parse(await issued.json());
