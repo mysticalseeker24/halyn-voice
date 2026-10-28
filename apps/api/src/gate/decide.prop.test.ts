@@ -15,7 +15,7 @@ import {
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { CLOCK, sampleParams, SOURCE_SHA } from '../../test/fixtures/gate';
-import { decide, type GateContext, type ProposeRequest, toDecision } from './index';
+import { decide, escalateForCoaching, type GateContext, type ProposeRequest, toDecision } from './index';
 
 // docs/GATE.md "Properties that tests must prove", over arbitrary *valid* policy packs (built through the real
 // schema and compiler), not only the two shipped ones.
@@ -277,6 +277,21 @@ describe('Gate properties (fast-check)', () => {
         expect(['hold', 'deny']).toContain(d.outcome);
       }),
       RUNS,
+    );
+  });
+
+  it('a late coaching score (layer 2) escalates exactly as deciding with it would, and never lowers', () => {
+    fc.assert(
+      fc.property(caseArb, fc.double({ min: 0, max: 1, noNaN: true }), (c, late) => {
+        const first = run(c);
+        const escalated = escalateForCoaching(first, late, c.pack);
+        const score = Math.max(c.ctx.coaching.score, late);
+        const again = run({ ...c, ctx: { ...c.ctx, coaching: { score, cues: [] } } });
+        // Only an allow or step_up is ever screened; a hold or deny is final as decided.
+        if (first.outcome !== 'allow' && first.outcome !== 'step_up') expect(escalated).toBeNull();
+        else expect(escalated ?? first).toEqual(again);
+      }),
+      { ...RUNS, numRuns: 1000 },
     );
   });
 

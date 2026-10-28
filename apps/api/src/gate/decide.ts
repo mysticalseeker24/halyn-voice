@@ -182,6 +182,31 @@ function evaluate(request: ProposeRequest, context: GateContext, pack: CompiledP
 }
 
 /**
+ * Coaching layer 2 answers after the Gate decided (ADR-024). A score at or above the threshold turns an `allow` or
+ * `step_up` on a money-moving action into exactly the step-3 hold `decide` gives with that score: steps 1–2 did not
+ * fire (they never allow or step up) and step 3 comes before every rule that can. Anything else → null: a later
+ * score never lowers an outcome, and a hold or deny stays as it is.
+ */
+export function escalateForCoaching(
+  gate: GateDecision,
+  score: number,
+  pack: CompiledPolicyPack,
+): GateDecision | null {
+  if (gate.action === null || !movesMoney(gate.action)) return null;
+  if (gate.outcome !== 'allow' && gate.outcome !== 'step_up') return null;
+  if (!(score >= pack.coaching.threshold)) return null;
+  const passCode = gate.reasons.find((c) => c === 'X_PASS_IN_SCOPE' || c === 'X_PASS_OUT_OF_SCOPE') ?? null;
+  const reasons = [
+    gate.base_tier === null ? null : tierCode(gate.base_tier),
+    ...gate.signals,
+    passCode,
+    'S_COACHING',
+    'H_SPECIALIST',
+  ].filter((c): c is ReasonCode => c !== null);
+  return { ...gate, outcome: 'hold', reasons: [...new Set(reasons)], confirm: null };
+}
+
+/**
  * Decide a proposed action. Pure and deterministic: no I/O, no clock reads (the clock is accepted so the signature
  * matches docs/GATE.md; only `resolveStepUp` uses it). Never throws: any error is `deny` `E_FAIL_CLOSED`.
  */

@@ -12,7 +12,7 @@ import {
   UNREGISTERED,
   US_PACK,
 } from '../../test/fixtures/gate';
-import { decide, type GateContext, type ProposeRequest, toDecision } from './index';
+import { decide, escalateForCoaching, type GateContext, type ProposeRequest, toDecision } from './index';
 
 // docs/GATE.md: evaluation order, tier table and the Clarifications section. Test names cite the rule they prove.
 
@@ -588,5 +588,24 @@ describe('toDecision', () => {
     expect(decision).toMatchObject({ outcome: 'step_up', final_outcome: 'deny' });
     expect(decision.reasons).toEqual(['P_TIER3_STEP_UP', 'C_DECLINED']);
     expect(DecisionSchema.safeParse(decision).success).toBe(true);
+  });
+});
+
+describe('escalateForCoaching (coaching layer 2, ADR-024)', () => {
+  const money = request('transfer.new_payee');
+
+  it('turns a money step_up into the step-3 hold, keeping tier, signal and Pass codes', () => {
+    const first = gate(money, context({ proof: 'none' }));
+    expect(first.outcome).toBe('step_up');
+    const held = escalateForCoaching(first, 0.9, IN_PACK);
+    expect(held).toMatchObject({ outcome: 'hold', confirm: null, tier: first.tier });
+    expect(held?.reasons).toEqual(expect.arrayContaining(['S_COACHING', 'H_SPECIALIST']));
+  });
+
+  it('leaves a score below the threshold, a non-money action and an unread action alone', () => {
+    const first = gate(money, context({ proof: 'none' }));
+    expect(escalateForCoaching(first, 0.59, IN_PACK)).toBeNull();
+    expect(escalateForCoaching(gate(request('card.freeze'), context()), 1, IN_PACK)).toBeNull();
+    expect(escalateForCoaching({ ...first, action: null }, 1, IN_PACK)).toBeNull();
   });
 });
