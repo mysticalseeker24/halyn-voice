@@ -2,6 +2,17 @@
 
 Newest at the top. One entry per session via `/handoff`: what changed, tests run (with counts), what's next, anything risky.
 
+## 2026-10-28/29 · Steps 8 + 10 built and live, voice smoke pending — chat #4
+- Voice: prompts in Devanagari Hindi, short warm greetings; Saksham picked Sarvam `bulbul:v4-flash` Simran banking 1.1×
+  (3 samples, STT round-trip); endpointing 300 ms; Confirm summary digits spaced ("ending 8 8 1 2").
+- Fixes found on the way: Bolna webhooks send no headers → `/webhooks/*` take `?key=` (ADR-022); Confirm now hangs up
+  on a `recorded` event right after `confirm_result`; Assistant code bound to the call Halyn placed (no token for the LLM).
+- Deployed API + Aero Core (KV packs, remote D1 seeded, halyn_dev migrated + seeded); R2 refused (no card) → files in
+  KV (ADR-023). Bolna: Aero graph, Confirm graph, Assistant created (all `restricted: false`), number A relinked.
+- Step 10: `/web/passes` (passkey consent bound to the draft), revoke/list, `/web/assistant/tasks`, Aero "Assistant"
+  tab, Assistant app (Pass card, task, live log). Tests: verify ✓ (api 856+44, web 91, shared 676, scenarios 14 + 1 skip).
+- Next: voice-smoke 1, 2, 3, 5, 6 in the 09:00–21:00 window (go-ahead per call), then Step 11.
+
 ## 2026-10-28 · Steps 7 (tools, Confirm, runner) + 9 (Aero app, Stage v1) — chat #3
 - Step 7 (api-builder, Opus): six Bolna tools + webhook, Bolna REST client, core client, Confirm (passkey + callback,
   first answer wins, 60 s), WebAuthn verifier on WebCrypto, web routes (aero home, approvals incl. decline, passkey
