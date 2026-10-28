@@ -95,11 +95,11 @@
                   "properties": {
                     "action": {
                       "type": "string",
-                      "description": "One of: card.freeze, card.reset_pin, fee.waive, transfer.saved, transfer.new_payee, emi.move_date, statement.view, balance.view, dispute.charge, upi.raise_limit, loan.new, profile.change_mobile, profile.change_email, account.add_owner, account.close, wire.international."
+                      "description": "One of: card.freeze, balance.view, statement.view, fee.waive, transfer.saved, wire.new, profile.change_mobile, dispute.charge, account.close, wire.international."
                     },
                     "params": {
                       "type": "string",
-                      "description": "The details as a JSON object. Amounts are amount_minor = rupees x 100 (45000 rupees -> 4500000) with currency INR. Keys per action: card.freeze/card.reset_pin {card_last4}; fee.waive {amount_minor, currency, fee_id}; transfer.saved {amount_minor, currency, payee_id}; transfer.new_payee {amount_minor, currency, payee_account_last4, payee_ifsc, payee_name optional}; emi.move_date {loan_id, new_day 1-28}; statement.view/balance.view/account.close {account: savings or current}; dispute.charge {card_last4, amount_minor, currency, merchant}; upi.raise_limit {amount_minor, currency}; loan.new {amount_minor, currency, tenure_months}; profile.change_mobile {new_number with +91}; profile.change_email {new_email}; account.add_owner {account, owner_name}; wire.international {amount_minor, currency, payee_account_last4, swift_bic, payee_country}. Example: {\"card_last4\":\"8812\"}"
+                      "description": "The details as a JSON object. Amounts are amount_minor = dollars x 100 (8000 dollars -> 800000) with currency USD. Keys per action: card.freeze {card_last4}; balance.view/statement.view/account.close {account: checking}; fee.waive {amount_minor, currency, fee_id}; transfer.saved {amount_minor, currency, payee_id}; wire.new {amount_minor, currency, payee_account_last4, routing_last4}; profile.change_mobile {new_number with +1}; dispute.charge {card_last4, amount_minor, currency, merchant}; wire.international {amount_minor, currency, payee_account_last4, swift_bic, payee_country}. Example: {\"amount_minor\":800000,\"currency\":\"USD\",\"payee_account_last4\":\"3310\",\"routing_last4\":\"0021\"}"
                     },
                     "readback_confirmed": {
                       "type": "string",

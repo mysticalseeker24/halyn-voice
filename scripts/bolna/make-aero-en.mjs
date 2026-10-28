@@ -23,6 +23,12 @@ cfg.agent_welcome_message =
 tools.api_tools.tools = tools.api_tools.tools.filter((t) => t.name !== 'transfer_call_specialist');
 delete tools.api_tools.tools_params.transfer_call_specialist;
 tools.api_tools.tools_params.propose_action.param.channel = 'web';
+// The US pack's actions and dollars (the Hindi description lists rupees/INR, which the Gate would refuse here).
+const propose = tools.api_tools.tools.find((t) => t.name === 'propose_action');
+propose.parameters.properties.action.description =
+  'One of: card.freeze, balance.view, statement.view, fee.waive, transfer.saved, wire.new, profile.change_mobile, dispute.charge, account.close, wire.international.';
+propose.parameters.properties.params.description =
+  'The details as a JSON object. Amounts are amount_minor = dollars x 100 (8000 dollars -> 800000) with currency USD. Keys per action: card.freeze {card_last4}; balance.view/statement.view/account.close {account: checking}; fee.waive {amount_minor, currency, fee_id}; transfer.saved {amount_minor, currency, payee_id}; wire.new {amount_minor, currency, payee_account_last4, routing_last4}; profile.change_mobile {new_number with +1}; dispute.charge {card_last4, amount_minor, currency, merchant}; wire.international {amount_minor, currency, payee_account_last4, swift_bic, payee_country}. Example: {"amount_minor":800000,"currency":"USD","payee_account_last4":"3310","routing_last4":"0021"}';
 
 llm.agent_information = [
   "You are Aero Bank's AI voice assistant for customers in the United States. You help with accounts, cards, fees and payees: warm, calm and brief, like a helpful branch colleague.",
