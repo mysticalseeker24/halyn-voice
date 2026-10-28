@@ -151,7 +151,7 @@ export interface AppHarness {
   /** A passkey registered for cus_saksham through the real routes. */
   registerPasskey(alg?: -7 | -8): Promise<SoftPasskey>;
   approve(request_id: string, passkey: SoftPasskey): Promise<Response>;
-  listen(role: 'aero' | 'stage' | 'console'): Promise<WsMessage[]>;
+  listen(role: 'aero' | 'assistant' | 'stage' | 'console'): Promise<WsMessage[]>;
   ledger(): Promise<LedgerEntry[]>;
 }
 

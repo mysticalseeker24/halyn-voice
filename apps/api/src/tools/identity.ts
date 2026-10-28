@@ -10,7 +10,7 @@ import {
 } from '@halyn/shared';
 import type { Context } from 'hono';
 import { registeredNumberHash } from '../db/numbers';
-import { JwksEnvSchema, PhoneEnvSchema, requireEnv } from '../env';
+import { AssistantEnvSchema, JwksEnvSchema, PhoneEnvSchema, requireEnv } from '../env';
 import type { AppDeps } from '../flow/context';
 import type { AppEnv } from '../http/app-env';
 import { verifyPassToken } from '../pass';
@@ -112,8 +112,12 @@ export function getPassCode(deps: AppDeps) {
       const bound = await ctx.flow.hub.assistantCallPass(body.run_id);
       if (!bound) throw refused();
       pass_id = bound;
+      // Halyn placed this call from number B itself: that is the calling number Aero will see.
+      numbers = [requireEnv(c.env, AssistantEnvSchema).NUMBER_B];
     }
-    const calling = body.from_number ?? (numbers?.length === 1 ? numbers[0] : undefined);
+    const calling = body.pass_token
+      ? (body.from_number ?? (numbers?.length === 1 ? numbers[0] : undefined))
+      : numbers?.[0];
     if (!calling) throw refused();
     const minted = await ctx.flow.hub.mintPassCode({ pass_id, calling_number: calling });
     if (!minted.ok) throw refused();
