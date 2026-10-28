@@ -113,10 +113,16 @@ by the Hub's own alarm.
 | `POST /web/assistant/tasks` | `{task, pass_id}` → `{ok, execution_id}`: the Assistant agent calls A from B (09:00–21:00 IST), bound to that Pass, so its `get_pass_code` sends only `call_sid` |
 | `POST /web/calls/session` | Customer: `{region?}` → Bolna's web-call session (single-use, ~120 s) for `@bolna/web-call`; region (default: the Stage's) picks the Aero agent; the run id is registered as this customer's browser call (channel `web`, proof `app_session`; in US the customer's US record) (Step 12) |
 | `POST /web/stage/run/:scenario` · `POST /web/stage/region` | Stage controls |
-| `GET /web/calls` · `/web/calls/:id` · `/web/policies` | Console (Step 13) |
+| `GET /web/calls` · `GET /web/calls/:run_id` | Console: the newest 50 calls (`CallListResponseSchema`: channel, region, caller kind, registered, last 4, requests, last outcome) · one call: its requests (outcome, final, tier, reasons, signal codes, cue ids, status), handoffs, Bolna transcript (numbers masked; `transcript_status` ok / none / unavailable) and recording link (kept on the Hub call state from the webhook) (Step 13) |
+| `GET /web/policies` | Console: the compiled packs from KV, read-only, and any `missing` region (calls there fail closed) |
+| `GET /web/console/passes` · `DELETE /web/console/passes/:id` | Console: every Pass of the tenant with its customer · revoke one (`pass_revoked` in the ledger; 404 if unknown) |
+| `GET /web/signals` | Console: counts per signal, reason code and coaching cue over the newest 500 requests, and the newest 20 flagged requests — ids and codes only, never the caller's words |
+| `GET /web/integrations` | Console: each Bolna agent in env (Aero IN, aero-en, Confirm, Assistant) via `GET /v2/agent/{id}` — name, status, restricted, webhook **host** only; booleans for the IP allow-list, tool secret, Bolna and Sarvam keys; Aero Core `/health` (ok, ms); Hub mirror backlog and open sockets per role. Never a secret or `?key=` |
 | `GET /web/handoffs` · `POST /web/handoffs/:id/resolve` | Console: `{handoffs}` newest first (Hub read model, check-in record) · `{action: release|block, note?}` → `{ok, status}`; first resolution wins (400 after); release of a held request approves it and the Worker executes it with a grant (Step 11) |
-| `GET /web/ledger` · `GET /web/ledger/verify` · `GET /web/ledger/export` | Ledger |
-| `POST /web/tests/runs` · `GET /web/tests/runs/:id` · `GET /web/tests/permission-map` | Halyn Test |
+| `GET /web/ledger` · `GET /web/ledger/verify` · `GET /web/ledger/export` | Ledger · export = `LedgerExportSchema` (entries ≤ 5,000, head anchor, verify result) as an attachment |
+| `POST /web/tests/runs` · `GET /web/tests/runs/:id` | Halyn Test (Step 15): `{region: IN|US|null}` → a suite run in the Hub (that pack's scenarios, or all) · the run (`:id` or `latest`), its `scorecard` (actions without a grant, attacks stopped, tasks completed, median propose_action ms, passed/failed/skipped/pending) and `previous` with the changed scenarios. Each scenario runs with `POST /web/stage/run/:scenario {mode:"text", suite_run_id}` (its own request); 3b is recorded as skipped in live mode |
+| `GET /web/tests/permission-map` | Both bundled Aero graphs: every path to `propose_action`; GREEN when every edge into working / awaiting_confirmation / protect / confirmed / refused is an event edge, else RED with the path |
+| `GET /web/tests/voice` · `POST /web/tests/voice/:persona` · `GET /web/tests/voice/:persona/:execution_id` | Voice personas (agents/test-*.json): which can call (`TEST_AGENT_*_ID` set, 09:00–21:00 IST) · place the B → A call (real money: Saksham's go-ahead) · read the execution back and score Aero's side of the call |
 | `POST /web/ws-ticket` · `GET /ws` | One-time WebSocket ticket, then the WebSocket to the tenant Hub (Auth above) |
 
 Built in Step 7 (`apps/api/src/web`; bodies in `packages/shared/src/api.ts` + `webauthn.ts`):
@@ -138,6 +144,8 @@ Built in Step 7 (`apps/api/src/web`; bodies in `packages/shared/src/api.ts` + `w
 - **`POST /web/stage/run/:scenario`** `{mode:"text"}` (console) → `{test_run_id, scenario, mode}`: runs that scenario
   through the real tools against the live Hub (the Stage sees every message; progress as `test_progress`), with Bolna
   replaced by a recorder (no call is placed) and only declines simulated (ADR-019). `mode:"voice"` is refused (400).
+  With `suite_run_id` the result is recorded into that Halyn Test run before `test_progress` (`test_run_id` = the suite,
+  `completed`/`total` over its scenarios).
   **`POST /web/stage/region`** `{region}` → `{ok:true}` stores the Stage's region in the Hub (scenario 10 uses it, Step 12).
 - `POST /web/session` also warms the tenant's Hub (its directory load from TiDB) in the background.
 
@@ -228,3 +236,5 @@ anything that is not plain JSON data (NaN, Infinity, BigInt, Dates, class instan
 Who gets what (Step 7): `decision` (every proposal, and again with `final_outcome` after a step-up), `confirm_resolved`
 and `handoff` go to every role; `confirm_request` to `aero` and `stage`; `ledger_append` and `test_progress` to `stage`
 and `console`; `core_update` to every role after each Aero Core write (the Aero app refetches its home on it).
+`decision` carries `cues` (coaching cue ids, never words) when layer 1 or 2 fired (Console Live). The Console (role
+`console`) also gets end-of-call transcripts (`call_update`, numbers masked); assistant-call system lines go to `assistant` and `stage`.
