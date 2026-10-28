@@ -12,9 +12,11 @@ import {
   HalynError,
   Hex64Schema,
   type HubRole,
+  type Handoff,
   type JsonValue,
   type LedgerEntry,
   type Money,
+  movesMoney,
   newId,
   type OutcomeEvent,
   parseActionParams,
@@ -28,6 +30,7 @@ import {
 import { z } from 'zod';
 import {
   decide,
+  escalateForCoaching,
   type GateContext,
   type GateDecision,
   type ProposeRequest,
@@ -38,6 +41,7 @@ import {
 import type { SignedGrant } from '../grants';
 import { mintPassCode, passState, verifyPassCode } from '../pass';
 import {
+  checkinTime,
   customerByName,
   gateCounters,
   passUses,
@@ -66,13 +70,18 @@ export interface HubCore {
   env: { PASS_CODE_PEPPER?: unknown };
   append(input: HubAppend): Promise<LedgerEntry>;
   send(message: WsMessage, roles?: readonly HubRole[]): void;
-  /** Starts the confirmation timer (pending_confirmations + alarm) and appends confirm_requested. */
+  /**
+   * Starts the confirmation timer (pending_confirmations + alarm) and appends confirm_requested. Without a prompt
+   * the Aero app is not told yet (a request still screening, ADR-024): the timer alone keeps it failing closed.
+   */
   openConfirmation(input: {
     request_id: string;
     channels: ConfirmChannel[];
     timeout_seconds: number;
-    prompt: { action: ActionId; summary: string; amount: Money | null };
+    prompt?: { action: ActionId; summary: string; amount: Money | null };
   }): Promise<number>;
+  /** Drops a pending confirmation nobody was asked yet (a screened request turned into a hold). */
+  cancelConfirmation(request_id: string): void;
   mirror(item: MirrorItem): void;
 }
 
@@ -289,6 +298,8 @@ export const ProposeInputSchema = z.strictObject({
   packs: z.record(z.string(), z.unknown()),
   /** Whether the Confirm callback can ring now, and the hash of the one number it may ring (CUSTOMER_PHONE). */
   callback: z.strictObject({ available: z.boolean(), number_hash: Hex64Schema.nullable() }),
+  /** Coaching layer 2 will read the quotes (ADR-024): a money allow/step_up waits for finishScreening. */
+  screen: z.boolean().optional(),
 });
 export type ProposeInput = z.infer<typeof ProposeInputSchema>;
 
@@ -372,10 +383,43 @@ export async function openHandoff(
 ): Promise<string> {
   const id = newId('ho', core.clock, core.rng);
   const reason = primaryReason(reasons);
+  const now = core.clock.nowMs();
+  // Scenario 4: a coached (or distressed) customer gets a check-in call booked — a record only; nothing rings.
+  const why = reasons.includes('T_DISTRESS')
+    ? ('distress' as const)
+    : reasons.includes('S_COACHING')
+      ? ('coaching' as const)
+      : null;
+  const checkin = why
+    ? { at: iso(checkinTime(now, record.region)), why, status: 'scheduled' as const }
+    : null;
   await core.append({
     type: 'handoff',
     ref_id: record.request_id,
-    payload: { handoff_id: id, reasons, reason, call_id: record.call_id, status: 'open' },
+    payload: {
+      handoff_id: id,
+      reasons,
+      reason,
+      call_id: record.call_id,
+      status: 'open',
+      ...(checkin ? { checkin: { at: checkin.at, why: checkin.why } } : {}),
+    },
+  });
+  core.store.putHandoff({
+    id,
+    request_id: record.request_id,
+    call_id: record.call_id,
+    run_id: record.run_id,
+    customer_id: record.customer_id,
+    action: record.action,
+    summary: record.summary,
+    reasons: reasons.length > 0 ? reasons : ['H_SPECIALIST'],
+    reason,
+    status: 'open',
+    note: null,
+    checkin,
+    created_at: iso(now),
+    resolved_at: null,
   });
   core.send({
     type: 'handoff',
@@ -493,6 +537,11 @@ export async function propose(core: HubCore, raw: ProposeInput): Promise<Propose
     if (channels.length === 0) channels = ['passkey'];
   }
   const timeout = gate.confirm?.timeout_seconds ?? 60;
+  const screening =
+    input.screen === true &&
+    gate.action !== null &&
+    movesMoney(gate.action) &&
+    (gate.outcome === 'allow' || gate.outcome === 'step_up');
   let record: RequestRecord = {
     request_id,
     run_id: input.run_id,
@@ -521,6 +570,7 @@ export async function propose(core: HubCore, raw: ProposeInput): Promise<Propose
     execution: null,
     failure: null,
     handoff_id: null,
+    ...(screening ? { screening: true } : {}),
     last_event: null,
   };
   record.last_event = proposalEvent(record);
@@ -559,7 +609,9 @@ export async function propose(core: HubCore, raw: ProposeInput): Promise<Propose
       request_id,
       channels,
       timeout_seconds: timeout,
-      prompt: { action: proposed.value.action, summary: record.summary, amount: gate.amount },
+      ...(screening
+        ? {}
+        : { prompt: { action: proposed.value.action, summary: record.summary, amount: gate.amount } }),
     });
     record = { ...record, confirm: { channels, deadline, execution_id: null } };
   }
@@ -575,6 +627,176 @@ export async function propose(core: HubCore, raw: ProposeInput): Promise<Propose
     record,
     customer: customer ? { spoken_name: customer.spoken_name, language: customer.language } : null,
   };
+}
+
+// ── coaching layer 2 (ADR-024) ─────────────────────────────────────────────────────────────────
+
+/**
+ * Coaching layer 2's answer for a request still screening. max(layer 1, layer 2) ≥ threshold on a money allow or
+ * step_up → the step-3 hold (handoff, check-in, the `hold` event); otherwise the request goes on as decided and a
+ * step-up's approval sheet reaches the Aero app now. `layer2` null (Sarvam down or slow) → layer 1 alone. Null when
+ * the request is no longer screening (the sweep or the confirmation timer settled it first): send nothing.
+ */
+export async function finishScreening(
+  core: HubCore,
+  request_id: string,
+  layer2: { score: number; cues: string[] } | null,
+): Promise<RequestRecord | null> {
+  const { store, clock } = core;
+  const record = store.request(request_id);
+  if (!record?.screening) return null;
+  if (record.status !== 'approved' && record.status !== 'awaiting_confirmation') return null;
+  const coaching = layer2
+    ? {
+        score: Math.max(record.coaching.score, layer2.score),
+        cues: [...new Set([...record.coaching.cues, ...layer2.cues])].slice(0, 32),
+      }
+    : record.coaching;
+  const pack = record.pack_sha ? store.pack(record.pack_sha) : null;
+  const held = pack ? escalateForCoaching(record.gate as GateDecision, coaching.score, pack) : null;
+  const { screening: _done, ...rest } = record;
+  if (!held) {
+    const cleared: RequestRecord = { ...rest, coaching };
+    store.putRequest(cleared);
+    if (cleared.status === 'awaiting_confirmation' && cleared.confirm && record.gate.action)
+      core.send(
+        {
+          type: 'confirm_request',
+          at: iso(clock.nowMs()),
+          request_id,
+          action: record.gate.action,
+          summary: record.summary,
+          amount: record.gate.amount,
+          channels: cleared.confirm.channels,
+          expires_at: iso(cleared.confirm.deadline),
+        },
+        ['aero', 'stage'],
+      );
+    return cleared;
+  }
+  if (record.status === 'approved') store.clearApproved(request_id);
+  else core.cancelConfirmation(request_id);
+  let updated: RequestRecord = {
+    ...rest,
+    coaching,
+    gate: held,
+    decision: toDecision(held, request_id),
+    status: 'held',
+    confirm: null,
+  };
+  updated = { ...updated, last_event: proposalEvent(updated) };
+  store.putRequest(updated);
+  await core.append({
+    type: 'decided',
+    ref_id: request_id,
+    payload: json({
+      outcome: 'hold',
+      tier: held.tier,
+      base_tier: held.base_tier,
+      proof: held.proof,
+      reasons: updated.decision.reasons,
+      signals: held.signals,
+      coaching_cues: coaching.cues,
+      layer: 'llm',
+    }),
+  });
+  updated = { ...updated, handoff_id: await openHandoff(core, updated, held.reasons) };
+  store.putRequest(updated);
+  broadcastDecision(core, updated);
+  core.mirror({
+    kind: 'decision',
+    row: json({
+      request_id,
+      final_outcome: 'hold',
+      reasons: updated.decision.reasons,
+      decided_at: clock.nowMs(),
+    }),
+  });
+  return updated;
+}
+
+// ── handoffs: the Console's release / block (docs/API.md "Web") ──────────────────────────────────
+
+/**
+ * Release or block an open handoff; the first resolution wins (E_BAD_REQUEST after). Releasing a request that is still
+ * held approves it for execution — the specialist decided, and the Worker still signs a grant for the exact action;
+ * blocking refuses it. Any other request (a reconcile handoff after execution) only closes the handoff.
+ */
+export async function resolveHandoff(
+  core: HubCore,
+  id: string,
+  action: 'release' | 'block',
+  note: string | null,
+): Promise<{ handoff: Handoff; request: RequestRecord | null }> {
+  const { store, clock } = core;
+  const handoff = store.handoff(id);
+  if (!handoff) throw new HalynError('E_NOT_FOUND', 'No such handoff');
+  if (handoff.status !== 'open') throw new HalynError('E_BAD_REQUEST', 'This handoff is already resolved');
+  const now = clock.nowMs();
+  const status = action === 'release' ? ('released' as const) : ('blocked' as const);
+  const resolved: Handoff = { ...handoff, status, note, resolved_at: iso(now) };
+  store.putHandoff(resolved);
+  await core.append({
+    type: 'handoff',
+    ref_id: handoff.request_id,
+    payload: { handoff_id: id, status, reason: handoff.reason },
+  });
+  core.send({
+    type: 'handoff',
+    at: iso(now),
+    handoff_id: id,
+    request_id: handoff.request_id,
+    reasons: handoff.reasons,
+    status,
+  });
+  core.mirror({
+    kind: 'handoff',
+    row: json({
+      id,
+      request_id: handoff.request_id,
+      call_id: handoff.call_id,
+      reason: handoff.reason,
+      status,
+      note,
+      created_at: Date.parse(handoff.created_at),
+      resolved_at: now,
+    }),
+  });
+  const record = store.request(handoff.request_id);
+  if (record?.status !== 'held') return { handoff: resolved, request: record };
+  const final_outcome = action === 'release' ? ('allow' as const) : ('deny' as const);
+  const decision = toDecision(record.gate as GateDecision, record.request_id, {
+    final_outcome,
+    reasons: [],
+    execute_at: null,
+  });
+  const updated: RequestRecord = {
+    ...record,
+    decision,
+    final_outcome,
+    execute_at: null,
+    status: action === 'release' ? 'approved' : 'refused',
+    last_event:
+      action === 'release'
+        ? { event: 'approved', properties: { request_id: record.request_id } }
+        : {
+            event: 'denied',
+            properties: { request_id: record.request_id, reason: primaryReason(decision.reasons) },
+          },
+  };
+  store.putRequest(updated);
+  await core.append({
+    type: 'decided',
+    ref_id: record.request_id,
+    payload: json({ outcome: decision.outcome, final_outcome, reasons: decision.reasons, handoff: status }),
+  });
+  if (updated.status === 'approved') store.markApproved(record.request_id, now);
+  broadcastDecision(core, updated);
+  core.mirror({
+    kind: 'decision',
+    row: json({ request_id: record.request_id, final_outcome, reasons: decision.reasons, decided_at: now }),
+  });
+  return { handoff: resolved, request: updated };
 }
 
 // ── confirmations → final outcome (GATE.md "After step_up") ─────────────────────────────────────
@@ -660,7 +882,7 @@ export async function settleRequest(
  */
 export function beginExecution(core: HubCore, request_id: string): RequestRecord | null {
   const record = core.store.request(request_id);
-  if (!record || record.status !== 'approved') return null;
+  if (!record || record.status !== 'approved' || record.screening) return null;
   const claimed: RequestRecord = { ...record, status: 'executing' };
   core.store.putRequest(claimed);
   core.store.clearApproved(request_id);

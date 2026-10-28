@@ -1,4 +1,10 @@
-import { type CompiledPolicyPack, CompiledPolicyPackSchema, HalynError } from '@halyn/shared';
+import {
+  type CompiledPolicyPack,
+  CompiledPolicyPackSchema,
+  type Handoff,
+  HalynError,
+  HandoffSchema,
+} from '@halyn/shared';
 import type { z } from 'zod';
 import { type PassCodeRow, PassCodeRowSchema, type PassRow, PassRowSchema } from '../pass';
 import {
@@ -41,6 +47,9 @@ const TABLES = [
   // One row per request while it is `approved` and not yet claimed by a Worker (beginExecution): the sweep fails it
   // closed if no Worker claims it in time (ADR-020).
   'CREATE TABLE IF NOT EXISTS approvals (request_id TEXT PRIMARY KEY, approved_at INTEGER NOT NULL)',
+  // Specialist handoffs (Console Handoffs): the read model the release/block flow works on; TiDB gets a mirror row.
+  'CREATE TABLE IF NOT EXISTS handoffs (id TEXT PRIMARY KEY, request_id TEXT NOT NULL, status TEXT NOT NULL, created_at INTEGER NOT NULL, row TEXT NOT NULL)',
+  'CREATE INDEX IF NOT EXISTS handoffs_created ON handoffs (created_at)',
 ];
 
 /** A request in flight between beginExecution and its final outcome. */
@@ -320,6 +329,31 @@ export class HubStore {
       since,
       limit,
     ).map((r) => parse(RequestRecordSchema, r, 'request'));
+  }
+
+  // ── handoffs ───────────────────────────────────────────────────────────────────────────────────
+
+  putHandoff(handoff: Handoff): void {
+    this.sql.exec(
+      'INSERT OR REPLACE INTO handoffs (id, request_id, status, created_at, row) VALUES (?, ?, ?, ?, ?)',
+      handoff.id,
+      handoff.request_id,
+      handoff.status,
+      Date.parse(handoff.created_at),
+      checked(HandoffSchema, handoff, 'handoff'),
+    );
+  }
+
+  handoff(id: string): Handoff | null {
+    const row = this.rows('SELECT row FROM handoffs WHERE id = ?', id)[0];
+    return row ? parse(HandoffSchema, row, 'handoff') : null;
+  }
+
+  /** Newest first. */
+  handoffs(limit: number): Handoff[] {
+    return this.rows('SELECT row FROM handoffs ORDER BY created_at DESC, id DESC LIMIT ?', limit).map((r) =>
+      parse(HandoffSchema, r, 'handoff'),
+    );
   }
 
   /** A customer's newest requests, newest first. */

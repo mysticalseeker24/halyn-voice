@@ -46,7 +46,12 @@ function alertFor(record: RequestRecord): AeroAlert | null {
 }
 
 function pending(record: RequestRecord, now: number): PendingApproval | null {
-  if (record.status !== 'awaiting_confirmation' || !record.confirm || record.confirm.deadline <= now)
+  if (
+    record.status !== 'awaiting_confirmation' ||
+    record.screening ||
+    !record.confirm ||
+    record.confirm.deadline <= now
+  )
     return null;
   const action = ActionIdSchema.safeParse(record.action);
   if (!action.success) return null;

@@ -22,7 +22,11 @@ export interface ScenarioHarness extends Harness {
 }
 
 export async function scenarioHarness(): Promise<ScenarioHarness> {
-  const app = await appHarness();
+  // Coaching layer 2 is on (ADR-024) with a Sarvam that finds nothing: every outcome must still match the spec.
+  const app = await appHarness({
+    sarvam: async () =>
+      Response.json({ choices: [{ message: { content: '{"probability": 0.05, "cues": []}' } }] }),
+  });
   const passkey: SoftPasskey = await app.registerPasskey();
   const aero = await app.listen('aero');
   const stage = await app.listen('stage');

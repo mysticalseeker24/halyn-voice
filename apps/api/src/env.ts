@@ -104,6 +104,9 @@ export const IntegrationsEnvSchema = z.object({
   SARVAM_API_KEY: z.string().min(1),
 });
 
+/** Coaching layer 2 (ADR-024): absent → layer 1 alone. */
+export const SarvamEnvSchema = z.object({ SARVAM_API_KEY: z.string().min(1) });
+
 export const WebEnvSchema = z.object({
   /** The web app's origins (comma-separated): CORS allow-list and the only origins a passkey may come from. */
   WEB_ORIGIN: z

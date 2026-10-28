@@ -65,6 +65,8 @@ export function proposeAction(deps: AppDeps) {
       distress: detectDistress(body.caller_quotes).distress,
       packs,
       callback,
+      // Layer 2 reads the quotes after this answer (ADR-024); the Hub decides whether the outcome waits for it.
+      screen: ctx.flow.coachingLlm !== null && body.caller_quotes.length > 0,
     });
     c.executionCtx.waitUntil(dispatchProposal(ctx.flow, outcome));
     return c.json(

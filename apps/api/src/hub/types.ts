@@ -154,6 +154,11 @@ export const RequestRecordSchema = z.strictObject({
   /** Why execution failed (core_rejected), when it did. */
   failure: ReasonCodeSchema.nullable(),
   handoff_id: z.string().max(64).nullable(),
+  /**
+   * Coaching layer 2 is still reading the quotes (ADR-024): nothing is claimed, prompted, called or answered until
+   * finishScreening clears it or turns the request into a hold. Absent on rows from before Step 11.
+   */
+  screening: z.boolean().optional(),
   /** The event the call should be in now (check_decision answers with it). */
   last_event: OutcomeEventSchema.nullable(),
 });

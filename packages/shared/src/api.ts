@@ -238,6 +238,35 @@ export const LedgerVerifyResponseSchema = z.discriminatedUnion('ok', [
   z.strictObject({ ok: z.literal(false), entries: z.int().nonnegative(), first_bad_seq: z.int().positive() }),
 ]);
 
+/**
+ * A specialist handoff (Console Handoffs; the Hub's read model). `run_id` is the call's Bolna execution — its
+ * transcript and recording. A coaching or distress hold also books a check-in call: a record only, no call is placed.
+ */
+export const HandoffSchema = z.strictObject({
+  id: z.string().min(1).max(64),
+  request_id: z.string().min(1).max(64),
+  call_id: z.string().min(1).max(64),
+  run_id: z.string().min(1).max(128),
+  customer_id: z.string().max(64).nullable(),
+  action: z.string().min(1).max(64),
+  summary: z.string().min(1).max(300),
+  reasons: z.array(ReasonCodeSchema).max(32),
+  reason: ReasonCodeSchema,
+  status: HandoffStatusSchema,
+  note: z.string().max(500).nullable(),
+  checkin: z
+    .strictObject({
+      at: IsoDateTimeSchema,
+      why: z.enum(['coaching', 'distress']),
+      status: z.literal('scheduled'),
+    })
+    .nullable(),
+  created_at: IsoDateTimeSchema,
+  resolved_at: IsoDateTimeSchema.nullable(),
+});
+export type Handoff = z.infer<typeof HandoffSchema>;
+export const HandoffListResponseSchema = z.strictObject({ handoffs: z.array(HandoffSchema).max(200) });
+
 export const HandoffResolveRequestSchema = z.strictObject({
   action: z.enum(['release', 'block']),
   note: z.string().max(500).optional(),

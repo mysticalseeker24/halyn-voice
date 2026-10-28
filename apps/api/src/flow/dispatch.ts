@@ -12,11 +12,20 @@ import { executeRequest } from './execute';
 // A duplicate proposal (an LLM retry) dispatches nothing: the first one already did. Never throws (waitUntil). If this
 // Worker dies before executeRequest claims an allowed request, the Hub's sweep fails it closed 30 s after the approval
 // (deny E_FAIL_CLOSED, nothing signed; ADR-020) and a late claim gets nothing.
+// A money allow/step_up the Hub marked `screening` first waits (≤ 1.5 s) for coaching layer 2 (ADR-024): no event,
+// grant, approval sheet or Confirm call until finishScreening clears it or turns it into the coaching hold. A Worker
+// that dies here leaves it to the same sweep (allow) or the confirmation timer (step_up): both fail closed.
 
 export async function dispatchProposal(ctx: FlowContext, outcome: ProposeOutcome): Promise<void> {
   if (outcome.duplicate) return;
-  const { record } = outcome;
+  let { record } = outcome;
   try {
+    if (record.screening) {
+      const layer2 = ctx.coachingLlm ? await ctx.coachingLlm(record.caller_quotes) : null;
+      const screened = await ctx.hub.finishScreening(record.request_id, layer2);
+      if (!screened) return;
+      record = screened;
+    }
     const event = record.last_event
       ? (ctx.bolna?.sendEvent(record.run_id, record.last_event) ?? Promise.resolve(null))
       : Promise.resolve(null);

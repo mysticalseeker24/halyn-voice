@@ -47,6 +47,22 @@ export function unusualHour(nowMs: number, region: Region): boolean {
   return hour >= 23 || hour < 6;
 }
 
+const HALF_HOUR = 30 * 60 * 1000;
+
+/**
+ * When a coaching or distress hold's check-in call is booked: the first half hour at least 20 h later that falls in
+ * 10:00–18:59 local time. A record only (scenario 4) — no call is placed unless Saksham approves one.
+ */
+export function checkinTime(nowMs: number, region: Region): number {
+  let at = Math.ceil((nowMs + 20 * 60 * 60 * 1000) / HALF_HOUR) * HALF_HOUR;
+  for (let i = 0; i < 48; i++) {
+    const { hour } = localParts(at, region);
+    if (hour >= 10 && hour < 19) break;
+    at += HALF_HOUR;
+  }
+  return at;
+}
+
 /**
  * An action that went through (allowed now or approved later) and was not refused by the bank afterwards. An unknown
  * bank outcome (failed with a reconcile handoff open, ADR-020) may have executed, so it counts: limits only get stricter.

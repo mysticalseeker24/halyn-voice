@@ -4,6 +4,7 @@ import {
   type ConfirmChannel,
   ConfirmChannelSchema,
   CustomerIdSchema,
+  type Handoff,
   HalynError,
   type HubRole,
   HubRoleSchema,
@@ -39,6 +40,7 @@ import {
   beginExecution,
   type ExecutionResult,
   finishExecution,
+  finishScreening,
   type HubCore,
   type IdentifyInput,
   IdentifyInputSchema,
@@ -48,6 +50,7 @@ import {
   type ProposeInput,
   type ProposeOutcome,
   propose,
+  resolveHandoff,
   settleRequest,
   verifyPass,
 } from './flows';
@@ -329,6 +332,9 @@ export class HubDO extends DurableObject<Env> {
         const { deadline } = await this.openConfirmationNow(tenant, input);
         return Date.parse(deadline);
       },
+      cancelConfirmation: (request_id) => {
+        this.ctx.storage.sql.exec('DELETE FROM pending_confirmations WHERE request_id = ?', request_id);
+      },
       mirror: (item: MirrorItem) => this.store.enqueue(item),
     };
   }
@@ -429,6 +435,48 @@ export class HubDO extends DurableObject<Env> {
         const outcome = await propose(this.core(tenant), input);
         await this.scheduleAlarm();
         return outcome;
+      }),
+    );
+  }
+
+  /** Coaching layer 2's answer (ADR-024): clear the screening, or turn the request into the coaching hold. */
+  async finishScreening(
+    tenant_id: string,
+    request_id: string,
+    layer2: { score: number; cues: string[] } | null,
+  ): Promise<HubResult<RequestRecord | null>> {
+    return this.guard(() =>
+      this.serial(async () => {
+        const record = await finishScreening(this.core(this.bindTenant(tenant_id)), request_id, layer2);
+        await this.scheduleAlarm();
+        return record;
+      }),
+    );
+  }
+
+  /** Console Handoffs: newest first. */
+  async handoffs(tenant_id: string, limit = 100): Promise<HubResult<Handoff[]>> {
+    return this.guard(() => {
+      this.bindTenant(tenant_id);
+      return this.store.handoffs(Math.min(Math.max(1, limit), 200));
+    });
+  }
+
+  /** Console Handoffs: release or block (first resolution wins). */
+  async resolveHandoff(
+    tenant_id: string,
+    input: { id: string; action: 'release' | 'block'; note: string | null },
+  ): Promise<HubResult<{ handoff: Handoff; request: RequestRecord | null }>> {
+    return this.guard(() =>
+      this.serial(async () => {
+        const result = await resolveHandoff(
+          this.core(this.bindTenant(tenant_id)),
+          input.id,
+          input.action,
+          input.note,
+        );
+        await this.scheduleAlarm();
+        return result;
       }),
     );
   }
@@ -1023,6 +1071,9 @@ export class HubDO extends DurableObject<Env> {
         const parsed = ResolveConfirmationSchema.safeParse(input);
         if (!parsed.success) failClosed('invalid confirmation answer');
         const { request_id, answer, channel } = parsed.data;
+        // Nobody was asked yet while coaching layer 2 screens the request (ADR-024): no answer can count.
+        if (this.store.request(request_id)?.screening)
+          throw new HalynError('E_NOT_FOUND', 'No such confirmation');
         const sql = this.ctx.storage.sql;
         const now = this.clock.nowMs();
         const pending = sql

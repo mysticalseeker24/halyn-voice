@@ -58,6 +58,9 @@ const RPC_CALLS = {
   setStageRegion: (s, t) => s.setStageRegion(t, 'US'),
   stageRegion: (s, t) => s.stageRegion(t),
   issueWsTicket: (s, t) => s.issueWsTicket(t, { kind: 'console', customer_id: null, role: 'stage' }),
+  finishScreening: (s, t) => s.finishScreening(t, 'req_x', null),
+  handoffs: (s, t) => s.handoffs(t),
+  resolveHandoff: (s, t) => s.resolveHandoff(t, { id: 'ho_x', action: 'block', note: null }),
 } satisfies Record<keyof HubRpc, (stub: HubRpc, tenant: string) => Promise<unknown>>;
 
 describe('every Hub RPC is bound to its tenant', () => {

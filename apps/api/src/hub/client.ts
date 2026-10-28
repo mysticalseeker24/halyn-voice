@@ -1,4 +1,4 @@
-import type { HubRole, JsonValue, LedgerEntry, Region, WsMessage } from '@halyn/shared';
+import type { Handoff, HubRole, JsonValue, LedgerEntry, Region, WsMessage } from '@halyn/shared';
 import type { LedgerHead } from '../ledger';
 import type { PassRow } from '../pass';
 import type { ExecutionResult, IdentifyInput, ProposeInput, ProposeOutcome } from './flows';
@@ -27,6 +27,9 @@ export type HubRpc = Pick<
   | 'verifyPassCode'
   | 'mintPassCode'
   | 'propose'
+  | 'finishScreening'
+  | 'handoffs'
+  | 'resolveHandoff'
   | 'requestState'
   | 'runIdForCallSid'
   | 'recordExecution'
@@ -102,6 +105,16 @@ export function hubFor(env: Pick<Env, 'HUB'>, tenant_id: string) {
       unwrap(await stub.mintPassCode(tenant_id, input)),
     propose: async (input: ProposeInput): Promise<ProposeOutcome> =>
       unwrap(await stub.propose(tenant_id, input)),
+    /** Null: the request is no longer screening (settled meanwhile); send nothing (ADR-024). */
+    finishScreening: async (
+      request_id: string,
+      layer2: { score: number; cues: string[] } | null,
+    ): Promise<RequestRecord | null> => unwrap(await stub.finishScreening(tenant_id, request_id, layer2)),
+    handoffs: async (limit?: number): Promise<Handoff[]> => unwrap(await stub.handoffs(tenant_id, limit)),
+    resolveHandoff: async (
+      input: Parameters<HubRpc['resolveHandoff']>[1],
+    ): Promise<{ handoff: Handoff; request: RequestRecord | null }> =>
+      unwrap(await stub.resolveHandoff(tenant_id, input)),
     requestState: async (request_id: string): Promise<RequestRecord | null> =>
       unwrap(await stub.requestState(tenant_id, request_id)),
     runIdForCallSid: async (call_sid: string): Promise<string | null> =>

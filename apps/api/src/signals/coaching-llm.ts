@@ -107,7 +107,7 @@ export function sarvamCoaching(options: SarvamCoachingOptions): CoachingLlm {
     } catch {
       return null;
     } finally {
-      clearTimeout(timer);
+      if (timer !== undefined) clearTimeout(timer);
     }
   };
 }

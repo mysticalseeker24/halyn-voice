@@ -161,6 +161,8 @@ export interface AppHarnessOptions {
   seed?: number;
   wrapBolna?: (inner: FetchLike) => FetchLike;
   wrapCore?: (inner: CoreTransport) => CoreTransport;
+  /** Coaching layer 2's Sarvam (mocked); given → SARVAM_API_KEY is set and layer 2 runs (ADR-024). */
+  sarvam?: FetchLike;
 }
 
 export async function appHarness(options: AppHarnessOptions = {}): Promise<AppHarness> {
@@ -194,8 +196,19 @@ export async function appHarness(options: AppHarnessOptions = {}): Promise<AppHa
   });
   await env.CONFIG.put(packKey(tenant, 'IN'), JSON.stringify(CompiledPolicyPackSchema.parse(IN_PACK)));
   await env.CONFIG.put(packKey(tenant, 'US'), JSON.stringify(CompiledPolicyPackSchema.parse(US_PACK)));
-  const testEnv = Object.assign({}, env, { DEFAULT_TENANT_ID: tenant }) as unknown as Env;
-  const app = createApp({ clock, rng, bolnaFetch, coreTransport: () => coreTransport });
+  const testEnv = Object.assign(
+    {},
+    env,
+    { DEFAULT_TENANT_ID: tenant },
+    options.sarvam ? { SARVAM_API_KEY: 'sk_test_sarvam' } : {},
+  ) as unknown as Env;
+  const app = createApp({
+    clock,
+    rng,
+    bolnaFetch,
+    coreTransport: () => coreTransport,
+    ...(options.sarvam ? { sarvamFetch: options.sarvam } : {}),
+  });
   const background = new Background();
   const hub = hubFor(env, tenant);
 
