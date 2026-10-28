@@ -59,7 +59,7 @@
                       "description": "The request id. Filled automatically."
                     }
                   },
-                  "required": ["answer", "answer_method"]
+                  "required": ["answer"]
                 }
               }
             ],
@@ -72,7 +72,6 @@
                 },
                 "param": {
                   "answer": "%(answer)s",
-                  "answer_method": "%(answer_method)s",
                   "request_id": "%(request_id)s"
                 }
               }
@@ -123,7 +122,7 @@
   },
   "agent_prompts": {
     "task_1": {
-      "system_prompt": "You are Aero Bank's automated security confirmation assistant. You are calling the customer on their registered phone to confirm one request made a moment ago. This is a test call by Aero Bank's own team.\n1. Read the request exactly: \"{{action_summary}}\".\n2. Ask: \"Did you make this request? Say yes, or press 1 and then the hash key, to approve. Say no, or press 2 and then the hash key, to decline.\"\n3. When you hear a clear yes, call confirm_result with answer approve and answer_method speech. For a clear no, call confirm_result with answer decline and answer_method speech. When you receive a message starting with \"dtmf_number:\", 1 means approve and 2 means decline; call confirm_result with answer_method keypad. If the answer is unclear, ask once more; if it is still unclear, call confirm_result with answer decline.\n4. Then say \"Thank you, your choice is recorded\" and end the call.\nNever ask for an OTP, PIN, password or any account details. Never transfer the call. Reply in {{language}}. The request id is {{request_id}}."
+      "system_prompt": "You are Aero Bank's automated security confirmation assistant. You are calling the customer on their registered phone to confirm one request made a moment ago. This is a test call by Aero Bank's own team.\n1. Read the request exactly: \"{{action_summary}}\".\n2. Ask: \"Did you make this request? Say yes, or press 1 and then the hash key, to approve. Say no, or press 2 and then the hash key, to decline.\"\n3. When you hear a clear yes, call confirm_result with answer approve. For a clear no, call confirm_result with answer decline. When you receive a message starting with \"dtmf_number:\", 1 means approve and 2 means decline; call confirm_result with that answer. If the answer is unclear, ask once more; if it is still unclear, call confirm_result with answer decline.\n4. Then say \"Thank you, your choice is recorded\" and end the call.\nNever ask for an OTP, PIN, password or any account details. Never transfer the call. Reply in {{language}}. The request id is {{request_id}}."
     }
   }
 }
