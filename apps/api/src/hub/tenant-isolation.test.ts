@@ -58,6 +58,9 @@ const RPC_CALLS = {
   setStageRegion: (s, t) => s.setStageRegion(t, 'US'),
   stageRegion: (s, t) => s.stageRegion(t),
   issueWsTicket: (s, t) => s.issueWsTicket(t, { kind: 'console', customer_id: null, role: 'stage' }),
+  webCallCustomer: (s, t) => s.webCallCustomer(t, 'cus_saksham', 'US'),
+  registerWebCall: (s, t) =>
+    s.registerWebCall(t, { run_id: 'run', session_customer_id: 'cus_saksham', region: 'US' }),
   finishScreening: (s, t) => s.finishScreening(t, 'req_x', null),
   handoffs: (s, t) => s.handoffs(t),
   resolveHandoff: (s, t) => s.resolveHandoff(t, { id: 'ho_x', action: 'block', note: null }),

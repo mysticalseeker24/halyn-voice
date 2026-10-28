@@ -7,6 +7,8 @@ import {
   maskNumbers,
   type OutcomeEvent,
   OutcomeEventSchema,
+  type WebCallSession,
+  WebCallSessionSchema,
 } from '@halyn/shared';
 import { z } from 'zod';
 
@@ -130,6 +132,28 @@ export function createBolnaClient(options: BolnaClientOptions) {
         throw new HalynError('E_FAIL_CLOSED', `bolna: outbound call refused (${res.status})`);
       }
       return { execution_id: parsed.data.execution_id };
+    },
+
+    /**
+     * Mint a single-use Web Call SDK session (docs/BOLNA.md "Web calls"): `{run_id, sip_*, wss_url, ice_servers, …}`
+     * for the browser — the Bolna key stays here. Throws on any failure.
+     */
+    async mintWebCall(input: {
+      agent_id: string;
+      user_data: Record<string, string>;
+    }): Promise<WebCallSession> {
+      let res: Response;
+      try {
+        res = await send('POST', '/web-call/session', input);
+      } catch {
+        throw new HalynError('E_FAIL_CLOSED', 'bolna: web call session request failed');
+      }
+      const parsed = WebCallSessionSchema.safeParse(await json(res));
+      if (!res.ok || !parsed.success) {
+        log({ level: 'warn', call: 'web_session', status: res.status });
+        throw new HalynError('E_FAIL_CLOSED', `bolna: web call session refused (${res.status})`);
+      }
+      return parsed.data;
     },
 
     /** Stop a queued or scheduled call (an answered call cannot be stopped this way). Best effort. */

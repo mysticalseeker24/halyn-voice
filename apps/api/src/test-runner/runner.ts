@@ -3,6 +3,7 @@ import {
   type LedgerEntryType,
   maskNumbers,
   type OutcomeEvent,
+  type Region,
   verifyLedgerChain,
   type WsMessage,
 } from '@halyn/shared';
@@ -27,6 +28,11 @@ export interface Harness {
   mode: 'test' | 'live';
   numbers: Record<Exclude<CallerFrom, 'app_session'>, string>;
   newRunId(): string;
+  /**
+   * A browser call for the scenario's customer in `region` (POST /web/calls/session: the run id carries the app
+   * session); null when this harness cannot start one (live mode needs the browser).
+   */
+  webCall(region: Region): Promise<string | null>;
   tool(name: string, body: Record<string, unknown>): Promise<ToolCall>;
   /** Wait for everything the last requests started in the background (waitUntil). */
   settle(): Promise<void>;
@@ -453,7 +459,7 @@ export async function runScenario(
     scenario,
     spec,
     harness,
-    run_id: harness.newRunId(),
+    run_id: '',
     from,
     failures: [],
     skipped: [],
@@ -463,14 +469,44 @@ export async function runScenario(
     directCalls: 0,
   };
   try {
+    const browser = scenario.caller.from === 'app_session';
+    const web = browser ? await harness.webCall(scenario.region) : null;
+    if (browser && web === null) {
+      run.skipped.push(`browser call: not possible in ${harness.mode} mode`);
+      return result(run);
+    }
+    run.run_id = web ?? harness.newRunId();
     await identify(run, scenario.region);
     await runSteps(run);
-    // Scenario 10's same request under the other region's pack needs region-aware calls (Step 12).
-    if (scenario.compare_step) run.skipped.push(`compare in ${scenario.compare_in_region ?? '?'}: Step 12`);
+    await compare(run);
     await rules(run);
   } catch (err) {
     run.failures.push(`runner error: ${err instanceof Error ? err.message : String(err)}`);
   }
+  return result(run);
+}
+
+/** Scenario 10: the same request on a fresh call in the other region decides by that region's pack. */
+async function compare(run: Run): Promise<void> {
+  const { scenario, harness } = run;
+  const step = scenario.compare_step;
+  const region = scenario.compare_in_region;
+  if (!step?.propose || !region) return;
+  const run_id = scenario.caller.from === 'app_session' ? await harness.webCall(region) : harness.newRunId();
+  if (run_id === null) {
+    run.skipped.push(`compare in ${region}: no browser call in ${harness.mode} mode`);
+    return;
+  }
+  const coreBefore = harness.coreCalls().length;
+  const { request_id } = await propose(run, step.propose, run_id);
+  await harness.settle();
+  run.steps.push(
+    await expectations(run, `compare in ${region}`, step.expect ?? {}, request_id, coreBefore, 0, run_id),
+  );
+}
+
+function result(run: Run): ScenarioResult {
+  const { scenario } = run;
   return {
     id: scenario.id,
     title: scenario.title,

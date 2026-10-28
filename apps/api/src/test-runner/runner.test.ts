@@ -73,6 +73,7 @@ function fake(over: Partial<Harness> = {}, entries: LedgerEntry[] = []): Harness
       unknown_ai: '+919000000002',
     },
     newRunId: () => 'run',
+    webCall: async () => null,
     tool: async (name) =>
       name === 'propose_action'
         ? { status: 200, body: { request_id: 'req_1', status: 'pending' }, ms: 450 }
@@ -145,7 +146,9 @@ describe('runScenario reports every way Halyn can be wrong', () => {
     expect(r12.failures.join('\n')).toMatch(/#1: decision deny, expected allow/);
     expect(r12.steps).toHaveLength(10);
     const r10 = await runScenario(spec, scenario('10'), fake());
-    expect(r10.skipped.join('\n')).toMatch(/Step 12/);
+    // Without a browser call (live mode, or a harness that cannot start one) scenario 10 is reported as skipped.
+    expect(r10.skipped.join('\n')).toMatch(/browser call: not possible/);
+    expect(r10.steps).toHaveLength(0);
   });
 
   it('scenario 12 is one new call per transfer: ten run ids, each identified by the registered number (invariant 7)', async () => {

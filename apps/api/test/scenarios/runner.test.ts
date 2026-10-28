@@ -7,11 +7,7 @@ import { scenarioHarness } from './harness';
 // ledger and Aero Core (Miniflare), with Bolna and the customer's answers simulated (docs/SCENARIOS.md). Scenarios
 // that need a later step are listed explicitly as pending with that step, never silently skipped.
 
-const PENDING: Record<string, string> = {
-  // A browser call carries the customer's app session (proof app_session, channel web) and the Stage switches the
-  // region: the API mints Bolna web-call sessions and registers the call in Step 12.
-  '10': 'Step 12: browser calls and the region switch',
-};
+const PENDING: Record<string, string> = {};
 
 const spec = bundledSpec();
 const results: ScenarioResult[] = [];

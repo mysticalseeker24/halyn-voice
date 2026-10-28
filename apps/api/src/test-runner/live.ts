@@ -43,6 +43,7 @@ export function bolnaRecorder(rng: Rng) {
   const events = new Map<string, OutcomeEvent[]>();
   const calls: { request_id: string; execution_id: string; user_data: Record<string, unknown> }[] = [];
   const stopped: string[] = [];
+  const webCalls: { run_id: string; agent_id: string; user_data: Record<string, unknown> }[] = [];
   const fetch = async (request: Request): Promise<Response> => {
     const url = new URL(request.url);
     const json = (body: unknown, status = 200) =>
@@ -62,6 +63,22 @@ export function bolnaRecorder(rng: Rng) {
       calls.push({ request_id: String(user_data.request_id ?? ''), execution_id, user_data });
       return json({ execution_id, status: 'queued' });
     }
+    if (url.pathname === '/web-call/session' && request.method === 'POST') {
+      const body = (await request.json()) as { agent_id: string; user_data?: Record<string, unknown> };
+      const run_id = uuidFrom(rng);
+      webCalls.push({ run_id, agent_id: body.agent_id, user_data: body.user_data ?? {} });
+      return json({
+        run_id,
+        agent_id: body.agent_id,
+        sip_username: 'web-test',
+        sip_password: 'not-a-secret',
+        sip_domain: 'sip.test.invalid',
+        wss_url: 'wss://sip.test.invalid/ws',
+        sip_register: false,
+        expires_in: 120,
+        ice_servers: [],
+      });
+    }
     const stop = /^\/call\/([^/]+)\/stop$/.exec(url.pathname);
     if (stop && request.method === 'POST') {
       stopped.push(decodeURIComponent(stop[1] ?? ''));
@@ -69,7 +86,7 @@ export function bolnaRecorder(rng: Rng) {
     }
     return json({ detail: 'not found' }, 404);
   };
-  return { fetch, events, calls, stopped };
+  return { fetch, events, calls, stopped, webCalls };
 }
 
 /** A core transport that records every request it carries. */
@@ -131,6 +148,8 @@ export function liveHarness(options: LiveOptions, clock: Clock): Harness {
     mode: 'live',
     numbers: options.numbers,
     newRunId: () => uuidFrom(options.deps.rng),
+    // A browser call needs the browser (the Aero app's "Call Aero"); live Stage runs skip it.
+    webCall: async () => null,
     tool: (name, body) =>
       call(`/tools/${name}`, {
         method: 'POST',

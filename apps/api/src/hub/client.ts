@@ -49,6 +49,8 @@ export type HubRpc = Pick<
   | 'assistantCallPass'
   | 'setStageRegion'
   | 'stageRegion'
+  | 'webCallCustomer'
+  | 'registerWebCall'
   | 'issueWsTicket'
 >;
 
@@ -152,6 +154,10 @@ export function hubFor(env: Pick<Env, 'HUB'>, tenant_id: string) {
     setStageRegion: async (region: Region): Promise<Region> =>
       unwrap(await stub.setStageRegion(tenant_id, region)),
     stageRegion: async (): Promise<Region> => unwrap(await stub.stageRegion(tenant_id)),
+    webCallCustomer: async (session_customer_id: string, region: Region): Promise<DirectoryCustomer> =>
+      unwrap(await stub.webCallCustomer(tenant_id, session_customer_id, region)),
+    registerWebCall: async (input: Parameters<HubRpc['registerWebCall']>[1]): Promise<CallState> =>
+      unwrap(await stub.registerWebCall(tenant_id, input)),
     /** A one-time WebSocket ticket body (ADR-021); the Worker seals it before handing it out. */
     issueWsTicket: async (
       input: Parameters<HubRpc['issueWsTicket']>[1],

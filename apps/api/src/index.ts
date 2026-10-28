@@ -21,6 +21,7 @@ import {
 } from './web/passkeys';
 import { assistantTask, issuePassRoute, listPasses, passOptions, revokePassRoute } from './web/passes';
 import { createSession } from './web/session-route';
+import { webCallSession } from './web/web-calls';
 import { stageRegion, stageRun } from './web/stage';
 import { connectWebSocket, wsTicket } from './web/ws-route';
 
@@ -88,6 +89,7 @@ export function createApp(deps: AppDeps = defaultDeps) {
   app.get('/web/passes', listPasses(deps));
   app.delete('/web/passes/:id', revokePassRoute(deps));
   app.post('/web/assistant/tasks', assistantTask(deps));
+  app.post('/web/calls/session', webCallSession(deps));
   app.get('/web/handoffs', listHandoffs(deps));
   app.post('/web/handoffs/:id/resolve', resolveHandoffRoute(deps));
   app.get('/web/ledger', ledgerList);

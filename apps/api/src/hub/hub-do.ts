@@ -50,9 +50,11 @@ import {
   type ProposeInput,
   type ProposeOutcome,
   propose,
+  registerWebCall,
   resolveHandoff,
   settleRequest,
   verifyPass,
+  webCallCustomer,
 } from './flows';
 import { type LedgerSink, tidbLedgerSink } from './ledger-sink';
 import { revokeCustomerPass, savePass } from './passes';
@@ -763,6 +765,38 @@ export class HubDO extends DurableObject<Env> {
       this.setMeta('stage_region', parsed);
       return parsed;
     });
+  }
+
+  /** "Call Aero": who the signed-in customer is in `region` (their spoken name goes into the call). */
+  async webCallCustomer(
+    tenant_id: string,
+    session_customer_id: string,
+    region: Region,
+  ): Promise<HubResult<DirectoryCustomer>> {
+    return this.guard(async () => {
+      const tenant = this.bindTenant(tenant_id);
+      await this.ensureDirectory(tenant);
+      return webCallCustomer(this.core(tenant), session_customer_id, RegionSchema.parse(region));
+    });
+  }
+
+  /** "Call Aero": the minted run id belongs to the signed-in customer (proof app_session, scenario 10). */
+  async registerWebCall(
+    tenant_id: string,
+    input: { run_id: string; session_customer_id: string; region: Region },
+  ): Promise<HubResult<CallState>> {
+    return this.guard(() =>
+      this.serial(async () => {
+        const tenant = this.bindTenant(tenant_id);
+        await this.ensureDirectory(tenant);
+        const call = registerWebCall(this.core(tenant), {
+          ...input,
+          region: RegionSchema.parse(input.region),
+        });
+        await this.scheduleAlarm();
+        return call;
+      }),
+    );
   }
 
   async stageRegion(tenant_id: string): Promise<HubResult<Region>> {

@@ -93,6 +93,15 @@ export const AssistantEnvSchema = z.object({
   NUMBER_B: E164Schema,
 });
 
+/**
+ * "Call Aero" in the browser (src/web/web-calls.ts): the Aero agent per region — the Hindi graph (IN, also on number
+ * A) and the English web-only graph (US). A region without an agent id cannot start a web call (404).
+ */
+export const WebCallEnvSchema = z.object({
+  BOLNA_AERO_AGENT_ID: Uuid.optional(),
+  BOLNA_AERO_EN_AGENT_ID: Uuid.optional(),
+});
+
 /** Aero Core: the AERO_CORE service binding when present, else this URL (src/core-client). */
 export const CoreEnvSchema = z.object({ AERO_CORE_URL: z.url().optional() });
 

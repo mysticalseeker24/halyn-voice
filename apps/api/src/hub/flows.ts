@@ -177,6 +177,58 @@ export function identify(
   return { call, customer };
 }
 
+// ── browser calls (Step 12, scenario 10) ──────────────────────────────────────────────────────
+
+/**
+ * The customer a signed-in app user is in `region`: themself, or the same person's record there (the directory keeps
+ * one record per region, matched by the registered number's hash). Nobody → E_NOT_FOUND.
+ */
+export function webCallCustomer(
+  core: HubCore,
+  session_customer_id: string,
+  region: Region,
+): DirectoryCustomer {
+  const self = core.store.customer(session_customer_id);
+  if (!self) throw new HalynError('E_NOT_FOUND', 'No such customer');
+  const customer = self.region === region ? self : core.store.customerByNumber(region, self.number_hash);
+  if (!customer) throw new HalynError('E_NOT_FOUND', 'No Aero customer in that region');
+  return customer;
+}
+
+/**
+ * A browser call Halyn minted (POST /web/calls/session): its run id is the signed-in customer's, so the Gate sees
+ * proof `app_session` on channel `web` (GATE.md). The call sid arrives later from Bolna's webhooks. Registering the
+ * same run twice changes nothing.
+ */
+export function registerWebCall(
+  core: HubCore,
+  input: { run_id: string; session_customer_id: string; region: Region },
+): CallState {
+  const customer = webCallCustomer(core, input.session_customer_id, input.region);
+  const existing = core.store.call(input.run_id);
+  if (existing) return existing;
+  const call: CallState = {
+    id: newId('call', core.clock, core.rng),
+    run_id: RunIdSchema.parse(input.run_id),
+    call_sid: null,
+    channel: 'web',
+    region: input.region,
+    customer_id: customer.id,
+    registered: false,
+    number_hash: null,
+    from_last4: null,
+    kind: 'human',
+    pass_id: null,
+    app_session_customer_id: customer.id,
+    started_at: core.clock.nowMs(),
+    ended_at: null,
+    purpose: null,
+  };
+  core.store.putCall(call);
+  mirrorCall(core, call);
+  return call;
+}
+
 // ── Pass codes (docs/PASS.md) ──────────────────────────────────────────────────────────────────
 
 function pepper(core: HubCore): string {

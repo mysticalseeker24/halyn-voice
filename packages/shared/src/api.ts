@@ -232,6 +232,20 @@ export const StageRunResponseSchema = z.strictObject({
 });
 export const StageRegionRequestSchema = z.strictObject({ region: RegionSchema });
 
+/**
+ * POST /web/calls/session (customer): mint a Bolna Web Call SDK session for "Call Aero". The region (default: the
+ * Stage's) picks the agent; the API registers the call's run id with the signed-in customer, so the call carries the
+ * app session as proof (scenario 10). The Bolna key never reaches the browser.
+ */
+export const WebCallSessionRequestSchema = z.strictObject({ region: RegionSchema.optional() });
+/** Bolna's mint response, passed through unchanged to `@bolna/web-call` (single-use, ~120 s). */
+export const WebCallSessionSchema = z.looseObject({
+  run_id: z.string().min(1).max(128),
+  agent_id: z.string().min(1).max(64),
+  expires_in: z.number().positive(),
+});
+export type WebCallSession = z.infer<typeof WebCallSessionSchema>;
+
 /** GET /web/ledger/verify: the chain head, or the first entry whose hash does not check out. */
 export const LedgerVerifyResponseSchema = z.discriminatedUnion('ok', [
   z.strictObject({ ok: z.literal(true), entries: z.int().nonnegative(), head_hash: Hex64Schema.nullable() }),

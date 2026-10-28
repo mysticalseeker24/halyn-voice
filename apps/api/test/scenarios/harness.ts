@@ -45,6 +45,12 @@ export async function scenarioHarness(): Promise<ScenarioHarness> {
       unknown_ai: UNKNOWN_AI,
     },
     newRunId: () => uuidFrom(app.rng),
+    async webCall(region) {
+      // As the Aero app's "Call Aero" does: the signed-in customer mints a browser call (Bolna is the recorder).
+      const res = await app.web('/web/calls/session', { region }, await app.customerToken());
+      if (res.status !== 200) throw new Error(`web call session: ${res.status} ${await res.text()}`);
+      return ((await res.json()) as { run_id: string }).run_id;
+    },
     async tool(name, body) {
       const started = Date.now();
       const res = await app.tool(name, body);
