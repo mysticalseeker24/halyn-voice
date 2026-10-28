@@ -90,8 +90,7 @@ non-protective prompt wording and misspellings of Saksham's name).
 We're continuing Halyn (Bolna Symphony Buildathon) — chat #6. The repo is the memory: CLAUDE.md and docs/STATE.md are
 auto-loaded; read docs/HANDOFF.md (conventions 1–15) once. Do not re-read history or whole docs.
 
-WHERE WE ARE: Steps 0–12 are built. Steps 11 + 12 are deployed (API dee65a7f) but NOT pushed (I held the push) — local
-commits on main after 8b0733e. Live: API https://halyn-api.halyn-api.workers.dev (DEMO_ACCESS_CODE now set; read it
+WHERE WE ARE: Steps 0–12 are built. Steps 11 + 12 are deployed (API dee65a7f), pushed and CI-green (6efbbf8). Live: API https://halyn-api.halyn-api.workers.dev (DEMO_ACCESS_CODE now set; read it
 from .env), Aero Core, KV packs, TiDB halyn_dev. Bolna: Aero graph (Hindi) on A, Confirm graph (B), Assistant (B → A),
 NEW aero-en (f281278d…, English, web only, Deepgram Asteria) — all restricted:false. Step 11: Sarvam coaching layer 2
 after the 300 ms answer (ADR-024 `screening`), Hub handoffs + check-in record, Console /console/handoffs. Step 12:
@@ -109,7 +108,7 @@ COMPLIANCE.md session log. Attacker personas NOT approved.
 
 ORDER:
 0. State check in one batch (git status/log -3, `git log --oneline origin/main..HEAD | wc -l`, gh run list --limit 1,
-   IST time, wallet). Ask me to push the held Step 11 + 12 commits; push and watch CI (both jobs).
+   IST time, wallet). Push any local doc commits with the next push.
 1. VOICE SMOKE (09:00–21:00 IST, go-ahead per call, ≈ 3–4 ¢/min). After each call save get_execution_raw_logs to
    scripts/out/ and read it with a small filter script (tool calls + body keys, events, latency, transcript); never
    paste raw logs. Check the Hindi is Devanagari and the Confirm call ends right after my answer.

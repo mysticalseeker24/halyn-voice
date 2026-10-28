@@ -1,11 +1,11 @@
 # STATE — read at the start of every chat, update at the end (`/handoff`). Keep it short (speed mode).
 
-_Last updated: 2026-10-29 04:45 IST, chat #5 (Steps 11 + 12 built and deployed; not pushed). Next: voice smoke 1, 2,
+_Last updated: 2026-10-29 04:45 IST, chat #5 (Steps 11 + 12 built, deployed, pushed; CI green `6efbbf8`). Next: voice smoke 1, 2,
 3, 5, 6, 4 and the browser call (scenario 10) from 09:00 IST (go-ahead per call), then Step 13._
 
 ## Where we are
 - **Done on `main`:** Steps 0–3, 5, 6, 7, 9, Day-0, **Steps 8 + 10 live** (voice smoke pending), **Step 11 built**
-  (deployed; voice-smoke 4 pending), **Step 12 built** (deployed; the real browser call is pending). Not pushed yet.
+  (deployed; voice-smoke 4 pending), **Step 12 built** (deployed; the real browser call is pending).
 - **Step 11:** Sarvam coaching layer 2 after the 300 ms answer (ADR-024: money allow/step_up wait as `screening`,
   `escalateForCoaching` → hold); Hub handoff records + booked check-in (record only); `GET /web/handoffs`,
   `POST /web/handoffs/:id/resolve` (release executes with a grant); Console shell + `/console/handoffs`.
@@ -21,7 +21,7 @@ _Last updated: 2026-10-29 04:45 IST, chat #5 (Steps 11 + 12 built and deployed; 
   `/web/assistant/tasks` (Assistant calls A from B, bound to the Pass: `get_pass_code` sends only `call_sid`), Aero
   "Assistant" tab, Assistant app (Pass card, task box, live log: Pass-code line, decisions, transcript at call end).
 - `DEMO_ACCESS_CODE` set on the deployed API (2026-10-29). `pnpm verify` ✓ 04:00 IST (all text scenarios with layer 2 on);
-  e2e 12 ✓. Last push `8b0733e` (CI green); Step 11 commits are local.
+  e2e 12 ✓. Pushed `6efbbf8`, CI green (verify + e2e).
 
 ## Bolna facts (binding; details in docs/BOLNA.md)
 - Tool params: never a run id (`%(execution_id)s` isn't a tool variable; a param `run_id` crashes the call); send
@@ -71,7 +71,7 @@ Voice: none yet. Smoke plan: 1, 2, 3 (Saksham calls A; 3 from a second phone, st
    3/4's `security_demo` tag lives in our notes (Bolna was told in advance).
 2. Voice-smoke 4 (coached customer from the registered phone → hold → protect → transfer; confirm SPECIALIST_NUMBER is
    Saksham's first). 3. Browser call (scenario 10): local web app → Aero "Call Aero" with the Stage region US → ask a
-   $8,000 wire → hold. 4. Push (Saksham held it after Step 11), CI. 5. Step 13 (Console pages).
+   $8,000 wire → hold. 4. Step 13 (Console pages).
    Context budget: a new chat when one passes ~40 %. Steps 14–20 after; **at the end: full testing + hardening**.
 
 ## Carry into later steps
