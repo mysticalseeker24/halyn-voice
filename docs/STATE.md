@@ -1,7 +1,6 @@
 # STATE — read at the start of every chat, update at the end (`/handoff`). Keep it short (speed mode).
 
-_Last updated: 2026-10-29 04:45 IST, chat #5 (Steps 11 + 12 built, deployed, pushed; CI green `6efbbf8`). Next: voice smoke 1, 2,
-3, 5, 6, 4 and the browser call (scenario 10) from 09:00 IST (go-ahead per call), then Step 13._
+_Last updated: 2026-10-29 05:10 IST, end of chat #5 (Steps 11 + 12 built, deployed, pushed; CI green `6efbbf8`). Next: chat #6 → Steps 13, 14, 15 (voice smoke only when Saksham asks)._
 
 ## Where we are
 - **Done on `main`:** Steps 0–3, 5, 6, 7, 9, Day-0, **Steps 8 + 10 live** (voice smoke pending), **Step 11 built**
@@ -65,14 +64,12 @@ Text mode (`pnpm test:scenarios`): all 13 ✅ (1–12, 3b), coaching layer 2 on 
 Voice: none yet. Smoke plan: 1, 2, 3 (Saksham calls A; 3 from a second phone, step-up → Confirm call → decline) and
 5, 6 (`POST /web/assistant/tasks` with `pass_demo` from a customer session; 6 = step-up → decline).
 
-## Next steps (in order) — only after Saksham's go-ahead (full detail: the chat #5 prompt in docs/HANDOFF.md)
-1. 09:00–21:00 IST: voice-smoke 1, 2, 3, 5, 6 (go-ahead per call); raw logs to file + a filter script;
-   `list_violations` + COMPLIANCE.md log; scenario table here. Inbound calls can't carry `user_data`, so scenario
-   3/4's `security_demo` tag lives in our notes (Bolna was told in advance).
-2. Voice-smoke 4 (coached customer from the registered phone → hold → protect → transfer; confirm SPECIALIST_NUMBER is
-   Saksham's first). 3. Browser call (scenario 10): local web app → Aero "Call Aero" with the Stage region US → ask a
-   $8,000 wire → hold. 4. Step 13 (Console pages).
-   Context budget: a new chat when one passes ~40 %. Steps 14–20 after; **at the end: full testing + hardening**.
+## Next steps (in order) — only after Saksham's go-ahead (full detail: the chat #6 prompt in docs/HANDOFF.md)
+1. Chat #6: Step 13 (Console pages), Step 14 (scenario rules, coverage, security tests), Step 15 (Halyn Test page:
+   scorecard, run comparison, permission map). Context budget: a new chat past ~50 % (Saksham, 2026-10-29).
+2. Carried, only when Saksham asks (09:00–21:00 IST, go-ahead per call): voice smoke 1, 2, 3, 5, 6, 4 and the browser
+   call (scenario 10); inbound calls can't carry `user_data`, so 3/4's `security_demo` tag lives in our notes.
+   Steps 16–20 after; **at the end: full testing + hardening**.
 
 ## Carry into later steps
 - Steps 11/13: approved tier-4 changes become a handoff until the Console release flow exists.

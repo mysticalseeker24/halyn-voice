@@ -152,7 +152,7 @@ No calls to US numbers. Done when: scenario 10 passes in text mode and works as 
 ### Step 13 — Console (Tue)
 ```
 Use the web-builder subagent. Build Console pages per docs/UI.md: Live, Calls (recording + transcript links), Policies (read-only view of
-compiled packs with a "test this pack" button that runs the text scenarios), Passes, Signals, Ledger (verify + export to R2), Integrations
+compiled packs with a "test this pack" button that runs the text scenarios), Passes, Signals, Ledger (verify + export to KV `file:<tenant>:ledger:<id>`, ADR-023), Integrations
 (agent status, restricted flag, guard status). Component tests + e2e for Ledger verify and Pass revoke.
 ```
 
