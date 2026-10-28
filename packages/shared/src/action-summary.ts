@@ -59,3 +59,11 @@ function describe(p: ProposedAction): string {
 export function describeAction(proposed: ProposedAction): string {
   return describe(proposed);
 }
+
+/**
+ * The summary as a voice should say it: last-4 digits after "ending" spaced out ("ending 8 8 1 2"), so TTS reads
+ * them digit by digit instead of as a number (Sarvam read "8812" as a number in a Day-0 voice sample). Amounts stay.
+ */
+export function spokenSummary(summary: string): string {
+  return summary.replace(/\bending (\d+)/g, (_m, digits: string) => `ending ${digits.split('').join(' ')}`);
+}

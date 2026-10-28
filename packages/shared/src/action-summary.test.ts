@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { describeAction } from './action-summary';
+import { describeAction, spokenSummary } from './action-summary';
 import { ACTION_IDS, type ActionId, parseActionParams } from './actions';
 import { maskNumbers } from './mask';
 
@@ -84,5 +84,20 @@ describe('describeAction', () => {
     );
     const long = proposed('account.add_owner', { account: 'savings', owner_name: 'x'.repeat(80) });
     expect(describeAction(long).length).toBeLessThanOrEqual(300);
+  });
+});
+
+describe('spokenSummary', () => {
+  it('spaces last-4 digits for TTS and leaves amounts alone', () => {
+    expect(spokenSummary(describeAction(proposed('card.freeze', { card_last4: '8812' })))).toBe(
+      'Freeze the card ending 8 8 1 2',
+    );
+    const wire = describeAction(
+      proposed('wire.new', { amount_minor: 800000, currency: 'USD', payee_account_last4: '3310', routing_last4: '0021' }),
+    );
+    const spoken = spokenSummary(wire);
+    expect(spoken).toContain('account ending 3 3 1 0');
+    expect(spoken).toContain('routing ending 0 0 2 1');
+    expect(spoken).toContain(wire.slice(0, wire.indexOf(' to ')));
   });
 });

@@ -1,4 +1,4 @@
-import { HalynError } from '@halyn/shared';
+import { HalynError, spokenSummary } from '@halyn/shared';
 import { ConfirmEnvSchema, PhoneEnvSchema, requireEnv } from '../env';
 import { registeredNumberHash } from '../db/numbers';
 import type { FlowContext } from '../flow/context';
@@ -56,7 +56,7 @@ export async function startCallback(
       user_data: {
         // The spoken form (Devanagari for Saksham): Sarvam reads Roman "Saksham" wrong (CLAUDE.md §8).
         customer_name: customer.spoken_name,
-        action_summary: record.summary,
+        action_summary: spokenSummary(record.summary),
         request_id: record.request_id,
         language: spokenLanguage(customer.language),
         purpose: 'confirmation',
