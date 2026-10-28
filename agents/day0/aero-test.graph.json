@@ -11,7 +11,10 @@
     "tasks": [
       {
         "task_type": "conversation",
-        "toolchain": { "execution": "parallel", "pipelines": [["transcriber", "llm", "synthesizer"]] },
+        "toolchain": {
+          "execution": "parallel",
+          "pipelines": [["transcriber", "llm", "synthesizer"]]
+        },
         "task_config": {
           "optimize_latency": true,
           "call_terminate": 300,
@@ -23,8 +26,14 @@
           "voicemail": false
         },
         "tools_config": {
-          "input": { "format": "wav", "provider": "vobiz" },
-          "output": { "format": "wav", "provider": "vobiz" },
+          "input": {
+            "format": "wav",
+            "provider": "vobiz"
+          },
+          "output": {
+            "format": "wav",
+            "provider": "vobiz"
+          },
           "api_tools": {
             "tools": [
               {
@@ -51,10 +60,6 @@
                       "type": "string",
                       "description": "The caller's last one or two sentences."
                     },
-                    "halyn_run_id": {
-                      "type": "string",
-                      "description": "Call id. Filled automatically; never ask the caller."
-                    },
                     "call_sid": {
                       "type": "string",
                       "description": "Telephony call id. Filled automatically."
@@ -63,7 +68,10 @@
                       "type": "string",
                       "description": "Calling number. Filled automatically."
                     },
-                    "to_number": { "type": "string", "description": "Number called. Filled automatically." }
+                    "to_number": {
+                      "type": "string",
+                      "description": "Number called. Filled automatically."
+                    }
                   },
                   "required": ["action", "card_last4", "readback_confirmed"]
                 }
@@ -76,7 +84,12 @@
                 "parameters": {
                   "type": "object",
                   "required": ["call_sid"],
-                  "properties": { "call_sid": { "type": "string", "description": "unique call id" } }
+                  "properties": {
+                    "call_sid": {
+                      "type": "string",
+                      "description": "unique call id"
+                    }
+                  }
                 }
               }
             ],
@@ -84,9 +97,10 @@
               "propose_action": {
                 "url": "{{PROBE_URL}}/tools/propose_action",
                 "method": "POST",
-                "headers": { "x-halyn-secret": "{{HALYN_TOOL_SECRET}}" },
+                "headers": {
+                  "x-halyn-secret": "{{HALYN_TOOL_SECRET}}"
+                },
                 "param": {
-                  "halyn_run_id": "%(execution_id)s",
                   "call_sid": "%(call_sid)s",
                   "from_number": "%(from_number)s",
                   "to_number": "%(to_number)s",
@@ -96,7 +110,9 @@
                   "caller_quotes": "%(caller_quotes)s"
                 },
                 "pre_call_webhook_url": "{{PROBE_URL}}/webhooks/pre-call",
-                "pre_call_webhook_param": { "tool": "propose_action" },
+                "pre_call_webhook_param": {
+                  "tool": "propose_action"
+                },
                 "scope": "node",
                 "nodes": ["propose"]
               },
@@ -104,7 +120,10 @@
                 "url": null,
                 "method": "POST",
                 "headers": {},
-                "param": { "call_sid": "%(call_sid)s", "call_transfer_number": "{{SPECIALIST_NUMBER}}" },
+                "param": {
+                  "call_sid": "%(call_sid)s",
+                  "call_transfer_number": "{{SPECIALIST_NUMBER}}"
+                },
                 "scope": "node",
                 "nodes": ["transfer"]
               }
@@ -152,29 +171,53 @@
                   "prompt": "Call @propose_action now with action card.freeze, card_last4 {{card_last4}}, readback_confirmed true and the caller's last one or two sentences as caller_quotes. Then say only: 'One moment, please.'",
                   "function_call": "propose_action",
                   "edges": [
-                    { "to_node_id": "working", "condition_type": "event", "event_name": "allow" },
-                    { "to_node_id": "refused", "condition_type": "event", "event_name": "deny" },
+                    {
+                      "to_node_id": "working",
+                      "condition_type": "event",
+                      "event_name": "allow"
+                    },
+                    {
+                      "to_node_id": "refused",
+                      "condition_type": "event",
+                      "event_name": "deny"
+                    },
                     {
                       "to_node_id": "refused",
                       "condition_type": "event",
                       "event_name": "step_up",
                       "priority": 1
                     },
-                    { "to_node_id": "transfer", "condition_type": "event", "event_name": "hold" }
+                    {
+                      "to_node_id": "transfer",
+                      "condition_type": "event",
+                      "event_name": "hold"
+                    }
                   ]
                 },
                 {
                   "id": "working",
                   "node_type": "static",
                   "static_message": "Thank you, one moment while I complete this.",
-                  "edges": [{ "to_node_id": "confirmed", "condition_type": "event", "event_name": "done" }]
+                  "edges": [
+                    {
+                      "to_node_id": "confirmed",
+                      "condition_type": "event",
+                      "event_name": "done"
+                    }
+                  ]
                 },
                 {
                   "id": "confirmed",
                   "prompt": "Say: 'Done. Your reference is {{reference}}.' Then ask if there is anything else.",
                   "edges": [
-                    { "to_node_id": "understand", "condition": "The caller has another request" },
-                    { "to_node_id": "goodbye", "condition": "The caller has nothing else or says goodbye" }
+                    {
+                      "to_node_id": "understand",
+                      "condition": "The caller has another request"
+                    },
+                    {
+                      "to_node_id": "goodbye",
+                      "condition": "The caller has nothing else or says goodbye"
+                    }
                   ]
                 },
                 {
@@ -182,8 +225,14 @@
                   "node_type": "static",
                   "static_message": "I can't complete that on this call. Is there anything else I can help with?",
                   "edges": [
-                    { "to_node_id": "understand", "condition": "The caller has another request" },
-                    { "to_node_id": "goodbye", "condition": "The caller has nothing else or says goodbye" }
+                    {
+                      "to_node_id": "understand",
+                      "condition": "The caller has another request"
+                    },
+                    {
+                      "to_node_id": "goodbye",
+                      "condition": "The caller has nothing else or says goodbye"
+                    }
                   ]
                 },
                 {

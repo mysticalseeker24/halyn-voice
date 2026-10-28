@@ -7,11 +7,17 @@
     "agent_name": "Halyn Day-0 - Confirm test",
     "agent_type": "other",
     "agent_welcome_message": "Namaste {{customer_name}}, this is Aero Bank's automated security confirmation, an AI assistant. This call is recorded.",
-    "calling_guardrails": { "call_start_hour": 9, "call_end_hour": 21 },
+    "calling_guardrails": {
+      "call_start_hour": 9,
+      "call_end_hour": 21
+    },
     "tasks": [
       {
         "task_type": "conversation",
-        "toolchain": { "execution": "parallel", "pipelines": [["transcriber", "llm", "synthesizer"]] },
+        "toolchain": {
+          "execution": "parallel",
+          "pipelines": [["transcriber", "llm", "synthesizer"]]
+        },
         "task_config": {
           "optimize_latency": true,
           "call_terminate": 120,
@@ -22,8 +28,14 @@
           "voicemail": false
         },
         "tools_config": {
-          "input": { "format": "wav", "provider": "vobiz" },
-          "output": { "format": "wav", "provider": "vobiz" },
+          "input": {
+            "format": "wav",
+            "provider": "vobiz"
+          },
+          "output": {
+            "format": "wav",
+            "provider": "vobiz"
+          },
           "api_tools": {
             "tools": [
               {
@@ -34,13 +46,18 @@
                 "parameters": {
                   "type": "object",
                   "properties": {
-                    "answer": { "type": "string", "description": "approve or decline" },
-                    "method": { "type": "string", "description": "speech or keypad" },
+                    "answer": {
+                      "type": "string",
+                      "description": "approve or decline"
+                    },
+                    "method": {
+                      "type": "string",
+                      "description": "speech or keypad"
+                    },
                     "request_id": {
                       "type": "string",
                       "description": "The request id. Filled automatically."
-                    },
-                    "halyn_run_id": { "type": "string", "description": "Call id. Filled automatically." }
+                    }
                   },
                   "required": ["answer", "method"]
                 }
@@ -50,12 +67,13 @@
               "confirm_result": {
                 "url": "{{PROBE_URL}}/tools/confirm_result",
                 "method": "POST",
-                "headers": { "x-halyn-secret": "{{HALYN_TOOL_SECRET}}" },
+                "headers": {
+                  "x-halyn-secret": "{{HALYN_TOOL_SECRET}}"
+                },
                 "param": {
                   "answer": "%(answer)s",
                   "method": "%(method)s",
-                  "request_id": "%(request_id)s",
-                  "halyn_run_id": "%(execution_id)s"
+                  "request_id": "%(request_id)s"
                 }
               }
             }

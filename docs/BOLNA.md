@@ -41,9 +41,10 @@ substitutes is Day-0 check 2. Fallbacks: the tool's `pre_call_webhook_url` / `pr
 execution record (its `id` is the run id) before the tool runs, and the agent's `webhook_url` receives status updates.
 Keep descriptions short and protective. Requests come only from Bolna's three IPs, with no HMAC.
 
-What the API accepts (Step 7, docs/API.md "How the tools behave"): send the run id as
-**`"halyn_run_id": "%(execution_id)s"`** — never a param named `run_id`: Bolna's tool runner refuses it ("got
-multiple values for keyword argument 'run_id'" → `agent_llm_error`, the call hangs up; Day-0 call 1). Then add
+What the API accepts (Step 7, docs/API.md "How the tools behave"): **send no run id in tool params** (Day-0, 2026-10-28):
+a param named `run_id` is refused by Bolna's tool runner ("got multiple values for keyword argument 'run_id'" →
+`agent_llm_error`, hang-up), and `%(execution_id)s` is not a tool variable (KeyError → "ERROR CALLING API:
+'execution_id'"). The API maps the call by `call_sid` from the execution/pre-call webhooks (ADR-016 fallback). Then add
 `call_sid` to every tool (`"call_sid": "%(call_sid)s"`); `from_number` as `%(from_number)s` (with or without `+`).
 `propose_action` may send its params as one `params` object or each param under its own name (as the Day-0 agent
 does); `readback_confirmed` may be `"true"`/`"false"`; `caller_quotes` may be one string. `lookup_customer` takes
