@@ -1,6 +1,7 @@
 # STATE — read at the start of every chat, update at the end (`/handoff`). Keep it short (speed mode).
 
-_Last updated: 2026-10-28 15:50 IST, end of chat #3. Next chat: **Step 8** (prompt in `docs/HANDOFF.md`)._
+_Last updated: 2026-10-28 23:30 IST, end of chat #3. Next chat (#4): **Step 8 then Step 10** (prompt in
+`docs/HANDOFF.md`). Calls only 09:00–21:00 IST with Saksham's go-ahead — do the non-call work first._
 
 ## Where we are
 - **Done on `main`:** Steps 0–3, 5, 6, 7, 9 and **Day-0 (Step 4) closed**. Working mode: **CLAUDE.md §5 speed mode**
@@ -68,7 +69,9 @@ Text mode (`pnpm test:scenarios`): 1–9, 3b, 11, 12 ✅; 10 pending Step 12. Vo
    `CUSTOMER_PHONE`, `WEB_ORIGIN`, `AERO_CORE` binding; the Hub needs Aero Core + `HALYN_SIGNING_KEY`); create the Aero
    graph (+ event edges `working` deny→`refused`, `awaiting_confirmation` hold→`protect`) and the Confirm agent with the
    Day-0 rules above; relink A; voice-smoke 1, 2, 3 (3 tagged `security_demo`).
-3. Steps 10–20 in order.
+3. **Step 10** (Pass + Assistant): scenarios 5, 6 in text mode, then voice-smoke with Saksham.
+4. Steps 11–20 in order. **At the end: full testing + hardening of the whole product** (Step 16 and a final pass —
+   attack tests, mutation checks, review, no stone unturned), per Saksham.
 
 ## Carry into later steps
 - Steps 11/13: approved tier-4 changes become a handoff until the Console release flow exists.

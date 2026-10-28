@@ -122,14 +122,18 @@ Goal: **every function of the product working end to end, fast.** Not production
    the repo). Open a fresh chat per PROMPTS.md step; end it with a short `/handoff`.
 2. **Read narrowly.** STATE.md is loaded. Read the PROMPTS.md step, then only the doc *sections* it needs (grep for the
    heading, read with offset/limit). Never read a whole doc or file for one fact.
-3. **Build, then test lightly.** New code gets one happy-path test per feature plus a test for any invariant (§2) it
-   touches. No attack passes, mutation tests, fuzzing, new property tests or separate reviews. Keep every existing
-   test green. Coverage gates: pure core 95% (unchanged), everything else 60%.
+3. **Build, then test to the feature's weight.** Light features: one happy-path test, plus a test for any invariant
+   (§2) they touch. **Heavy or risky features** (money movement, grants, confirmations, Pass, multi-module flows) get
+   proper tests — happy path, failure paths, the invariant. No attack/mutation/fuzz passes or separate reviews now:
+   **full testing and hardening of the whole product happens at the end** (Step 16 + a final pass, no stone unturned).
+   Keep every existing test green. Coverage gates: pure core 95% (unchanged), everything else 60%.
 4. **Quiet commands.** Scoped tests while building (`pnpm --filter <pkg> exec vitest run <file> --reporter=dot`);
    always `| tail`/`grep` output; never paste lint/prettier/build logs. Multi-line scripts go in a file (no inline
    `node -e` with backticks). Run Prettier/ESLint from the repo root only.
 5. **Commit locally as each piece works** — small conventional commits (8+ per step comes naturally), never failing
-   tests or secrets. `pnpm verify` **once** before the push (no per-commit verify). **Ask Saksham only before pushing.**
+   tests or secrets. `pnpm verify` **once** before the push (no per-commit verify). **Ask Saksham only before pushing**,
+   then `bash scripts/push.sh` (secret check + push as the `gh` account mysticalseeker24 — no account picker) and
+   `gh run watch <id> --exit-status` in the background. No commit regrouping, no per-commit verify loops.
 6. **Docs:** a line or two in the one doc whose behaviour changed; ADR only for a real trade-off (≤ 5 lines);
    WORKLOG ≤ 8 lines per step; keep STATE.md short.
 7. **Status to Saksham ≤ 5 lines.** Model: Saksham's pick in the app (he runs Opus as the one worker); with no
