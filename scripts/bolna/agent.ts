@@ -1,8 +1,9 @@
 // pnpm tsx scripts/bolna/agent.ts create <agents/…json> [--yes|--dry-run]
 //                                  update <agent_id> <agents/…json> [--yes|--dry-run]
 //                                  get <agent_id> [--out=<file>]
-// Works for graph agents (the MCP in this session has no graph-agent tools). Push-time placeholders ({{PROBE_URL}},
-// {{HALYN_TOOL_SECRET}}, {{SPECIALIST_NUMBER}}) come from .env / --probe-url and never live in the JSON; snapshots
+// Works for graph agents (the MCP in this session has no graph-agent tools). Push-time placeholders ({{API_URL}},
+// {{PROBE_URL}}, {{HALYN_TOOL_SECRET}}, {{SPECIALIST_NUMBER}}) come from .env (HALYN_API_URL, …) / --api-url /
+// --probe-url and never live in the JSON; snapshots
 // written with --out have secrets stripped and numbers masked. Every push is checked against docs/COMPLIANCE.md.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -78,6 +79,8 @@ function placeholderValues(args: Args): Partial<Record<PushPlaceholder, string>>
   const values: Partial<Record<PushPlaceholder, string>> = {};
   const probe = args.options.get('probe-url') ?? process.env.DAY0_PROBE_URL;
   if (probe) values.PROBE_URL = probe.replace(/\/$/, '');
+  const api = args.options.get('api-url') ?? process.env.HALYN_API_URL;
+  if (api) values.API_URL = api.replace(/\/$/, '');
   if (process.env.HALYN_TOOL_SECRET) values.HALYN_TOOL_SECRET = process.env.HALYN_TOOL_SECRET;
   if (process.env.SPECIALIST_NUMBER) values.SPECIALIST_NUMBER = process.env.SPECIALIST_NUMBER;
   return values;

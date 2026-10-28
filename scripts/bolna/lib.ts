@@ -60,7 +60,7 @@ export function redactText(text: string): string {
 }
 
 /** Push-time placeholders: only these UPPER_CASE names are substituted (Bolna's own `{{lower_case}}` vars stay). */
-export const PUSH_PLACEHOLDERS = ['PROBE_URL', 'HALYN_TOOL_SECRET', 'SPECIALIST_NUMBER'] as const;
+export const PUSH_PLACEHOLDERS = ['API_URL', 'PROBE_URL', 'HALYN_TOOL_SECRET', 'SPECIALIST_NUMBER'] as const;
 export type PushPlaceholder = (typeof PUSH_PLACEHOLDERS)[number];
 
 export function substitutePlaceholders(
