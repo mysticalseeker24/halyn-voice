@@ -7,12 +7,13 @@ export default defineConfig({
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   test: {
     environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
     coverage: {
       provider: 'v8',
       // Pages and layouts are covered by Playwright (e2e/); shadcn primitives are vendored.
       include: ['src/components/**/*.{ts,tsx}', 'src/lib/**/*.{ts,tsx}'],
-      exclude: ['src/components/ui/**', 'src/**/*.test.{ts,tsx}'],
+      exclude: ['src/components/ui/**', 'src/test/**', 'src/**/*.test.{ts,tsx}'],
       thresholds: { lines: 80, branches: 80, functions: 80, statements: 80 },
     },
   },
