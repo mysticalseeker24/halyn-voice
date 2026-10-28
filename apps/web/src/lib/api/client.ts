@@ -1,4 +1,6 @@
 import {
+  WebCallSessionRequestSchema,
+  WebCallSessionSchema,
   HandoffListResponseSchema,
   HandoffResolveRequestSchema,
   HandoffResolveResponseSchema,
@@ -169,6 +171,14 @@ export function createApiClient(options: ApiClientOptions = {}) {
     stageRegion: (region: Region) =>
       request(OkResponseSchema, 'POST', '/web/stage/region', StageRegionRequestSchema.parse({ region })),
 
+    /** "Call Aero": a single-use Bolna web-call session minted by the API (the Bolna key never reaches here). */
+    webCallSession: (region?: Region) =>
+      request(
+        WebCallSessionSchema,
+        'POST',
+        '/web/calls/session',
+        WebCallSessionRequestSchema.parse(region ? { region } : {}),
+      ),
     handoffs: () => request(HandoffListResponseSchema, 'GET', '/web/handoffs'),
     resolveHandoff: (handoffId: string, action: 'release' | 'block', note?: string) =>
       request(

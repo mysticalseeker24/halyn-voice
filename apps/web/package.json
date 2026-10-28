@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
+    "@bolna/web-call": "3.0.1",
     "@halyn/shared": "workspace:*",
     "@simplewebauthn/browser": "^14.0.0",
     "class-variance-authority": "^0.7.1",

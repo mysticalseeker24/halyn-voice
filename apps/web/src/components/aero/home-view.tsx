@@ -4,7 +4,9 @@ import type { Copy } from '@/lib/i18n';
 import type { AeroHome } from '@halyn/shared';
 import { istDate, maskLast4, money } from '@/lib/format';
 import { EmptyState, ErrorState, LoadingState } from '@/components/states';
+import type { ReactNode } from 'react';
 import { useAero } from './aero-provider';
+import { CallAero } from './call-aero';
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -22,6 +24,7 @@ export function HomeContent({
   pendingCount,
   notice,
   onDismiss,
+  call,
 }: {
   data: AeroHome;
   copy: Copy;
@@ -29,6 +32,8 @@ export function HomeContent({
   pendingCount: number;
   notice: string | null;
   onDismiss: () => void;
+  /** The "Call Aero" control (a browser call), when the app can place one. */
+  call?: ReactNode;
 }) {
   const primary = data.accounts[0];
   return (
@@ -61,6 +66,8 @@ export function HomeContent({
           </button>
         </div>
       ) : null}
+
+      {call}
 
       <Card title={copy.balance}>
         {primary ? (
@@ -147,7 +154,7 @@ export function HomeContent({
 }
 
 export function HomeView() {
-  const { home, copy, reload, pending, openSheet, notice, dismissNotice } = useAero();
+  const { api, home, copy, reload, pending, openSheet, notice, dismissNotice } = useAero();
   if (home.status === 'loading') return <LoadingState label={copy.loading} className="text-slate-800" />;
   if (home.status === 'error')
     return (
@@ -167,6 +174,7 @@ export function HomeView() {
       pendingCount={pending.length}
       notice={notice ? copy[notice] : null}
       onDismiss={dismissNotice}
+      call={<CallAero api={api} copy={copy} />}
     />
   );
 }

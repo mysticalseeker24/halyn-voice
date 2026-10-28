@@ -72,6 +72,12 @@ const en = {
   scope_card_freeze: 'Freeze your card',
   scope_fee_waive: 'Ask for a fee waiver',
   scope_emi_move_date: 'Move one EMI date',
+  callAero: 'Call Aero',
+  callAeroHint: 'Talk to Aero in your browser. The call is recorded; you speak with an AI.',
+  callConnecting: 'Connecting…',
+  callActive: 'On call with Aero',
+  callHangUp: 'Hang up',
+  callFailed: 'The call could not start.',
 } as const;
 
 export type Copy = { [K in keyof typeof en]: string };
@@ -147,6 +153,12 @@ const hi: Copy = {
   scope_card_freeze: 'कार्ड फ़्रीज़ करना',
   scope_fee_waive: 'फ़ीस माफ़ी माँगना',
   scope_emi_move_date: 'एक EMI की तारीख़ बदलना',
+  callAero: 'Aero को call करें',
+  callAeroHint: 'Browser से Aero से बात कीजिए। Call record होती है; आप एक AI से बात कर रहे हैं।',
+  callConnecting: 'जुड़ रहे हैं…',
+  callActive: 'Aero से बात चल रही है',
+  callHangUp: 'Call काटें',
+  callFailed: 'Call शुरू नहीं हो पाई।',
 };
 
 export const COPY: Record<Language, Copy> = { en, hi };
