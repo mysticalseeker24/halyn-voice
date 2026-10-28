@@ -1,0 +1,777 @@
+{
+  "id": "f02fa07d-54e8-4140-a318-72b816c10a57",
+  "agent_name": "Aero Bank - voice assistant (Hindi)",
+  "agent_status": "processed",
+  "agent_welcome_message": "नमस्ते! मैं Aero Bank की AI assistant हूँ, यह call record हो रही है। बताइए, आज मैं आपकी क्या मदद करूँ?",
+  "agent_type": "other",
+  "webhook_url": "https://halyn-api.halyn-api.workers.dev/webhooks/bolna?key=[secret]",
+  "tasks": [
+    {
+      "task_type": "conversation",
+      "toolchain": {
+        "execution": "parallel",
+        "pipelines": [
+          [
+            "transcriber",
+            "llm",
+            "synthesizer"
+          ]
+        ]
+      },
+      "task_config": {
+        "voicemail": false,
+        "use_fillers": false,
+        "dtmf_enabled": false,
+        "ambient_noise": false,
+        "inbound_limit": -1,
+        "backchanneling": false,
+        "call_terminate": 600,
+        "auto_reschedule": false,
+        "optimize_latency": true,
+        "incremental_delay": 300,
+        "ambient_noise_track": null,
+        "call_hangup_message": null,
+        "max_silence_repeats": null,
+        "check_if_user_online": true,
+        "hangup_after_LLMCall": false,
+        "hangup_after_silence": 30,
+        "welcome_message_delay": 0,
+        "whitelist_phone_numbers": null,
+        "call_cancellation_prompt": null,
+        "disallow_unknown_numbers": false,
+        "language_detection_turns": null,
+        "noise_cancellation_level": null,
+        "voicemail_check_interval": 7,
+        "voicemail_detection_time": 2.5,
+        "check_user_online_message": "Hey, are you still there",
+        "backchanneling_message_gap": 5,
+        "backchanneling_start_delay": 5,
+        "interruption_backoff_period": 100,
+        "interruptible_hangup_message": false,
+        "voicemail_detection_duration": 30,
+        "discard_pre_welcome_utterance": false,
+        "voicemail_min_transcript_length": 7,
+        "number_of_words_for_interruption": 3,
+        "trigger_user_online_message_after": 10,
+        "user_online_message_in_llm_history": false
+      },
+      "tools_config": {
+        "s2s": null,
+        "input": {
+          "format": "wav",
+          "provider": "vobiz"
+        },
+        "output": {
+          "format": "wav",
+          "provider": "vobiz"
+        },
+        "api_tools": {
+          "tools": [
+            {
+              "key": "custom_task",
+              "name": "lookup_customer",
+              "parameters": {
+                "type": "object",
+                "required": [
+                  "claimed_name"
+                ],
+                "properties": {
+                  "call_sid": {
+                    "type": "string",
+                    "description": "Telephony call id. Filled automatically."
+                  },
+                  "from_number": {
+                    "type": "string",
+                    "description": "Calling number. Filled automatically."
+                  },
+                  "claimed_name": {
+                    "type": "string",
+                    "description": "The full name the caller said, or an empty string if they have not said one."
+                  }
+                }
+              },
+              "description": "Find the Aero Bank customer for this call by the calling number, or by the name the caller gave. Call it once at the start, and again if the caller later says their name.",
+              "pre_call_message": ""
+            },
+            {
+              "key": "custom_task",
+              "name": "verify_pass",
+              "parameters": {
+                "type": "object",
+                "required": [
+                  "code"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "The six digits the assistant said, digits only."
+                  },
+                  "call_sid": {
+                    "type": "string",
+                    "description": "Telephony call id. Filled automatically."
+                  },
+                  "from_number": {
+                    "type": "string",
+                    "description": "Calling number. Filled automatically."
+                  }
+                }
+              },
+              "description": "Check the six-digit Halyn Pass code an AI assistant reads out when it calls for a customer.",
+              "pre_call_message": ""
+            },
+            {
+              "key": "custom_task",
+              "name": "propose_action",
+              "parameters": {
+                "type": "object",
+                "required": [
+                  "action",
+                  "params",
+                  "readback_confirmed",
+                  "caller_quotes"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "description": "One of: card.freeze, card.reset_pin, fee.waive, transfer.saved, transfer.new_payee, emi.move_date, statement.view, balance.view, dispute.charge, upi.raise_limit, loan.new, profile.change_mobile, profile.change_email, account.add_owner, account.close, wire.international."
+                  },
+                  "params": {
+                    "type": "string",
+                    "description": "The details as a JSON object. Amounts are amount_minor = rupees x 100 (45000 rupees -> 4500000) with currency INR. Keys per action: card.freeze/card.reset_pin {card_last4}; fee.waive {amount_minor, currency, fee_id}; transfer.saved {amount_minor, currency, payee_id}; transfer.new_payee {amount_minor, currency, payee_account_last4, payee_ifsc, payee_name optional}; emi.move_date {loan_id, new_day 1-28}; statement.view/balance.view/account.close {account: savings or current}; dispute.charge {card_last4, amount_minor, currency, merchant}; upi.raise_limit {amount_minor, currency}; loan.new {amount_minor, currency, tenure_months}; profile.change_mobile {new_number with +91}; profile.change_email {new_email}; account.add_owner {account, owner_name}; wire.international {amount_minor, currency, payee_account_last4, swift_bic, payee_country}. Example: {\"card_last4\":\"8812\"}"
+                  },
+                  "call_sid": {
+                    "type": "string",
+                    "description": "Telephony call id. Filled automatically."
+                  },
+                  "from_number": {
+                    "type": "string",
+                    "description": "Calling number. Filled automatically."
+                  },
+                  "caller_quotes": {
+                    "type": "string",
+                    "description": "The caller's last one or two sentences, word for word."
+                  },
+                  "readback_confirmed": {
+                    "type": "string",
+                    "description": "true only if the caller clearly said yes to the read-back, otherwise false."
+                  }
+                }
+              },
+              "description": "Submit the caller's request for a security decision. Use it only on the propose step. The decision arrives a moment later.",
+              "pre_call_message": ""
+            },
+            {
+              "key": "transfer_call",
+              "name": "transfer_call_specialist",
+              "parameters": {
+                "type": "object",
+                "required": [
+                  "call_sid"
+                ],
+                "properties": {
+                  "call_sid": {
+                    "type": "string",
+                    "description": "unique call id"
+                  }
+                }
+              },
+              "description": "Transfer the call to a human Aero Bank specialist.",
+              "pre_call_message": "मैं आपको अभी हमारे specialist से जोड़ रही हूँ, कृपया line पर बने रहिए।"
+            }
+          ],
+          "tools_params": {
+            "verify_pass": {
+              "url": "https://halyn-api.halyn-api.workers.dev/tools/verify_pass",
+              "nodes": [
+                "understand"
+              ],
+              "param": {
+                "code": "%(code)s",
+                "call_sid": "%(call_sid)s",
+                "from_number": "%(from_number)s"
+              },
+              "scope": "node",
+              "method": "POST",
+              "headers": {
+                "x-halyn-secret": "[secret]"
+              },
+              "api_token": null,
+              "pre_call_message": null,
+              "pre_call_webhook_url": "https://halyn-api.halyn-api.workers.dev/webhooks/bolna?key=[secret]",
+              "pre_call_webhook_param": {
+                "tool": "verify_pass"
+              }
+            },
+            "propose_action": {
+              "url": "https://halyn-api.halyn-api.workers.dev/tools/propose_action",
+              "nodes": [
+                "propose"
+              ],
+              "param": {
+                "action": "%(action)s",
+                "params": "%(params)s",
+                "channel": "phone",
+                "call_sid": "%(call_sid)s",
+                "from_number": "%(from_number)s",
+                "caller_quotes": "%(caller_quotes)s",
+                "readback_confirmed": "%(readback_confirmed)s"
+              },
+              "scope": "node",
+              "method": "POST",
+              "headers": {
+                "x-halyn-secret": "[secret]"
+              },
+              "api_token": null,
+              "pre_call_message": null,
+              "pre_call_webhook_url": "https://halyn-api.halyn-api.workers.dev/webhooks/bolna?key=[secret]",
+              "pre_call_webhook_param": {
+                "tool": "propose_action"
+              }
+            },
+            "lookup_customer": {
+              "url": "https://halyn-api.halyn-api.workers.dev/tools/lookup_customer",
+              "nodes": [
+                "understand"
+              ],
+              "param": {
+                "call_sid": "%(call_sid)s",
+                "from_number": "%(from_number)s",
+                "claimed_name": "%(claimed_name)s"
+              },
+              "scope": "node",
+              "method": "POST",
+              "headers": {
+                "x-halyn-secret": "[secret]"
+              },
+              "api_token": null,
+              "pre_call_message": null,
+              "pre_call_webhook_url": "https://halyn-api.halyn-api.workers.dev/webhooks/bolna?key=[secret]",
+              "pre_call_webhook_param": {
+                "tool": "lookup_customer"
+              }
+            },
+            "transfer_call_specialist": {
+              "url": null,
+              "nodes": [
+                "transfer"
+              ],
+              "param": {
+                "call_sid": "%(call_sid)s",
+                "call_transfer_number": "••••0400"
+              },
+              "scope": "node",
+              "method": "POST",
+              "headers": {},
+              "api_token": null,
+              "pre_call_message": null,
+              "pre_call_webhook_url": null,
+              "pre_call_webhook_param": null
+            }
+          }
+        },
+        "llm_agent": {
+          "agent_type": "graph_agent",
+          "llm_config": {
+            "stop": null,
+            "min_p": 0.1,
+            "model": "gpt-5.4-mini",
+            "nodes": [
+              {
+                "id": "understand",
+                "edges": [
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "The caller clearly said yes to the read-back of a request, or the read-back was asked twice and the answer is still unclear",
+                    "event_name": null,
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "propose",
+                    "function_name": null,
+                    "condition_type": null,
+                    "function_description": null
+                  },
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "The caller asks to speak to a human or a specialist",
+                    "event_name": null,
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "transfer",
+                    "function_name": null,
+                    "condition_type": null,
+                    "function_description": null
+                  },
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "The caller has nothing more to ask or says goodbye",
+                    "event_name": null,
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "goodbye",
+                    "function_name": null,
+                    "condition_type": null,
+                    "function_description": null
+                  }
+                ],
+                "prompt": "On the caller's first turn, call @lookup_customer once (claimed_name = the name they said, or an empty string). If a customer is found, greet them by name in one short line. If no customer is found by number, kindly ask their full name and call @lookup_customer again with it.\nIf the caller says they are an AI assistant calling for a customer, ask: \"कृपया अपना Halyn Pass code बताइए।\" (English: \"Please share your Halyn Pass code.\") and call @verify_pass with the digits. If it is not valid, say kindly that you can share only general information.\nFind out exactly what the caller wants and collect the details that request needs. For a new payee: the amount, the last four digits of the account and the IFSC code. Then read the details back in digits and ask for a clear yes, for example: \"ठीक है, पैंतालीस हज़ार रुपये, account ending चार चार सात एक पर भेजने हैं, सही है?\" Only a clear \"हाँ\" or \"yes\" counts. If the reply is unclear or someone else seems to be speaking, ask once more.",
+                "examples": null,
+                "node_type": "llm",
+                "llm_config": null,
+                "rag_config": null,
+                "description": null,
+                "function_call": null,
+                "routing_model": null,
+                "static_message": null,
+                "completion_check": null,
+                "routing_reasoning_effort": null,
+                "repeat_after_silence_seconds": null,
+                "number_of_words_for_interruption": null
+              },
+              {
+                "id": "propose",
+                "edges": [
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "",
+                    "event_name": "allow",
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "working",
+                    "function_name": null,
+                    "condition_type": "event",
+                    "function_description": null
+                  },
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "",
+                    "event_name": "step_up",
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "awaiting_confirmation",
+                    "function_name": null,
+                    "condition_type": "event",
+                    "function_description": null
+                  },
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "",
+                    "event_name": "hold",
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "protect",
+                    "function_name": null,
+                    "condition_type": "event",
+                    "function_description": null
+                  },
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "",
+                    "event_name": "deny",
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "refused",
+                    "function_name": null,
+                    "condition_type": "event",
+                    "function_description": null
+                  }
+                ],
+                "prompt": "Call @propose_action now: the action id, the details as a JSON object in params, readback_confirmed (true only if the caller clearly said yes), and the caller's last one or two sentences as caller_quotes. Then say only: \"बस एक moment।\"",
+                "examples": null,
+                "node_type": "llm",
+                "llm_config": null,
+                "rag_config": null,
+                "description": null,
+                "function_call": "propose_action",
+                "routing_model": null,
+                "static_message": null,
+                "completion_check": null,
+                "routing_reasoning_effort": null,
+                "repeat_after_silence_seconds": null,
+                "number_of_words_for_interruption": null
+              },
+              {
+                "id": "working",
+                "edges": [
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "",
+                    "event_name": "done",
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "confirmed",
+                    "function_name": null,
+                    "condition_type": "event",
+                    "function_description": null
+                  },
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "",
+                    "event_name": "deny",
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "refused",
+                    "function_name": null,
+                    "condition_type": "event",
+                    "function_description": null
+                  }
+                ],
+                "prompt": "",
+                "examples": null,
+                "node_type": "static",
+                "llm_config": null,
+                "rag_config": null,
+                "description": null,
+                "function_call": null,
+                "routing_model": null,
+                "static_message": "धन्यवाद, बस एक moment, मैं इसे पूरा कर रही हूँ।",
+                "completion_check": null,
+                "routing_reasoning_effort": null,
+                "repeat_after_silence_seconds": null,
+                "number_of_words_for_interruption": null
+              },
+              {
+                "id": "awaiting_confirmation",
+                "edges": [
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "",
+                    "event_name": "approved",
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "working",
+                    "function_name": null,
+                    "condition_type": "event",
+                    "function_description": null
+                  },
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "",
+                    "event_name": "denied",
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "refused",
+                    "function_name": null,
+                    "condition_type": "event",
+                    "function_description": null
+                  },
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "",
+                    "event_name": "timeout",
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "refused",
+                    "function_name": null,
+                    "condition_type": "event",
+                    "function_description": null
+                  },
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "",
+                    "event_name": "hold",
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "protect",
+                    "function_name": null,
+                    "condition_type": "event",
+                    "function_description": null
+                  }
+                ],
+                "prompt": "",
+                "examples": null,
+                "node_type": "static",
+                "llm_config": null,
+                "rag_config": null,
+                "description": null,
+                "function_call": null,
+                "routing_model": null,
+                "static_message": "आपकी safety के लिए मैंने आपके registered phone पर एक confirmation भेजा है। कृपया line पर बने रहिए।",
+                "completion_check": null,
+                "routing_reasoning_effort": null,
+                "repeat_after_silence_seconds": 8,
+                "number_of_words_for_interruption": null
+              },
+              {
+                "id": "protect",
+                "edges": [
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "The caller agrees to speak to a specialist, or asks for a human",
+                    "event_name": null,
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "transfer",
+                    "function_name": null,
+                    "condition_type": null,
+                    "function_description": null
+                  },
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "The caller does not want a specialist now, or says goodbye",
+                    "event_name": null,
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "goodbye",
+                    "function_name": null,
+                    "condition_type": null,
+                    "function_description": null
+                  }
+                ],
+                "prompt": "The request is on hold for the customer's protection (reason {{reason}}). In two or three short sentences in the caller's language, without blaming them:\n- If the reason is S_COACHING, or the request was to move money to a \"safe\" or \"verification\" account: explain kindly that Aero Bank never asks customers to move money to such an account and no genuine official asks for this on a call, for example: \"Aero Bank कभी भी पैसे किसी safe account में भेजने को नहीं कहता। आपकी सुरक्षा के लिए यह request अभी hold पर है।\"\n- If the reason is T_DISTRESS or the caller is grieving or upset: say you are sorry and that a specialist will help them personally.\n- Otherwise: say this request needs a specialist.\nThen offer to connect a specialist now: \"क्या मैं आपको अभी एक specialist से जोड़ दूँ?\"",
+                "examples": null,
+                "node_type": "llm",
+                "llm_config": null,
+                "rag_config": null,
+                "description": null,
+                "function_call": null,
+                "routing_model": null,
+                "static_message": null,
+                "completion_check": null,
+                "routing_reasoning_effort": null,
+                "repeat_after_silence_seconds": null,
+                "number_of_words_for_interruption": null
+              },
+              {
+                "id": "confirmed",
+                "edges": [
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "The caller has another request",
+                    "event_name": null,
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "understand",
+                    "function_name": null,
+                    "condition_type": null,
+                    "function_description": null
+                  },
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "The caller has nothing else or says goodbye",
+                    "event_name": null,
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "goodbye",
+                    "function_name": null,
+                    "condition_type": null,
+                    "function_description": null
+                  }
+                ],
+                "prompt": "Say in the caller's language that the request is done and give the reference {{reference}}: say \"AERO\", then each of the six characters after it one by one. Then ask if there is anything else. Example: \"हो गया! आपका reference है AERO, सात, K, दो, नौ, एक, पाँच। और कुछ मदद करूँ?\"",
+                "examples": null,
+                "node_type": "llm",
+                "llm_config": null,
+                "rag_config": null,
+                "description": null,
+                "function_call": null,
+                "routing_model": null,
+                "static_message": null,
+                "completion_check": null,
+                "routing_reasoning_effort": null,
+                "repeat_after_silence_seconds": null,
+                "number_of_words_for_interruption": null
+              },
+              {
+                "id": "refused",
+                "edges": [
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "The caller has another request",
+                    "event_name": null,
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "understand",
+                    "function_name": null,
+                    "condition_type": null,
+                    "function_description": null
+                  },
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "The caller has nothing else or says goodbye",
+                    "event_name": null,
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "goodbye",
+                    "function_name": null,
+                    "condition_type": null,
+                    "function_description": null
+                  }
+                ],
+                "prompt": "",
+                "examples": null,
+                "node_type": "static",
+                "llm_config": null,
+                "rag_config": null,
+                "description": null,
+                "function_call": null,
+                "routing_model": null,
+                "static_message": "माफ़ कीजिए, यह request मैं इस call पर पूरी नहीं कर सकती। क्या मैं किसी और चीज़ में मदद करूँ?",
+                "completion_check": null,
+                "routing_reasoning_effort": null,
+                "repeat_after_silence_seconds": null,
+                "number_of_words_for_interruption": null
+              },
+              {
+                "id": "goodbye",
+                "edges": [],
+                "prompt": "",
+                "examples": null,
+                "node_type": "static",
+                "llm_config": null,
+                "rag_config": null,
+                "description": null,
+                "function_call": "end_call",
+                "routing_model": null,
+                "static_message": "Aero Bank को call करने के लिए धन्यवाद। आपका दिन शुभ हो!",
+                "completion_check": null,
+                "routing_reasoning_effort": null,
+                "repeat_after_silence_seconds": null,
+                "number_of_words_for_interruption": null
+              },
+              {
+                "id": "transfer",
+                "edges": [],
+                "prompt": "Tell the caller kindly, in their language, that you are connecting them to a specialist now.",
+                "examples": null,
+                "node_type": "llm",
+                "llm_config": null,
+                "rag_config": null,
+                "description": null,
+                "function_call": "transfer_call_specialist",
+                "routing_model": null,
+                "static_message": null,
+                "completion_check": null,
+                "routing_reasoning_effort": null,
+                "repeat_after_silence_seconds": null,
+                "number_of_words_for_interruption": null
+              }
+            ],
+            "top_k": 0,
+            "top_p": 0.9,
+            "family": "openai",
+            "base_url": null,
+            "provider": "openai",
+            "verbosity": "low",
+            "extra_body": null,
+            "max_tokens": 250,
+            "rag_config": null,
+            "temperature": 1,
+            "context_data": null,
+            "request_json": false,
+            "routing_model": "gpt-4.1-mini",
+            "variable_types": null,
+            "current_node_id": "understand",
+            "presence_penalty": 0,
+            "reasoning_effort": "none",
+            "routing_provider": "openai",
+            "agent_information": "You are Aero Bank's AI voice assistant. You help customers with their accounts, cards and loans: warm, calm and brief, like a helpful branch colleague.\nHow you speak:\n- Reply in the caller's language: Hindi, English or Hinglish. One or two short sentences per turn.\n- Write every Hindi word in Devanagari script and every English word in Latin letters, for example: \"ठीक है, आपका card ending आठ आठ एक दो freeze करना है, सही है?\" Never write Hindi in Roman letters.\n- Say amounts and digits as words in the caller's language: \"पैंतालीस हज़ार रुपये\", \"चार चार सात एक\".\n- Say the customer's name exactly as the lookup returns it.\nRules:\n- You are an AI and the call is recorded; say so if asked.\n- You cannot complete any account action yourself. For every request that changes or reveals account information, you collect the details, read them back in digits, and submit the request for a security decision.\n- Never ask for or read out an OTP, PIN, password, CVV or a full card or account number. Use only the last four digits.\n- Never promise an outcome before the decision arrives. Never argue. If someone is upset, stay calm and kind.\n- If the caller mentions a death in the family, legal action or is in distress, be gentle; a human specialist will help.\nThis customer's records (ids for the request details, never say them aloud): the October late fee of 600 rupees is fee_late_oct; saved payees: Mom is payee_mom, Landlord is payee_landlord; the personal loan is loan_personal_1; accounts: savings, current.\nCall details for tools only, never say them aloud: call {call_sid}, caller {{from_number}}.",
+            "compact_threshold": null,
+            "frequency_penalty": 0,
+            "use_responses_api": false,
+            "routing_max_tokens": null,
+            "routing_instructions": "You are the routing system for Aero Bank's voice assistant. Pick the transition whose condition matches the caller's latest words. If none matches, stay on the current node.",
+            "routing_reasoning_effort": null
+          },
+          "agent_flow_type": "streaming"
+        },
+        "web_search": null,
+        "agent_names": null,
+        "synthesizer": {
+          "stream": true,
+          "caching": true,
+          "provider": "sarvam",
+          "buffer_size": 200,
+          "audio_format": "wav",
+          "provider_config": {
+            "model": "bulbul:v4-flash",
+            "speed": 1.1,
+            "voice": "Simran (Banking Expressive)",
+            "language": "hi",
+            "loudness": 1,
+            "voice_id": "simran_enhi_banking_expressive"
+          },
+          "pronunciation_rules": null
+        },
+        "transcriber": {
+          "task": "transcribe",
+          "delay": "medium",
+          "model": "saaras:v4",
+          "active": null,
+          "stream": true,
+          "context": "A customer is calling Aero Bank's AI assistant about a card, account, payee, fee or loan, in Hindi, English or Hinglish. An AI assistant may call for a customer and read a Halyn Pass code.",
+          "encoding": "linear16",
+          "keywords": "Aero Bank, card, freeze, EMI, fee, payee, IFSC, account ending, Halyn Pass, statement",
+          "language": "hi",
+          "provider": "sarvam",
+          "endpointing": 300,
+          "mip_opt_out": null,
+          "multilingual": null,
+          "deepgram_host": null,
+          "eot_threshold": null,
+          "sampling_rate": 16000,
+          "vad_threshold": 0.5,
+          "eot_timeout_ms": null,
+          "language_hints": null,
+          "noise_reduction": false,
+          "assemblyai_config": null,
+          "deepgram_flux_host": null,
+          "eager_eot_threshold": null,
+          "vad_prefix_padding_ms": 300,
+          "deepgram_host_protocol": null
+        },
+        "multilingual_config": null,
+        "switch_handoff_messages": null,
+        "switch_tool_description": null
+      }
+    }
+  ],
+  "created_at": "2026-10-28T18:26:48.237739",
+  "updated_at": "2026-10-28T18:26:52.497165",
+  "gpt_assistants": null,
+  "custom_analytics": null,
+  "inbound_phone_number": null,
+  "restricted": false,
+  "calling_guardrails": null,
+  "webhook_headers": null,
+  "sip_header_variables": null,
+  "ingest_lookup_key": null,
+  "webhook_config": null,
+  "creation_source": "from_scratch",
+  "parent_agent_id": null,
+  "source_agent_id": null,
+  "created_by": "21a261db-658b-4d77-881b-72799e4240f9",
+  "call_summary_enabled": false,
+  "agent_category": "graph_agent",
+  "sip_headers": null,
+  "memory_config": null,
+  "dispositions": [
+    "77b26ce9-fba1-5aab-b14a-e37fc3b68704"
+  ],
+  "single_prompt_ui": false,
+  "agent_prompts": {
+    "task_1": {
+      "system_prompt": "You are Aero Bank's AI voice assistant. You never complete an action yourself; you submit it for a security decision. Never ask for or read out an OTP, PIN, password, CVV or full card or account number. Write Hindi in Devanagari and English in Latin letters."
+    }
+  },
+  "ingest_source_config": null,
+  "composition_by_language": null
+}

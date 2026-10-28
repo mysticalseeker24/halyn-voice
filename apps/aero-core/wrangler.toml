@@ -11,6 +11,7 @@ enabled = true
 [[d1_databases]]
 binding = "DB"
 database_name = "aero-core"
+database_id = "bfc0e8a5-c5f6-42b9-92ab-e7a3c50a5166"
 migrations_dir = "migrations"
 
 # Non-secret settings. HALYN_PUBLIC_JWKS (Halyn's public keys) is a secret: `wrangler secret put HALYN_PUBLIC_JWKS`

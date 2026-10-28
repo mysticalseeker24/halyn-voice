@@ -52,7 +52,8 @@ const pkg = target === 'api' ? '@halyn/api' : '@halyn/aero-core';
 const file = resolve('scripts/out', `${target}-secrets.json`);
 writeFileSync(file, JSON.stringify(values), { mode: 0o600 });
 try {
-  const out = execFileSync('pnpm', ['--filter', pkg, 'exec', 'wrangler', 'secret', 'bulk', file], {
+  // Relative to the package dir pnpm runs in: the repo path has spaces, and Windows needs shell: true.
+  const out = execFileSync('pnpm', ['--filter', pkg, 'exec', 'wrangler', 'secret', 'bulk', `../../scripts/out/${target}-secrets.json`], {
     encoding: 'utf8',
     shell: process.platform === 'win32',
   });

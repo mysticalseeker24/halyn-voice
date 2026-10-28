@@ -1,0 +1,342 @@
+{
+  "id": "96a6c2a2-9695-4876-8a34-41112d812077",
+  "agent_name": "Halyn Confirm - security confirmation",
+  "agent_status": "processed",
+  "agent_welcome_message": "नमस्ते {{customer_name}}, मैं Aero Bank की AI security assistant हूँ, यह call record हो रही है। अभी एक request आई है: {{action_summary}}। क्या आप इसे approve करते हैं? कृपया हाँ या ना बोलिए।",
+  "agent_type": "other",
+  "webhook_url": "https://halyn-api.halyn-api.workers.dev/webhooks/bolna?key=[secret]",
+  "tasks": [
+    {
+      "task_type": "conversation",
+      "toolchain": {
+        "execution": "parallel",
+        "pipelines": [
+          [
+            "transcriber",
+            "llm",
+            "synthesizer"
+          ]
+        ]
+      },
+      "task_config": {
+        "voicemail": false,
+        "use_fillers": false,
+        "dtmf_enabled": false,
+        "ambient_noise": false,
+        "inbound_limit": -1,
+        "backchanneling": false,
+        "call_terminate": 120,
+        "auto_reschedule": false,
+        "optimize_latency": true,
+        "incremental_delay": 300,
+        "ambient_noise_track": null,
+        "call_hangup_message": null,
+        "max_silence_repeats": null,
+        "check_if_user_online": true,
+        "hangup_after_LLMCall": false,
+        "hangup_after_silence": 20,
+        "welcome_message_delay": 0,
+        "whitelist_phone_numbers": null,
+        "call_cancellation_prompt": null,
+        "disallow_unknown_numbers": false,
+        "language_detection_turns": null,
+        "noise_cancellation_level": null,
+        "voicemail_check_interval": 7,
+        "voicemail_detection_time": 2.5,
+        "check_user_online_message": "Hey, are you still there",
+        "backchanneling_message_gap": 5,
+        "backchanneling_start_delay": 5,
+        "interruption_backoff_period": 100,
+        "interruptible_hangup_message": false,
+        "voicemail_detection_duration": 30,
+        "discard_pre_welcome_utterance": false,
+        "voicemail_min_transcript_length": 7,
+        "number_of_words_for_interruption": 2,
+        "trigger_user_online_message_after": 10,
+        "user_online_message_in_llm_history": false
+      },
+      "tools_config": {
+        "s2s": null,
+        "input": {
+          "format": "wav",
+          "provider": "vobiz"
+        },
+        "output": {
+          "format": "wav",
+          "provider": "vobiz"
+        },
+        "api_tools": {
+          "tools": [
+            {
+              "key": "custom_task",
+              "name": "confirm_result",
+              "parameters": {
+                "type": "object",
+                "required": [
+                  "answer",
+                  "request_id"
+                ],
+                "properties": {
+                  "answer": {
+                    "type": "string",
+                    "description": "approve or decline"
+                  },
+                  "call_sid": {
+                    "type": "string",
+                    "description": "Telephony call id. Filled automatically."
+                  },
+                  "request_id": {
+                    "type": "string",
+                    "description": "The request id from the call details."
+                  }
+                }
+              },
+              "description": "Record the customer's answer to the security confirmation: approve or decline.",
+              "pre_call_message": ""
+            }
+          ],
+          "tools_params": {
+            "confirm_result": {
+              "url": "https://halyn-api.halyn-api.workers.dev/tools/confirm_result",
+              "nodes": [
+                "record"
+              ],
+              "param": {
+                "answer": "%(answer)s",
+                "call_sid": "%(call_sid)s",
+                "request_id": "%(request_id)s"
+              },
+              "scope": "node",
+              "method": "POST",
+              "headers": {
+                "x-halyn-secret": "[secret]"
+              },
+              "api_token": null,
+              "pre_call_message": null,
+              "pre_call_webhook_url": "https://halyn-api.halyn-api.workers.dev/webhooks/bolna?key=[secret]",
+              "pre_call_webhook_param": {
+                "tool": "confirm_result"
+              }
+            }
+          }
+        },
+        "llm_agent": {
+          "agent_type": "graph_agent",
+          "llm_config": {
+            "stop": null,
+            "min_p": 0.1,
+            "model": "gpt-5.4-mini",
+            "nodes": [
+              {
+                "id": "ask",
+                "edges": [
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "The customer clearly said yes or no to the request, or the answer is still unclear after you asked again",
+                    "event_name": null,
+                    "expression": null,
+                    "parameters": {
+                      "answer": {
+                        "type": "string",
+                        "description": "approve for a clear yes (हाँ, हाँ जी, जी हाँ, yes, approve). decline for a clear no (नहीं, ना, no, decline, मैंने नहीं किया), and also when the answer is still unclear after asking again.",
+                        "allowed_values": [
+                          "approve",
+                          "decline"
+                        ]
+                      }
+                    },
+                    "to_node_id": "record",
+                    "function_name": null,
+                    "condition_type": null,
+                    "function_description": null
+                  }
+                ],
+                "prompt": "Wait for the customer's yes or no. If the reply is unclear, ask once: \"माफ़ कीजिए, क्या आप इस request को approve करते हैं? हाँ या ना?\"",
+                "examples": null,
+                "node_type": "llm",
+                "llm_config": null,
+                "rag_config": null,
+                "description": null,
+                "function_call": null,
+                "routing_model": null,
+                "static_message": null,
+                "completion_check": null,
+                "routing_reasoning_effort": null,
+                "repeat_after_silence_seconds": null,
+                "number_of_words_for_interruption": null
+              },
+              {
+                "id": "record",
+                "edges": [
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "",
+                    "event_name": "recorded",
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "bye",
+                    "function_name": null,
+                    "condition_type": "event",
+                    "function_description": null
+                  },
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "The customer says anything after their answer",
+                    "event_name": null,
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "bye",
+                    "function_name": null,
+                    "condition_type": null,
+                    "function_description": null
+                  }
+                ],
+                "prompt": "Call @confirm_result now with answer {{answer}} and request_id {{request_id}}. Then say only: \"ठीक है।\"",
+                "examples": null,
+                "node_type": "llm",
+                "llm_config": null,
+                "rag_config": null,
+                "description": null,
+                "function_call": "confirm_result",
+                "routing_model": null,
+                "static_message": null,
+                "completion_check": null,
+                "routing_reasoning_effort": null,
+                "repeat_after_silence_seconds": null,
+                "number_of_words_for_interruption": null
+              },
+              {
+                "id": "bye",
+                "edges": [],
+                "prompt": "",
+                "examples": null,
+                "node_type": "static",
+                "llm_config": null,
+                "rag_config": null,
+                "description": null,
+                "function_call": "end_call",
+                "routing_model": null,
+                "static_message": "धन्यवाद, आपका जवाब record हो गया है।",
+                "completion_check": null,
+                "routing_reasoning_effort": null,
+                "repeat_after_silence_seconds": null,
+                "number_of_words_for_interruption": null
+              }
+            ],
+            "top_k": 0,
+            "top_p": 0.9,
+            "family": "openai",
+            "base_url": null,
+            "provider": "openai",
+            "verbosity": "low",
+            "extra_body": null,
+            "max_tokens": 120,
+            "rag_config": null,
+            "temperature": 1,
+            "context_data": null,
+            "request_json": false,
+            "routing_model": "gpt-4.1-mini",
+            "variable_types": null,
+            "current_node_id": "ask",
+            "presence_penalty": 0,
+            "reasoning_effort": "none",
+            "routing_provider": "openai",
+            "agent_information": "You are Aero Bank's automated security confirmation assistant, an AI. You called the customer on their registered phone to confirm one request made a moment ago: \"{{action_summary}}\". Your greeting already asked whether they approve it.\nWrite Hindi words in Devanagari and English words in Latin letters. Reply in {{language}}, one short sentence.\nNever ask for an OTP, PIN, password or any account details. Never transfer the call. Do not add details beyond the request summary.\nCall details for tools only, never say them aloud: request {{request_id}}, call {call_sid}.",
+            "compact_threshold": null,
+            "frequency_penalty": 0,
+            "use_responses_api": false,
+            "routing_max_tokens": null,
+            "routing_instructions": "You are the routing system for Aero Bank's security confirmation call. Pick the transition whose condition matches the customer's latest words. If none matches, stay on the current node.",
+            "routing_reasoning_effort": null
+          },
+          "agent_flow_type": "streaming"
+        },
+        "web_search": null,
+        "agent_names": null,
+        "synthesizer": {
+          "stream": true,
+          "caching": true,
+          "provider": "sarvam",
+          "buffer_size": 200,
+          "audio_format": "wav",
+          "provider_config": {
+            "model": "bulbul:v4-flash",
+            "speed": 1.1,
+            "voice": "Simran (Banking Expressive)",
+            "language": "hi",
+            "loudness": 1,
+            "voice_id": "simran_enhi_banking_expressive"
+          },
+          "pronunciation_rules": null
+        },
+        "transcriber": {
+          "task": "transcribe",
+          "delay": "medium",
+          "model": "saaras:v4",
+          "active": null,
+          "stream": true,
+          "context": "Aero Bank's AI calls a customer to confirm a request; the customer answers yes or no in Hindi or English.",
+          "encoding": "linear16",
+          "keywords": "Aero Bank, approve, decline, request",
+          "language": "hi",
+          "provider": "sarvam",
+          "endpointing": 300,
+          "mip_opt_out": null,
+          "multilingual": null,
+          "deepgram_host": null,
+          "eot_threshold": null,
+          "sampling_rate": 16000,
+          "vad_threshold": 0.5,
+          "eot_timeout_ms": null,
+          "language_hints": null,
+          "noise_reduction": false,
+          "assemblyai_config": null,
+          "deepgram_flux_host": null,
+          "eager_eot_threshold": null,
+          "vad_prefix_padding_ms": 300,
+          "deepgram_host_protocol": null
+        },
+        "multilingual_config": null,
+        "switch_handoff_messages": null,
+        "switch_tool_description": null
+      }
+    }
+  ],
+  "created_at": "2026-10-28T18:26:37.371667",
+  "updated_at": "2026-10-28T18:26:38.444938",
+  "gpt_assistants": null,
+  "custom_analytics": null,
+  "inbound_phone_number": null,
+  "restricted": false,
+  "calling_guardrails": {
+    "call_end_hour": 21,
+    "call_start_hour": 9
+  },
+  "webhook_headers": null,
+  "sip_header_variables": null,
+  "ingest_lookup_key": null,
+  "webhook_config": null,
+  "creation_source": "from_scratch",
+  "parent_agent_id": null,
+  "source_agent_id": null,
+  "created_by": "21a261db-658b-4d77-881b-72799e4240f9",
+  "call_summary_enabled": false,
+  "agent_category": "graph_agent",
+  "sip_headers": null,
+  "memory_config": null,
+  "dispositions": [
+    "bb5b505b-7c2d-50f4-836c-6e9dfde50ef8",
+    "d6b8c19d-4a6d-58a6-85f1-cb37475dc9ef"
+  ],
+  "single_prompt_ui": false,
+  "agent_prompts": {
+    "task_1": {
+      "system_prompt": "You are Aero Bank's automated security confirmation assistant, an AI. You only record the customer's yes or no to one request. Never ask for an OTP, PIN, password or any account details."
+    }
+  },
+  "ingest_source_config": null,
+  "composition_by_language": null
+}

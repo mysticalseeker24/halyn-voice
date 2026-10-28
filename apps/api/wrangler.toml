@@ -25,11 +25,13 @@ service = "halyn-aero-core"
 # Compiled policy packs (key pack:<tenant>:<region>, docs/RUNBOOK.md) and agent ids. Namespace id: docs/RUNBOOK.md first-time setup, step 4.
 [[kv_namespaces]]
 binding = "CONFIG"
+id = "0944d7d7f5c9451e813fc1e7cbe2e87e"
 
-# Clone clips, ledger exports, test reports.
-[[r2_buckets]]
-binding = "FILES"
-bucket_name = "halyn-files"
+# Clone clips, ledger exports, test reports. Off until R2 is enabled on the account (dashboard; nothing uses it yet —
+# Steps 13/19 need it): then `wrangler r2 bucket create halyn-files` and uncomment.
+# [[r2_buckets]]
+# binding = "FILES"
+# bucket_name = "halyn-files"
 
 # Non-secret settings. Secrets (HALYN_TOOL_SECRET, SESSION_SECRET, TIDB_DATABASE_URL, signing keys, peppers, API keys)
 # come from `wrangler secret put` in production and apps/api/.dev.vars locally — names in .env.example.
