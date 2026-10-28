@@ -1,8 +1,7 @@
 {
-  "_source": "synthetic-from-docs",
-  "_note": "Shape from Bolna docs and agents/day0 tool params (docs/BOLNA.md). Replace with a real recording from /pull-call.",
-  "run_id": "d4c3b2a1-0f9e-4d8c-8b7a-6f5e4d3c2b1a",
+  "_source": "day0-recorded-2026-10-28",
+  "_note": "Recorded body was {answer, request_id} (no method: Bolna feeds an argument named method into its HTTP call). call_sid added: the Step 8 Confirm agent must send it.",
+  "call_sid": "c1d2e3f4-0000-4000-8000-day0confirm1",
   "request_id": "req_01JDAY0CONFIRM00000000000",
-  "answer": "approve",
-  "method": "speech"
+  "answer": "approve"
 }

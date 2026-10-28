@@ -1,12 +1,11 @@
 {
-  "_source": "synthetic-from-docs",
-  "_note": "The Day-0 Aero test agent maps each param to its own key; every value is a %(name)s string.",
-  "run_id": "b1f6c8e2-7d3a-4c1e-9f00-123456789abc",
-  "call_sid": "CAday0example0001",
-  "from_number": "••••0003",
-  "to_number": "+918065356344",
+  "_source": "day0-recorded-2026-10-28",
+  "_note": "Real body from the Day-0 card-freeze call. Bolna sends no run id; the API maps call_sid via the webhook.",
   "action": "card.freeze",
+  "call_sid": "e37d5757-a2bc-46c4-8449-e3c74894b6c2",
+  "to_number": "••••6344",
   "card_last4": "8812",
-  "readback_confirmed": "true",
-  "caller_quotes": "Mera card kho gaya hai, please freeze kar dijiye."
+  "from_number": "••••6517",
+  "caller_quotes": "मेरा कार्ड खो गया है। प्लीज। फ्रीज कर दीजिए। / यस।",
+  "readback_confirmed": "true"
 }
