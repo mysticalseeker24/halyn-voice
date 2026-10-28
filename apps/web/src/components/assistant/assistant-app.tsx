@@ -106,7 +106,6 @@ export function AssistantApp() {
   const [transcript, setTranscript] = useState<Line[]>([]);
 
   const load = useCallback(() => {
-    setLoadError(null);
     api.listPasses().then(
       ({ passes: list }) => {
         setPasses(list);
@@ -182,7 +181,10 @@ export function AssistantApp() {
         title="Could not load your Passes"
         message={loadError}
         retryLabel="Try again"
-        onRetry={load}
+        onRetry={() => {
+          setLoadError(null);
+          load();
+        }}
       />
     );
   if (state.status === 'loading' || !passes) return <LoadingState label="Loading…" />;

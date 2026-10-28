@@ -43,7 +43,6 @@ export function AssistantAccessView() {
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
-    setLoadError(null);
     api.listPasses().then(
       ({ passes: list }) => {
         setPasses(list);
@@ -94,7 +93,17 @@ export function AssistantAccessView() {
   };
 
   if (loadError)
-    return <ErrorState title={copy.errorTitle} message={loadError} retryLabel={copy.retry} onRetry={load} />;
+    return (
+      <ErrorState
+        title={copy.errorTitle}
+        message={loadError}
+        retryLabel={copy.retry}
+        onRetry={() => {
+          setLoadError(null);
+          load();
+        }}
+      />
+    );
   if (!passes || home.status === 'loading')
     return <LoadingState label={copy.loading} className="text-slate-800" />;
   const registered = home.status === 'ready' && home.data.passkey_registered;
