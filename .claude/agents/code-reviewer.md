@@ -1,4 +1,5 @@
 ---
+model: sonnet
 name: code-reviewer
 description: Reviews the current diff before every commit for invariant violations, security issues, missing tests, Workers CPU risks, compliance problems and doc drift. Read-only; reports findings ranked by severity.
 tools: Read, Grep, Glob, Bash

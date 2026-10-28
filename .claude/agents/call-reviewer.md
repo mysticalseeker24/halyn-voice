@@ -1,4 +1,5 @@
 ---
+model: sonnet
 name: call-reviewer
 description: Pulls Bolna executions for test calls, matches them to scenarios, grades them against docs/SCENARIOS.md, measures latency (proposal → event → speech), records fixtures, and updates STATE.md.
 ---

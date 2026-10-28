@@ -21,26 +21,20 @@ non-protective prompt wording and misspellings of Saksham's name).
    directly is denied; check presence with a Node script that prints names only). Scripts load `.env` with
    `node --env-file=.env` / `process.loadEnvFile`. Before every push: CI's secret-pattern scan over the new commits
    **and** a check that no literal `.env` value appears in `git log -p origin/main..HEAD`.
-4. **Commits and pushes:** at the end of each step, **ask Saksham before committing and pushing** (show the split).
-   He wants **more than 7–8 small commits per step** and **nothing left behind** (no deferred pieces inside a step's
-   scope; real blockers are named in STATE.md), conventional messages ending with
-   `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Before pushing, verify **each** commit on its own:
-   `bash scripts/verify-commits.sh <scratch-logdir> $(git rev-list --reverse origin/main..HEAD)` (worktree `E:/hvw`,
-   Turbo cache on; re-run a commit that hits a known environmental flake listed in the script). Push with
-   `GCM_INTERACTIVE=never GIT_TERMINAL_PROMPT=0 git -c credential.helper= -c 'credential.helper=!gh auth git-credential'
-   push origin main` — a plain `git push` hangs on the system Git Credential Manager (it runs before the repo's `gh`
-   helper). Then `gh run watch <id> --exit-status` in the background.
-5. **Step workflow:** read the `PROMPTS.md` step and only the docs it names → the subagents the step names
-   (api-builder builds test-first; test-engineer attacks it: invariant map, mutation checks, failing test before every
-   fix) → review their diff yourself → `pnpm verify` with `TURBO_FORCE=true` (zero ESLint/Prettier warnings) →
-   code-reviewer → `/handoff` (STATE, WORKLOG, ADRs) → ask → commit/push → CI.
-6. **Token budget (Saksham hit his session + weekly limits in chat #2):** subagents start cold, so give **tight briefs
-   naming exact files/sections**; `model: "sonnet"` for test-engineer, code-reviewer, compliance-reviewer,
-   call-reviewer, web-builder and mechanical work, Opus for api-builder on invariant logic (Gate, grants, Confirm,
-   core client) and for anything Bolna-agent-critical if Sonnet stumbles; small fixes inline; keep tool output small
-   (grep/tail logs, never dump them); run subagents one at a time unless Saksham asks for parallel (he did: Step 9
-   alongside Steps 7–8 — give each exclusive file ownership). If a subagent stops on a limit, resume it with
-   `SendMessage` (its work is in the tree), don't start a new one.
+4. **Commits and pushes (speed mode, CLAUDE.md §5):** commit locally as each piece works — small conventional commits
+   (8+ per step comes naturally) ending with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`; every step's
+   scope is finished (no deferred pieces; real blockers named in STATE.md). `pnpm verify` once before the push (no
+   per-commit verify; `scripts/verify-commits.sh` stays available if a push needs bisecting). **Ask Saksham before
+   pushing.** Push with `GCM_INTERACTIVE=never GIT_TERMINAL_PROMPT=0 git -c credential.helper= -c
+   'credential.helper=!gh auth git-credential' push origin main` — a plain `git push` hangs on the system Git
+   Credential Manager. Then `gh run watch <id> --exit-status` in the background.
+5. **Step workflow (speed mode):** fresh chat per step → read the PROMPTS.md step and only the doc sections it needs →
+   build it yourself (no subagents) with light tests (CLAUDE.md §5.3) → commit pieces locally → `pnpm verify` → short
+   `/handoff` → ask → push → CI. Where PROMPTS.md says "use the X subagent", do that work in the chat instead.
+6. **Token budget (the binding constraint since chat #3):** chat #3 spent ~2.2 M subagent tokens on one step (cold
+   agents re-reading the repo, Opus builders, fix rounds, commit-regroup loops). So: no subagents; Sonnet as the chat
+   model (Opus only for a hard bug); grep/offset reads; quiet commands; status ≤ 5 lines. The agent definitions default
+   to `model: sonnet` in case one is ever used.
 7. **Bolna:** CLAUDE.md §3 rules; go-ahead per session for any call/agent/number/wallet/deploy action; `get_agent` →
    `restricted: false` after every save; `list_violations` + COMPLIANCE.md log after any call session. Graph-agent
    tools are missing from the Bolna MCP → `scripts/bolna/*.ts` (writes need `--yes`). ≈ 3 ¢/billed minute (plan 4 ¢).

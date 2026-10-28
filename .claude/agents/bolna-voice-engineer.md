@@ -1,4 +1,5 @@
 ---
+model: sonnet
 name: bolna-voice-engineer
 description: Owns everything on Bolna — creating/updating agents and the Aero graph, custom functions, events, outbound calls, numbers, web calls. Use for any change to how an agent sounds, listens, routes or calls. Always verifies restricted=false and compliance.
 ---

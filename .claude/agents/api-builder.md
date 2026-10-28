@@ -1,4 +1,5 @@
 ---
+model: sonnet
 name: api-builder
 description: Builds apps/api (Halyn API Worker + Hub Durable Object) and apps/aero-core (mock bank Worker + D1) and packages/shared + packages/sdk, test-first, to the contracts in docs/API.md, docs/GATE.md, docs/DATA_MODEL.md and the invariants in CLAUDE.md.
 ---

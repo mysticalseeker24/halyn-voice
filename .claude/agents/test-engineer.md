@@ -1,4 +1,5 @@
 ---
+model: sonnet
 name: test-engineer
 description: Writes and strengthens tests — unit, fast-check properties, Worker integration (Miniflare), contract tests from recorded Bolna payloads, the 12-scenario acceptance suite, security tests and Playwright e2e. Use after any feature, before any commit, and whenever coverage or a scenario fails.
 ---

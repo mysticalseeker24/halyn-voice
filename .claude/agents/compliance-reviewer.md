@@ -1,4 +1,5 @@
 ---
+model: sonnet
 name: compliance-reviewer
 description: Checks prompts, agent configs and recent calls against Bolna's rules and docs/COMPLIANCE.md; runs list_violations and verifies restricted=false on every agent. Use after any agent change and after every voice session.
 ---

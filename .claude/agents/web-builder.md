@@ -1,4 +1,5 @@
 ---
+model: sonnet
 name: web-builder
 description: Builds apps/web (Next.js on Vercel) — Halyn Stage, Halyn Console, Aero Bank app, Saksham's Assistant — following docs/UI.md, with component and Playwright tests.
 ---

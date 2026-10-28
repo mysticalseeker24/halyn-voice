@@ -115,23 +115,25 @@ docs              everything above
 
 ---
 
-## 5. How to work here (follow every session)
+## 5. How to work here — SPEED MODE (Saksham, 2026-10-28; token budget is the constraint)
 
-1. **Orient.** STATE.md is loaded. Read the PROMPTS.md step you're on and only the docs it names.
-2. **Plan first** for anything over ~50 lines or touching an invariant: list files, tests, risks; then build.
-3. **Test first** for `gate`, `pass`, `ledger`, `grants`, `policy`, `money`, `canonical-json`. Elsewhere, tests in
-   the same change. No feature is done without tests.
-4. **Verify** with `/verify` (lint, typecheck, all test suites, build). Never claim done with a red check.
-   If you skipped something, say exactly what and why.
-5. **Document** in the same change: update the doc you changed behaviour for, then `/handoff`
-   (updates STATE.md + WORKLOG.md, proposes a commit message). New trade-off → `/new-adr`.
-6. **Commit** small, conventional (`feat(gate): …`, `test(pass): …`). Never commit failing tests or secrets.
-   Only commit/push when Saksham asks.
-7. **Delegate** to subagents to keep context lean: `bolna-voice-engineer` (anything on Bolna), `test-engineer`
-   (tests and coverage gaps), `code-reviewer` (before every commit), `compliance-reviewer` (prompts/agents/calls),
-   `api-builder`, `web-builder`, `call-reviewer`.
-8. **Don't guess Bolna.** Use the Bolna MCP `search_docs` / `get_doc`. If the MCP lacks a tool (e.g. graph agents,
-   event injection), use the REST helpers in `scripts/bolna/`.
+Goal: **every function of the product working end to end, fast.** Not production hardening — refine later.
+1. **One worker, one chat per step.** The chat builds the step itself. **No subagents** (each starts cold and re-reads
+   the repo). Open a fresh chat per PROMPTS.md step; end it with a short `/handoff`.
+2. **Read narrowly.** STATE.md is loaded. Read the PROMPTS.md step, then only the doc *sections* it needs (grep for the
+   heading, read with offset/limit). Never read a whole doc or file for one fact.
+3. **Build, then test lightly.** New code gets one happy-path test per feature plus a test for any invariant (§2) it
+   touches. No attack passes, mutation tests, fuzzing, new property tests or separate reviews. Keep every existing
+   test green. Coverage gates: pure core 95% (unchanged), everything else 60%.
+4. **Quiet commands.** Scoped tests while building (`pnpm --filter <pkg> exec vitest run <file> --reporter=dot`);
+   always `| tail`/`grep` output; never paste lint/prettier/build logs. Multi-line scripts go in a file (no inline
+   `node -e` with backticks). Run Prettier/ESLint from the repo root only.
+5. **Commit locally as each piece works** — small conventional commits (8+ per step comes naturally), never failing
+   tests or secrets. `pnpm verify` **once** before the push (no per-commit verify). **Ask Saksham only before pushing.**
+6. **Docs:** a line or two in the one doc whose behaviour changed; ADR only for a real trade-off (≤ 5 lines);
+   WORKLOG ≤ 8 lines per step; keep STATE.md short.
+7. **Status to Saksham ≤ 5 lines.** Model: Sonnet by default (app model picker); Opus only for a hard bug, then back.
+8. **Don't guess Bolna.** Bolna MCP `search_docs` / `get_doc`; REST helpers in `scripts/bolna/` for graph agents/events.
 9. **Ambiguity:** check `docs/SCENARIOS.md`; if still unclear, ask Saksham in one sentence and propose a default.
 
 ---
@@ -157,16 +159,13 @@ docs              everything above
 
 | Suite | Command | Must pass before |
 |---|---|---|
-| Unit (Vitest, Workers pool) | `pnpm test:unit` | every commit |
-| Property tests (fast-check) for invariants 1–10 | part of unit | every commit |
-| Integration (Miniflare: Worker + DO + D1; TiDB dev branch) | `pnpm test:int` | every commit touching api/aero-core |
-| Contract (recorded Bolna payloads in `tests/fixtures/bolna`) | part of int | every commit touching tools/webhooks |
-| Scenario acceptance (all 12, text mode, real Gate, no mocks of Halyn) | `pnpm test:scenarios` | every commit, 12/12 |
-| E2E (Playwright: stage, approval, pass issue) | `pnpm test:e2e` | before deploy |
+| Everything (lint, typecheck, unit, int incl. contract + TiDB, scenarios, build) | `pnpm verify` | every push (once) |
+| Scenario acceptance (text mode, real Gate, no mocks of Halyn) | `pnpm test:scenarios` | every push |
+| E2E (Playwright) | `pnpm test:e2e` | before deploy |
 | Voice smoke (real Bolna calls) | `/run-scenario` | only with Saksham's go-ahead |
 
-Coverage: ≥ 95% lines and branches for `gate`, `pass`, `ledger`, `grants`, `packages/shared`; ≥ 80% elsewhere.
-A bug fix always starts with a failing test that reproduces it.
+Coverage: ≥ 95% for `gate`, `pass`, `ledger`, `grants`, `packages/shared`, `packages/sdk`; ≥ 60% elsewhere (speed
+mode). A bug fix starts with a failing test that reproduces it.
 
 ---
 
