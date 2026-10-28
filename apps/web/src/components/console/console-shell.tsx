@@ -9,21 +9,31 @@ import type { ApiClient } from '@/lib/api/client';
 import { useDemoSession } from '@/lib/session';
 import { cn } from '@/lib/utils';
 
-// Halyn Console for bank teams (docs/UI.md): ink on off-white, one indigo accent. The pages grow in Step 13; each
-// gets the signed-in console API client from this shell.
+// Halyn Console for bank teams (docs/UI.md): ink on off-white, one indigo accent. Each page gets the signed-in
+// console API client (and the session token, for the Hub stream) from this shell.
 export const CONSOLE_PAGES = [
-  { href: '/console', label: 'Overview' },
+  { href: '/console', label: 'Live' },
+  { href: '/console/calls', label: 'Calls' },
+  { href: '/console/policies', label: 'Policies' },
+  { href: '/console/passes', label: 'Passes' },
+  { href: '/console/test', label: 'Test' },
+  { href: '/console/signals', label: 'Signals' },
+  { href: '/console/ledger', label: 'Ledger' },
   { href: '/console/handoffs', label: 'Handoffs' },
+  { href: '/console/integrations', label: 'Integrations' },
 ] as const;
+
+const active = (path: string, href: string) =>
+  href === '/console' ? path === href : path === href || path.startsWith(`${href}/`);
 
 export function ConsoleShell({
   title,
   children,
 }: {
   title: string;
-  children: (api: ApiClient) => ReactNode;
+  children: (api: ApiClient, token: string | null) => ReactNode;
 }) {
-  const { state: session, api, retry, submitCode } = useDemoSession({ kind: 'console' });
+  const { state: session, api, token, retry, submitCode } = useDemoSession({ kind: 'console' });
   const path = usePathname();
   return (
     <div className="grid min-h-screen grid-cols-[220px_1fr] bg-stone-50 text-slate-900">
@@ -35,10 +45,10 @@ export function ConsoleShell({
           <Link
             key={page.href}
             href={page.href}
-            aria-current={path === page.href ? 'page' : undefined}
+            aria-current={active(path, page.href) ? 'page' : undefined}
             className={cn(
               'flex min-h-11 items-center rounded-md px-3 text-sm',
-              path === page.href ? 'bg-indigo-600 font-medium text-white' : 'hover:bg-slate-200',
+              active(path, page.href) ? 'bg-indigo-600 font-medium text-white' : 'hover:bg-slate-200',
             )}
           >
             {page.label}
@@ -64,7 +74,7 @@ export function ConsoleShell({
             onRetry={retry}
           />
         ) : (
-          children(api)
+          children(api, token)
         )}
       </main>
     </div>

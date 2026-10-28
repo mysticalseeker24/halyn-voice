@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { FinalOutcomeSchema, OutcomeSchema } from './decision';
-import { HandoffSchema, PassSummarySchema } from './api';
-import { IdSchema, IsoDateTimeSchema, Last4Schema, RequestIdSchema, ScenarioIdSchema } from './ids';
+import { HandoffSchema, LedgerVerifyResponseSchema, PassSummarySchema } from './api';
+import { Hex64Schema, IdSchema, IsoDateTimeSchema, Last4Schema, RequestIdSchema, ScenarioIdSchema } from './ids';
+import { LedgerEntrySchema } from './ledger';
 import { CompiledPolicyPackSchema } from './policy-pack';
 import { ReasonCodeSchema } from './reason-codes';
 import { RegionSchema } from './region';
@@ -98,6 +99,16 @@ export type SignalsResponse = z.infer<typeof SignalsResponseSchema>;
 export const ConsolePassSchema = PassSummarySchema.extend({ customer_id: z.string().min(1).max(64) });
 export const ConsolePassListResponseSchema = z.strictObject({ passes: z.array(ConsolePassSchema).max(500) });
 export const ConsolePassRevokeResponseSchema = z.strictObject({ pass: ConsolePassSchema });
+
+/** GET /web/ledger/export: the whole chain (at most 5,000 entries), its head anchor and the verify result. */
+export const LedgerExportSchema = z.strictObject({
+  tenant_id: z.string().min(1).max(64),
+  exported_at: IsoDateTimeSchema,
+  head: z.strictObject({ seq: z.int().positive(), hash: Hex64Schema }).nullable(),
+  verify: LedgerVerifyResponseSchema,
+  entries: z.array(LedgerEntrySchema).max(5000),
+});
+export type LedgerExport = z.infer<typeof LedgerExportSchema>;
 
 export const INTEGRATION_AGENTS = ['aero_in', 'aero_en', 'confirm', 'assistant'] as const;
 
@@ -243,3 +254,42 @@ export function compareRuns(previous: TestRun, current: TestRun): z.infer<typeof
     .map((id) => ({ scenario_id: id, from: status(previous, id), to: status(current, id) }))
     .filter((c) => c.from !== c.to);
 }
+
+/**
+ * GET /web/tests/permission-map: for each bundled Aero graph, every path to the propose_action node, and whether the
+ * nodes that speak an outcome (working, awaiting_confirmation, protect, confirmed, refused) are entered only by
+ * Halyn's events (GREEN) or also by an LLM edge (RED, with the path that reaches it).
+ */
+export const PermissionMapResponseSchema = z.strictObject({
+  graphs: z.array(
+    z.strictObject({
+      agent: z.string().min(1).max(80),
+      file: z.string().min(1).max(80),
+      status: z.enum(['GREEN', 'RED']),
+      start: z.string().min(1).max(64),
+      propose_node: z.string().min(1).max(64).nullable(),
+      paths: z.array(z.array(z.string().min(1).max(64))).max(200),
+      guarded: z.array(
+        z.strictObject({
+          node: z.string().min(1).max(64),
+          inbound: z.array(
+            z.strictObject({
+              from: z.string().min(1).max(64),
+              kind: z.enum(['event', 'llm']),
+              event: z.string().max(64).nullable(),
+            }),
+          ),
+        }),
+      ),
+      violations: z.array(
+        z.strictObject({
+          from: z.string().min(1).max(64),
+          to: z.string().min(1).max(64),
+          path: z.array(z.string().min(1).max(64)),
+        }),
+      ),
+    }),
+  ),
+});
+export type PermissionMapResponse = z.infer<typeof PermissionMapResponseSchema>;
+export type PermissionGraph = PermissionMapResponse['graphs'][number];

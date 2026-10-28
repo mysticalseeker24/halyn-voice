@@ -1,4 +1,15 @@
 import {
+  CallDetailResponseSchema,
+  CallListResponseSchema,
+  ConsolePassListResponseSchema,
+  ConsolePassRevokeResponseSchema,
+  IntegrationsResponseSchema,
+  LedgerExportSchema,
+  PermissionMapResponseSchema,
+  PolicyListResponseSchema,
+  SignalsResponseSchema,
+  TestRunCreateRequestSchema,
+  TestRunResponseSchema,
   WebCallSessionRequestSchema,
   WebCallSessionSchema,
   HandoffListResponseSchema,
@@ -190,6 +201,31 @@ export function createApiClient(options: ApiClientOptions = {}) {
 
     ledger: (limit = 50) => request(LedgerListResponseSchema, 'GET', `/web/ledger?limit=${limit}`),
     ledgerVerify: () => request(LedgerVerifyResponseSchema, 'GET', '/web/ledger/verify'),
+    ledgerExport: () => request(LedgerExportSchema, 'GET', '/web/ledger/export'),
+
+    // Halyn Console (console sessions; Step 13).
+    calls: () => request(CallListResponseSchema, 'GET', '/web/calls'),
+    call: (runId: string) => request(CallDetailResponseSchema, 'GET', `/web/calls/${id(runId)}`),
+    policies: () => request(PolicyListResponseSchema, 'GET', '/web/policies'),
+    consolePasses: () => request(ConsolePassListResponseSchema, 'GET', '/web/console/passes'),
+    consoleRevokePass: (passId: string) =>
+      request(ConsolePassRevokeResponseSchema, 'DELETE', `/web/console/passes/${id(passId)}`),
+    signals: () => request(SignalsResponseSchema, 'GET', '/web/signals'),
+    integrations: () => request(IntegrationsResponseSchema, 'GET', '/web/integrations'),
+
+    // Halyn Test (Step 15): a suite run, then one /web/stage/run per scenario that records into it.
+    createTestRun: (region: Region | null) =>
+      request(TestRunResponseSchema, 'POST', '/web/tests/runs', TestRunCreateRequestSchema.parse({ region })),
+    testRun: (runId: string | 'latest') =>
+      request(TestRunResponseSchema, 'GET', `/web/tests/runs/${id(runId)}`),
+    runScenarioInSuite: (scenario: string, suiteRunId: string) =>
+      request(
+        StageRunResponseSchema,
+        'POST',
+        `/web/stage/run/${id(scenario)}`,
+        StageRunRequestSchema.parse({ mode: 'text', suite_run_id: suiteRunId }),
+      ),
+    permissionMap: () => request(PermissionMapResponseSchema, 'GET', '/web/tests/permission-map'),
   };
 }
 

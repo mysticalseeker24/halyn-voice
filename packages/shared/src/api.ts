@@ -224,7 +224,11 @@ export const AssistantTaskResponseSchema = z.strictObject({
   execution_id: z.string().min(1),
 });
 
-export const StageRunRequestSchema = z.strictObject({ mode: z.enum(['text', 'voice']).default('text') });
+export const StageRunRequestSchema = z.strictObject({
+  mode: z.enum(['text', 'voice']).default('text'),
+  /** Halyn Test: record this scenario's result into that suite run (POST /web/tests/runs). */
+  suite_run_id: IdSchema.optional(),
+});
 export const StageRunResponseSchema = z.strictObject({
   test_run_id: IdSchema,
   scenario: ScenarioIdSchema,
