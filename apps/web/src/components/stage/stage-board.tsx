@@ -1,0 +1,242 @@
+'use client';
+
+import type { Region, WsMessage } from '@halyn/shared';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import { DEMO_CODE_COPY_EN, DemoCodePrompt } from '@/components/demo-code-prompt';
+import { ErrorState, LoadingState } from '@/components/states';
+import { useHub } from '@/lib/hub/use-hub';
+import { useDemoSession } from '@/lib/session';
+import { cn } from '@/lib/utils';
+import {
+  AeroPanel,
+  ConfirmPanel,
+  DecisionPanel,
+  LedgerPanel,
+  TimelinePanel,
+  TranscriptPanel,
+} from './stage-panels';
+import { initialStageState, stageReducer } from './stage-state';
+
+export const STAGE_SIZE = { width: 1920, height: 1080 } as const;
+
+// Scenarios 1–4 are the video scenarios (docs/SCENARIOS.md).
+export const STAGE_SCENARIOS = [
+  { id: '1', label: 'Freeze card' },
+  { id: '2', label: 'Fee waiver' },
+  { id: '3', label: 'Clone attack' },
+  { id: '4', label: 'Coached customer' },
+] as const;
+
+/** Fixed 1920×1080 canvas, scaled down (never scrolled) when the window is smaller. */
+function useFitScale(): number {
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const fit = () =>
+      setScale(Math.min(1, window.innerWidth / STAGE_SIZE.width, window.innerHeight / STAGE_SIZE.height));
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, []);
+  return scale;
+}
+
+export function StageBoard() {
+  const { state: session, api, token, retry, submitCode } = useDemoSession({ kind: 'console' });
+  const [state, dispatch] = useReducer(stageReducer, initialStageState);
+  const [region, setRegion] = useState<Region>('IN');
+  const [running, setRunning] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [ledgerLoading, setLedgerLoading] = useState(true);
+  const [ledgerError, setLedgerError] = useState<string | null>(null);
+  const alive = useRef(true);
+  const scale = useFitScale();
+
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
+
+  const loadLedger = useCallback(() => {
+    Promise.all([api.ledger(), api.ledgerVerify()]).then(
+      ([list, verify]) => {
+        if (!alive.current) return;
+        dispatch({
+          type: 'ledger_loaded',
+          lines: list.entries.map((e) => ({
+            seq: e.seq,
+            entry_type: e.type,
+            ref_id: e.ref_id,
+            hash: e.hash,
+            prev_hash: e.prev_hash,
+            chain_ok: true,
+          })),
+        });
+        dispatch({ type: 'chain_checked', result: verify });
+        setLedgerLoading(false);
+        setLedgerError(null);
+      },
+      (error: unknown) => {
+        if (!alive.current) return;
+        setLedgerLoading(false);
+        setLedgerError(error instanceof Error ? error.message : 'Failed to load the ledger.');
+      },
+    );
+  }, [api]);
+
+  const retryLedger = () => {
+    setLedgerError(null);
+    setLedgerLoading(true);
+    loadLedger();
+  };
+
+  useEffect(() => {
+    if (session.status === 'ready') loadLedger();
+  }, [session.status, loadLedger]);
+
+  const onMessage = useCallback(
+    (message: WsMessage) => {
+      dispatch({ type: 'ws', message });
+      if (message.type === 'test_progress' && message.status !== 'running') {
+        setRunning(null);
+        api.ledgerVerify().then(
+          (result) => alive.current && dispatch({ type: 'chain_checked', result }),
+          () => undefined,
+        );
+      }
+    },
+    [api],
+  );
+
+  const { status: hubStatus } = useHub({
+    role: 'stage',
+    token,
+    getTicket: (role) => api.wsTicket(role).then((r) => r.ticket),
+    onMessage,
+    onReconnect: loadLedger,
+  });
+
+  const run = (id: string) => {
+    setActionError(null);
+    setRunning(id);
+    dispatch({ type: 'run_started' });
+    api.stageRun(id, 'text').catch((error: unknown) => {
+      setRunning(null);
+      setActionError(error instanceof Error ? error.message : 'Could not start the scenario.');
+    });
+  };
+
+  const switchRegion = (next: Region) => {
+    setActionError(null);
+    api.stageRegion(next).then(
+      () => setRegion(next),
+      (error: unknown) => setActionError(error instanceof Error ? error.message : 'Could not switch region.'),
+    );
+  };
+
+  const ready = session.status === 'ready';
+
+  return (
+    <div className="fixed inset-0 overflow-hidden bg-[#0b0d17]">
+      <div
+        data-testid="stage-canvas"
+        className="origin-top-left bg-[#0b0d17] text-slate-50"
+        style={{ width: STAGE_SIZE.width, height: STAGE_SIZE.height, transform: `scale(${scale})` }}
+      >
+        <header className="flex h-[96px] items-center gap-8 border-b border-white/10 px-8">
+          <h1 className="text-3xl font-bold tracking-tight">
+            Halyn <span className="text-indigo-300">Stage</span>
+          </h1>
+          <div role="group" aria-label="Scenarios" className="flex gap-3">
+            {STAGE_SCENARIOS.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                disabled={!ready || running !== null}
+                aria-busy={running === s.id}
+                onClick={() => run(s.id)}
+                className={cn(
+                  'min-h-14 rounded-xl px-5 text-lg font-semibold focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-50',
+                  running === s.id ? 'bg-indigo-400 text-slate-950' : 'bg-indigo-600 text-white',
+                )}
+              >
+                {s.id} · {s.label}
+              </button>
+            ))}
+          </div>
+          <div role="group" aria-label="Region" className="flex rounded-xl bg-white/10 p-1">
+            {(['IN', 'US'] as const).map((r) => (
+              <button
+                key={r}
+                type="button"
+                aria-pressed={region === r}
+                disabled={!ready}
+                onClick={() => switchRegion(r)}
+                className={cn(
+                  'min-h-12 min-w-16 rounded-lg px-4 text-lg font-semibold disabled:opacity-50',
+                  region === r ? 'bg-white text-slate-950' : 'text-slate-100',
+                )}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+          <p className="text-base font-medium">Text mode</p>
+          {actionError ? (
+            <p role="alert" className="max-w-[420px] truncate text-base font-semibold text-red-300">
+              {actionError}
+            </p>
+          ) : null}
+          <p role="status" data-hub={hubStatus} className="ml-auto text-base">
+            Hub:{' '}
+            <span
+              className={
+                hubStatus === 'open' ? 'font-semibold text-emerald-300' : 'font-semibold text-amber-300'
+              }
+            >
+              {hubStatus === 'open' ? 'live' : hubStatus === 'idle' ? 'not connected' : hubStatus}
+            </span>
+          </p>
+        </header>
+
+        {session.status === 'loading' ? (
+          <LoadingState label="Signing in to the Hub…" className="text-xl" />
+        ) : session.status === 'needs_code' ? (
+          <DemoCodePrompt
+            tone="stage"
+            rejected={session.rejected}
+            onSubmit={submitCode}
+            copy={DEMO_CODE_COPY_EN}
+            className="max-w-[640px] text-xl"
+          />
+        ) : session.status === 'error' ? (
+          <ErrorState
+            title="Could not sign in to Halyn"
+            message={session.message}
+            retryLabel="Try again"
+            onRetry={retry}
+            className="text-xl"
+          />
+        ) : (
+          <main className="grid h-[calc(1080px-96px)] grid-cols-[440px_1fr_1fr] grid-rows-[1fr_190px] gap-5 p-5">
+            <div className="row-span-1 min-h-0">
+              <AeroPanel state={state} />
+            </div>
+            <div className="flex min-h-0 flex-col gap-5">
+              <TranscriptPanel state={state} />
+              <ConfirmPanel state={state} />
+            </div>
+            <div className="flex min-h-0 flex-col gap-5">
+              <DecisionPanel state={state} />
+              <LedgerPanel state={state} loading={ledgerLoading} error={ledgerError} onRetry={retryLedger} />
+            </div>
+            <div className="col-span-3">
+              <TimelinePanel state={state} />
+            </div>
+          </main>
+        )}
+      </div>
+    </div>
+  );
+}
