@@ -117,3 +117,6 @@ retry with the same grant is `E_FAIL_CLOSED` (`apps/api/src/core-client`, ADR-01
 - Both lexicon files are pure (ESLint purity rule) and covered at ≥ 95%.
 - Layer 2, Sarvam chat model over `caller_quotes` returns `{probability, cues[]}` within 1.5 s; final score =
   max(layer1, layer2). LLM down or slow → layer 1 alone. The lexicon lives in code only, never in a Bolna prompt.
+  As built (ADR-024, `signals/coaching-llm.ts`): it runs after `propose_action` has answered; a money allow/step-up
+  waits (`screening`) and `escalateForCoaching` turns it into the step-3 hold when max(l1, l2) ≥ threshold. Cue ids
+  come back as `llm_<id>`. A coaching or distress hold books a check-in call (a record on the handoff; no call).

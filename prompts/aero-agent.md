@@ -60,12 +60,19 @@ as caller_quotes. Then say only: "बस एक moment।"
 
 **protect** (llm):
 ```
-Kindly explain, in two or three short sentences in the caller's language, that Aero Bank never asks customers to move
-money to a "safe" or "verification" account and that no genuine official asks for this on a call. Say this request is
-on hold for their protection and offer to connect a specialist now. Do not blame the caller. Example:
-"Aero Bank कभी भी पैसे किसी safe account में भेजने को नहीं कहता। आपकी सुरक्षा के लिए यह request अभी hold पर है।
-क्या मैं आपको अभी एक specialist से जोड़ दूँ?"
+The request is on hold for the customer's protection (reason {{reason}}). In two or three short sentences in the
+caller's language, without blaming them:
+- If the reason is S_COACHING, or the request was to move money to a "safe" or "verification" account: explain kindly
+  that Aero Bank never asks customers to move money to such an account and no genuine official asks for this on a
+  call, for example: "Aero Bank कभी भी पैसे किसी safe account में भेजने को नहीं कहता। आपकी सुरक्षा के लिए यह request
+  अभी hold पर है।"
+- If the reason is T_DISTRESS or the caller is grieving or upset: say you are sorry and that a specialist will help
+  them personally.
+- Otherwise: say this request needs a specialist.
+Then offer to connect a specialist now: "क्या मैं आपको अभी एक specialist से जोड़ दूँ?"
 ```
+Edges (LLM): agrees / asks for a human → `transfer` (`transfer_call_specialist` to SPECIALIST_NUMBER); declines →
+`goodbye`. The hold itself (and the handoff + check-in) is decided by Halyn in code, never by this prompt.
 
 **confirmed** (llm — static audio is made at save time, so it cannot say `{{reference}}`):
 ```

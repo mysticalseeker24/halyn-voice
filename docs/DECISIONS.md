@@ -239,3 +239,13 @@ tier). If Halyn reaches the final round, move to AWS S3: one bucket and an IAM u
 (never the root account), keys as Worker secrets, SigV4 via `aws4fetch` (WebCrypto, tiny).
 **Consequences.** No new credentials now. KV is eventually consistent (fine for write-once files) and has a 1,000
 writes/day free cap, so clips and exports stay few. The R2 binding stays commented out in `apps/api/wrangler.toml`.
+
+## ADR-024 · Coaching layer 2 screens after the 300 ms answer, before anything is released — Accepted (2026-10-29)
+**Context.** GATE.md wants Sarvam's LLM score (≤ 1.5 s) maxed with the keywords, but `propose_action` must answer in
+300 ms, and invariant 4 forbids a coached step-up ever reaching the customer.
+**Decision.** The Gate decides with layer 1. A money `allow`/`step_up` with quotes is stored `screening`: no event,
+approval sheet or Confirm call is sent, claims and answers are refused (the step-up's timer and the approval sweep
+still run, so a dead Worker fails closed). In `waitUntil` Sarvam answers (or not: then layer 1 stands);
+`finishScreening` applies the pure `escalateForCoaching` (= `decide` with max(l1, l2), property-tested) → the step-3
+hold with handoff + check-in, or releases the request as decided. Layer 2 can only raise; the quotes are data.
+**Consequences.** A money allow/step-up reaches the call ~0.3–0.7 s later (measured); nothing else is delayed.
