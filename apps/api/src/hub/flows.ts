@@ -764,15 +764,12 @@ export async function resolveHandoff(
   });
   const record = store.request(handoff.request_id);
   if (record?.status !== 'held') return { handoff: resolved, request: record };
+  // The Gate's decision stays as recorded (only a step_up's Decision carries a final outcome); the specialist's
+  // verdict is the request's final outcome, which limits and the apps read.
   const final_outcome = action === 'release' ? ('allow' as const) : ('deny' as const);
-  const decision = toDecision(record.gate as GateDecision, record.request_id, {
-    final_outcome,
-    reasons: [],
-    execute_at: null,
-  });
+  const { decision } = record;
   const updated: RequestRecord = {
     ...record,
-    decision,
     final_outcome,
     execute_at: null,
     status: action === 'release' ? 'approved' : 'refused',

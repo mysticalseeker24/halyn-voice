@@ -10,6 +10,7 @@ import { notFound, onError } from './http/errors';
 import { requestLog } from './http/request-log';
 import { bolnaRoutes } from './tools/routes';
 import { aeroHome } from './web/aero-home';
+import { listHandoffs, resolveHandoffRoute } from './web/handoffs';
 import { ledgerList, ledgerVerify } from './web/ledger';
 import {
   approvalDecline,
@@ -87,6 +88,8 @@ export function createApp(deps: AppDeps = defaultDeps) {
   app.get('/web/passes', listPasses(deps));
   app.delete('/web/passes/:id', revokePassRoute(deps));
   app.post('/web/assistant/tasks', assistantTask(deps));
+  app.get('/web/handoffs', listHandoffs(deps));
+  app.post('/web/handoffs/:id/resolve', resolveHandoffRoute(deps));
   app.get('/web/ledger', ledgerList);
   app.get('/web/ledger/verify', ledgerVerify);
   app.post('/web/stage/run/:scenario', stageRun(deps, createApp));

@@ -92,7 +92,9 @@ const HandoffRow = z.object({
   call_id: z.string().nullable(),
   reason: z.string(),
   status: z.string(),
+  note: z.string().nullable().optional(),
   created_at: Ms,
+  resolved_at: Ms.nullable().optional(),
 });
 const PassUpdate = z.object({ id: z.string(), failures: z.int().nonnegative(), status: z.string() });
 const PassCodeRow = z.object({
@@ -234,9 +236,9 @@ export function mirrorStatement(db: AnyDb, tenant_id: string, item: MirrorItem) 
     }
     case 'handoff': {
       const r = read(HandoffRow, item);
+      // Opened, then resolved once (release/block): the resolution updates the same row.
       return db
         .insert(handoffs)
-        .ignore()
         .values({
           id: r.id,
           tenant_id: t,
@@ -244,7 +246,12 @@ export function mirrorStatement(db: AnyDb, tenant_id: string, item: MirrorItem) 
           call_id: r.call_id,
           reason: r.reason,
           status: r.status,
+          note: r.note ?? null,
           created_at: at(r.created_at),
+          resolved_at: atOrNull(r.resolved_at),
+        })
+        .onDuplicateKeyUpdate({
+          set: { status: r.status, note: r.note ?? null, resolved_at: atOrNull(r.resolved_at) },
         });
     }
     case 'pass': {
