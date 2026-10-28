@@ -6,8 +6,14 @@ import { existsSync, readFileSync } from 'node:fs';
 import { parseEnv } from 'node:util';
 
 const base = process.argv[2] ?? 'origin/main';
-// Public values that are expected in commits (key id, localhost URLs, the two business numbers).
+// Public values that are expected in commits (key id, URLs, the two business numbers, Bolna agent ids — useless
+// without the Bolna key and recorded in docs/STATE.md on purpose).
 const PUBLIC = new Set([
+  'BOLNA_AERO_AGENT_ID',
+  'BOLNA_AERO_EN_AGENT_ID',
+  'BOLNA_ASSISTANT_AGENT_ID',
+  'BOLNA_CONFIRM_AGENT_ID',
+  'HALYN_API_URL',
   'HALYN_KEY_ID',
   'NEXT_PUBLIC_API_URL',
   'NUMBER_A',
