@@ -2,6 +2,16 @@
 
 Newest at the top. One entry per session via `/handoff`: what changed, tests run (with counts), what's next, anything risky.
 
+## 2026-10-29 · Step 11 built (coaching layer 2, holds, handoffs) — chat #5
+- `DEMO_ACCESS_CODE` set on the deployed API (random, in `.env`; no code → 401).
+- Coaching layer 2 (ADR-024): Sarvam `sarvam-105b-conversations` (probe: 361–638 ms) after the 300 ms answer; money
+  allow/step_up wait as `screening` (no event, sheet, Confirm call, claim or answer) → `escalateForCoaching` (pure,
+  property-tested = `decide` with max(l1, l2)) → hold, or released as decided. Scenarios run with layer 2 on.
+- Hub handoff records (+ check-in booked for coaching/distress: a record, no call), `GET /web/handoffs`,
+  `POST /web/handoffs/:id/resolve` (release → grant → Aero Core; block → refused; first wins), TiDB row upserts.
+  Console shell + Handoffs page. Tests: verify ✓ (api 933, all text scenarios), e2e 12 ✓.
+- Not done: voice smoke 1–6 + 4 (calls only 09:00–21:00 IST); Step 11 not deployed yet (go-ahead).
+
 ## 2026-10-28/29 · Steps 8 + 10 built and live, voice smoke pending — chat #4
 - Voice: prompts in Devanagari Hindi, short warm greetings; Saksham picked Sarvam `bulbul:v4-flash` Simran banking 1.1×
   (3 samples, STT round-trip); endpointing 300 ms; Confirm summary digits spaced ("ending 8 8 1 2").

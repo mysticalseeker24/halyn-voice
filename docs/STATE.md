@@ -1,10 +1,14 @@
 # STATE — read at the start of every chat, update at the end (`/handoff`). Keep it short (speed mode).
 
-_Last updated: 2026-10-29 01:20 IST, end of chat #4. Next chat (#5): **chat #4's voice smoke, then Steps 11, 12, 13**
-(prompt in `docs/HANDOFF.md`). Calls only 09:00–21:00 IST with Saksham's go-ahead._
+_Last updated: 2026-10-29 04:00 IST, chat #5 (Step 11 built, not deployed). Next in this chat: Step 12; voice smoke
+1, 2, 3, 5, 6 + 4 from 09:00 IST (go-ahead per call; deploy Step 11 first)._
 
 ## Where we are
-- **Done on `main`:** Steps 0–3, 5, 6, 7, 9, Day-0, and **Steps 8 + 10 built and live** (voice smoke pending).
+- **Done on `main`:** Steps 0–3, 5, 6, 7, 9, Day-0, **Steps 8 + 10 live** (voice smoke pending), **Step 11 built**
+  (local commits; deploy + voice-smoke 4 pending).
+- **Step 11:** Sarvam coaching layer 2 after the 300 ms answer (ADR-024: money allow/step_up wait as `screening`,
+  `escalateForCoaching` → hold); Hub handoff records + booked check-in (record only); `GET /web/handoffs`,
+  `POST /web/handoffs/:id/resolve` (release executes with a grant); Console shell + `/console/handoffs`.
   Working mode: **CLAUDE.md §5 speed mode** (one chat per step, no subagents, light tests, local commits, ask before push).
 - **Step 8:** prompts in Devanagari Hindi (voice: Sarvam `bulbul:v4-flash` `simran_enhi_banking_expressive` 1.1×,
   Saksham's pick; endpointing 300 ms). API + Aero Core deployed; Aero graph on A, Confirm graph (speech only, hangs up
@@ -12,8 +16,8 @@ _Last updated: 2026-10-29 01:20 IST, end of chat #4. Next chat (#5): **chat #4's
 - **Step 10:** `/web/passes` (options → issue with a passkey challenge bound to the draft; list; revoke),
   `/web/assistant/tasks` (Assistant calls A from B, bound to the Pass: `get_pass_code` sends only `call_sid`), Aero
   "Assistant" tab, Assistant app (Pass card, task box, live log: Pass-code line, decisions, transcript at call end).
-- `pnpm verify` ✓ 2026-10-29 00:30 (api 856 unit + 44 int, web 91, shared 676, aero-core 209, scenarios 14 + 1 skip);
-  e2e 12 ✓. **Pushed, CI green** (`8b0733e`, verify + e2e).
+- `DEMO_ACCESS_CODE` set on the deployed API (2026-10-29). `pnpm verify` ✓ 04:00 IST (all text scenarios with layer 2 on);
+  e2e 12 ✓. Last push `8b0733e` (CI green); Step 11 commits are local.
 
 ## Bolna facts (binding; details in docs/BOLNA.md)
 - Tool params: never a run id (`%(execution_id)s` isn't a tool variable; a param `run_id` crashes the call); send
@@ -56,7 +60,6 @@ Voice: none yet. Smoke plan: 1, 2, 3 (Saksham calls A; 3 from a second phone, st
 5, 6 (`POST /web/assistant/tasks` with `pass_demo` from a customer session; 6 = step-up → decline).
 
 ## Next steps (in order) — only after Saksham's go-ahead (full detail: the chat #5 prompt in docs/HANDOFF.md)
-0. **Set `DEMO_ACCESS_CODE` on the deployed API** — unset now, so anyone with the URL can open a demo session.
 1. 09:00–21:00 IST: voice-smoke 1, 2, 3, 5, 6 (go-ahead per call); raw logs to file + a filter script;
    `list_violations` + COMPLIANCE.md log; scenario table here. Inbound calls can't carry `user_data`, so scenario
    3/4's `security_demo` tag lives in our notes (Bolna was told in advance).
