@@ -8,6 +8,13 @@
       "when": 1793048623877,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1793153737995,
+      "tag": "0001_fine_talisman",
+      "breakpoints": true
     }
   ]
 }

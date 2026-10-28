@@ -26,6 +26,8 @@ export const accounts = sqliteTable(
     type: text('type', { enum: ACCOUNT_TYPES }).notNull(),
     currency: currency(),
     balance_minor: integer('balance_minor').notNull(),
+    /** The account number's last 4 digits: the only part of it Aero Core stores. */
+    last4: text('last4').notNull().default('0000'),
     /** Transfers debit the customer's primary account in the transfer's currency. */
     is_primary: integer('is_primary', { mode: 'boolean' }).notNull(),
     status: text('status', { enum: ['active', 'blocked'] }).notNull(),
@@ -97,6 +99,8 @@ export const loans = sqliteTable(
     account_id: text('account_id').notNull(),
     description: text('description').notNull(),
     emi_minor: integer('emi_minor').notNull(),
+    /** What is still owed, in minor units. */
+    outstanding_minor: integer('outstanding_minor').notNull().default(0),
     currency: currency(),
     emi_day: integer('emi_day').notNull(),
     status: text('status', { enum: ['active', 'closed'] }).notNull(),

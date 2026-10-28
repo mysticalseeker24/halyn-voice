@@ -60,6 +60,14 @@ describe('demo seed facts (the scenarios run against these)', () => {
     ]);
   });
 
+  it('every account carries only its last 4 digits and every loan an outstanding of its own', () => {
+    for (const a of demo.accounts) expect(a.last4).toMatch(/^[0-9]{4}$/);
+    for (const l of demo.loans) {
+      expect(Number.isInteger(l.outstanding_minor)).toBe(true);
+      expect(l.outstanding_minor).toBeGreaterThan(l.emi_minor);
+    }
+  });
+
   it('US twin: a USD checking account, card 2207, the $35 fee, a saved landlord, no loan', () => {
     const twin = (r: { customer_ref: string }) => r.customer_ref === 'cus_saksham_us';
     expect(demo.accounts.filter(twin)).toMatchObject([

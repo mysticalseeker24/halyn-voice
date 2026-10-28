@@ -110,6 +110,17 @@ export type CoreTransaction = z.infer<typeof CoreTransactionSchema>;
 
 const EmiDaySchema = z.int().min(1).max(28);
 
+/** A card on a statement: last 4 digits and status only. */
+export const CoreCardSchema = z.strictObject({ last4: Last4Schema, status: z.enum(['active', 'frozen']) });
+/** A loan on a statement: its id (what a caller can say), EMI, EMI day and the amount still owed. */
+export const CoreLoanSchema = z.strictObject({
+  id: IdSchema,
+  emi: PositiveMoneySchema,
+  emi_day: EmiDaySchema,
+  outstanding: CoreBalanceSchema,
+  status: z.enum(['active', 'closed']),
+});
+
 const transferResponse = <A extends 'transfer.new_payee' | 'transfer.saved' | 'wire.new'>(action: A) =>
   z.strictObject({
     action: z.literal(action),
@@ -146,9 +157,14 @@ export const CORE_RESPONSES = {
   'statement.view': z.strictObject({
     action: z.literal('statement.view'),
     account: AccountTypeSchema,
+    /** The account number's last 4 digits; Aero Core never returns more. */
+    account_last4: Last4Schema,
     balance: CoreBalanceSchema,
     /** Newest first, at most 20. */
     transactions: z.array(CoreTransactionSchema).max(20),
+    /** The customer's cards and loans, so a statement (and the Aero app's home) can show their state. */
+    cards: z.array(CoreCardSchema).max(10),
+    loans: z.array(CoreLoanSchema).max(10),
     as_of: IsoDateTimeSchema,
   }),
   'transfer.new_payee': transferResponse('transfer.new_payee'),

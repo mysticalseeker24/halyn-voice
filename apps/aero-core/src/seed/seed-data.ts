@@ -37,15 +37,17 @@ export const SEED_FACTS = {
     account: 'savings',
     currency: 'INR',
     balance_minor: 52_000_000, // ₹5,20,000
+    account_last4: '3094',
     card_last4: '8812', // scenario 1
     fee: { id: 'fee_late_oct', amount_minor: 60_000 }, // ₹600, scenario 2
-    loan: { id: 'loan_personal_1', emi_minor: 1_250_000, emi_day: 5 }, // scenario 5 moves it to the 10th
+    loan: { id: 'loan_personal_1', emi_minor: 1_250_000, emi_day: 5, outstanding_minor: 18_750_000 }, // scenario 5 moves it to the 10th
     payees: ['payee_mom', 'payee_landlord'], // scenarios 8 and 12
   },
   US: {
     account: 'checking',
     currency: 'USD',
     balance_minor: 1_245_000, // $12,450
+    account_last4: '7731',
     card_last4: '2207',
     fee: { id: 'fee_us_late_oct', amount_minor: 3_500 }, // $35, the US pack's fee.waive limit
     loan: null,
@@ -98,6 +100,7 @@ export function customerRows({ tenant, customer, region }: SeedCustomer): SeedRo
         type: facts.account,
         currency: facts.currency,
         balance_minor: facts.balance_minor,
+        last4: facts.account_last4,
         is_primary: true,
         status: 'active',
         opened_at: OPENED_AT,
@@ -140,6 +143,7 @@ export function customerRows({ tenant, customer, region }: SeedCustomer): SeedRo
       id: loan.id,
       description: 'Personal loan',
       emi_minor: loan.emi_minor,
+      outstanding_minor: loan.outstanding_minor,
       emi_day: loan.emi_day,
       status: 'active',
       updated_at: OPENED_AT,

@@ -42,12 +42,29 @@ describe('GET /core/balance (balance.view)', () => {
 });
 
 describe('GET /core/statement (statement.view, scenario 5)', () => {
+  it('shows only the last 4 digits of anything: no run of 5+ digits outside amounts, ids and timestamps', async () => {
+    const sub = await seedCustomer();
+    const { res } = await read(sub, 'statement.view');
+    const body = CORE_RESPONSES['statement.view'].parse(res.body);
+    expect(body.account_last4).toMatch(/^[0-9]{4}$/);
+    expect(body.cards.every((c) => /^[0-9]{4}$/.test(c.last4))).toBe(true);
+    // Account numbers would be 9+ digits; nothing in the descriptive fields may look like one.
+    const text = [
+      ...body.transactions.map((t) => t.description),
+      ...body.loans.map((l) => l.id),
+      ...body.cards.map((c) => c.last4),
+      body.account_last4,
+    ].join(' ');
+    expect(text).not.toMatch(/[0-9]{5,}/);
+  });
+
   it('lists the account’s lines newest first, with the balance', async () => {
     const sub = await seedCustomer();
     const { res } = await read(sub, 'statement.view');
     expect(res.status).toBe(200);
     const body = CORE_RESPONSES['statement.view'].parse(res.body);
     expect(body.balance).toEqual({ amount_minor: SEED_FACTS.IN.balance_minor, currency: 'INR' });
+    expect(body.account_last4).toBe(SEED_FACTS.IN.account_last4);
     expect(body.transactions.map((t) => t.description)).toEqual([
       'Online purchase, card ending 8812',
       'Transfer to Mom',
@@ -56,6 +73,17 @@ describe('GET /core/statement (statement.view, scenario 5)', () => {
       'Late payment fee, October',
       'Groceries, card ending 8812',
       'Salary, October',
+    ]);
+    // Cards and loans ride along (the Aero app's home shows them): last 4 digits and status, EMI and day.
+    expect(body.cards).toEqual([{ last4: '8812', status: 'active' }]);
+    expect(body.loans).toEqual([
+      {
+        id: 'loan_personal_1',
+        emi: { amount_minor: 1_250_000, currency: 'INR' },
+        emi_day: 5,
+        outstanding: { amount_minor: SEED_FACTS.IN.loan.outstanding_minor, currency: 'INR' },
+        status: 'active',
+      },
     ]);
     expect(body.transactions[0]).toEqual({
       id: `txn_${sub.slice(4)}_07`,

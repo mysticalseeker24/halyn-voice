@@ -124,8 +124,19 @@ describe('Aero Core response schemas', () => {
       'statement.view': {
         action: 'statement.view',
         account: 'savings',
+        account_last4: '3094',
         balance,
         transactions: [TXN, { ...TXN, kind: 'credit', category: 'salary', payee_id: null, reference: null }],
+        cards: [{ last4: '8812', status: 'frozen' }],
+        loans: [
+          {
+            id: 'loan_personal_1',
+            emi: { amount_minor: 1250000, currency: 'INR' },
+            emi_day: 5,
+            outstanding: { amount_minor: 18750000, currency: 'INR' },
+            status: 'active',
+          },
+        ],
         as_of: AT,
       },
     } as const;
