@@ -50,10 +50,6 @@
                       "type": "string",
                       "description": "approve or decline"
                     },
-                    "method": {
-                      "type": "string",
-                      "description": "speech or keypad"
-                    },
                     "request_id": {
                       "type": "string",
                       "description": "The request id. Filled automatically."
