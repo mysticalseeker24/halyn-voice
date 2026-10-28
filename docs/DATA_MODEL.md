@@ -11,12 +11,12 @@ Databases: `halyn_dev` (wrangler dev), `halyn_test` (DB test suite), `halyn` (de
 | Table | Columns (key ones) | Notes |
 |---|---|---|
 | `tenants` | id, name, default_region, signing_key_id, created_at | `ten_aero` |
-| `customers` | id, tenant_id, name, region, language, registered_number_hash, registered_number_last4, passkey_credential (JSON), created_at | the number is never stored: `SHA-256(PHONE_HASH_PEPPER ‖ E.164)` + last 4; unique per (tenant, region, hash), so the IN customer and the US twin can share one number |
+| `customers` | id, tenant_id, name, spoken_name, region, language, registered_number_hash, registered_number_last4, passkey_credential (JSON: the passkeys), created_at | `spoken_name` is what voices say (seed: `सक्षम`, CLAUDE.md §8); screens use `name`. The number is never stored: `SHA-256(PHONE_HASH_PEPPER ‖ E.164)` + last 4; unique per (tenant, region, hash), so the IN customer and the US twin can share one number |
 | `policy_packs` | id, tenant_id, region, version, compiled_json (JSON), source_sha | compiled from YAML |
 | `passes` | id, tenant_id, customer_id, assistant_name, assistant_numbers (JSON), scopes (JSON), issued_at, expires_at, status, customer_sig, issuer_sig, failures, revoked_at | status: active / revoked / locked / expired; 5 cumulative failures → locked |
 | `pass_codes` | id (`pcode_…`), tenant_id, pass_id, code_hash, bound_number, expires_at, used_at | single use, 5 min; code_hash = SHA-256(pepper ‖ code) |
 | `calls` | id, tenant_id, bolna_execution_id, run_id, agent, channel, from_number_last4, started_at, ended_at, transcript_ref, recording_url, purpose | `purpose` = `security_demo` for scenarios 3/4 |
-| `action_requests` | id, tenant_id, call_id, run_id, customer_id, action, params (JSON), params_hash, readback_confirmed, caller_quotes (JSON), created_at | unique (tenant_id, run_id, params_hash) — invariant 7 |
+| `action_requests` | id, tenant_id, call_id, run_id, customer_id, action, params (JSON), params_hash, readback_confirmed, caller_quotes (JSON), created_at | unique (tenant_id, run_id, params_hash) — invariant 7: the same pair is one request for the whole call (the Hub answers a retry with it, ADR-016) |
 | `decisions` | id, tenant_id, request_id, outcome, final_outcome, tier, base_tier, reasons (JSON), signals (JSON), coaching (JSON), decided_at | |
 | `grants` | jti, tenant_id, request_id, params_hash, issued_at, expires_at, used_at | |
 | `confirmations` | id, tenant_id, request_id, channel, status, answer, bolna_execution_id, answered_at | first answer wins |
@@ -64,11 +64,21 @@ on `customer_ref` (= the grant's `sub`). Ids that appear in action params (`fee_
 | `ledger` | the ordered outbox: seq, entry JSON, persisted_at (null until flushed to TiDB) |
 | `ledger_head` | the chain head `(seq, hash)` — the anchor for verification |
 | `idempotency` | key → stored response, expires_at |
-| `pending_confirmations` | request_id, channels, deadline (the alarm times them out) |
+| `pending_confirmations` | request_id, channels, deadline (the alarm times them out; an answer at or after the deadline while the alarm is late settles the timeout itself) |
 | `confirmation_results` | request_id → first answer (approved / declined / timeout) |
 | `confirmation_answers` | every answer received, with `accepted` (later answers are recorded and ignored) |
+| `customers`, `passes`, `pass_codes`, `credentials` | the call-time directory (ADR-016): loaded from TiDB once (customers refresh every 10 min), then written here first |
+| `challenges` | WebAuthn challenges, single use (registration 5 min; approval until 30 s past the confirmation deadline, so a late answer reaches the Hub and is refused there) |
+| `calls` | one row per run id: customer, registered?, Pass, number hash (never the number), call sid ↔ run id |
+| `requests` | every proposal: Gate decision, status, confirmation, execution, the event the call should be in |
+| `packs` | the compiled packs requests were decided with (post-approval rules need the same pack) |
+| `executions` | one row per request while it is `executing` (ADR-020): started_at, swept_at, and the signed grant (compact JWS) once noted, so the alarm's sweep can present the same grant again. Never mirrored, logged or returned; deleted when the request is final |
+| `approvals` | one row per request while it is `approved` and not yet claimed by a Worker (ADR-020): approved_at. Arms the alarm; the sweep fails the request closed 30 s later if no Worker claimed it. Deleted on claim or when final |
+| `ws_tickets` | one-time WebSocket tickets (ADR-021): SHA-256 of the ticket (never the ticket), session kind, customer, role, expires_at (30 s). Deleted when used (whatever the outcome) or expired |
+| `mirror` | the outbox of TiDB rows (calls, requests + decisions, grants, confirmations, handoffs, Pass and code updates, passkeys) |
 
-WebSockets use the Hibernation API with one tag per socket: role = stage | console | aero | assistant.
+WebSockets use the Hibernation API, tagged with the role (stage | console | aero | assistant) and, for a customer's
+socket, `customer:<id>` too.
 
 ## Seed (`pnpm seed`, `scripts/seed.ts` + `apps/api/src/db/seed-data.ts`)
 TiDB (deterministic: fixed ids and clock, idempotent upserts): tenant `ten_aero`; customers `cus_saksham` (IN) and

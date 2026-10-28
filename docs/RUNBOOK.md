@@ -35,7 +35,16 @@ Cloud Starter cluster, a Vercel account, the Bolna API key, the Sarvam API key. 
    For `wrangler dev`, put the API's secrets in `apps/api/.dev.vars` (git-ignored): `HALYN_TOOL_SECRET`, `SESSION_SECRET`,
    `TIDB_DATABASE_URL` (…/halyn_dev), `HALYN_SIGNING_KEY`, `HALYN_PUBLIC_JWKS`, `HALYN_KEY_ID`, `PASS_CODE_PEPPER`,
    `PHONE_HASH_PEPPER`, `BOLNA_API_KEY`, `SARVAM_API_KEY`. `/health` works without any of them.
-7. `pnpm compile:packs`
+   Step 7 adds: `BOLNA_CONFIRM_AGENT_ID` (the Confirm agent), `NUMBER_B` (its caller id) and `CUSTOMER_PHONE` (the only
+   number the Confirm callback may ring; without the three the step-up uses the passkey alone), `AERO_CORE_URL` for dev
+   (production uses the `AERO_CORE` service binding in `wrangler.toml`, so deploy Aero Core first), optionally
+   `DEFAULT_REGION` (default `IN`). `WEB_ORIGIN` may list several origins, comma-separated (CORS + passkey origins).
+   After pulling Step 7: `pnpm db:migrate` (migration 0001 adds `customers.spoken_name`)
+   and `pnpm seed` again on each database (spoken names).
+7. `pnpm compile:packs`, then put each compiled pack into KV `CONFIG` under `pack:<tenant>:<region>` — the API reads
+   nothing else and denies `E_FAIL_CLOSED` without it (go-ahead first for the remote namespace):
+   `pnpm --filter @halyn/api exec wrangler kv key put --binding CONFIG "pack:ten_aero:IN" --path ../../policy-packs/compiled/aero-in.json`
+   (and `aero-us.json` as `pack:ten_aero:US`; add `--local` for `wrangler dev`).
 
 ## Daily
 | Task | Command |

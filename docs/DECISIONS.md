@@ -96,3 +96,130 @@ reference", never as "not executed"** (only Halyn holds the grant), and resolve 
 the same grant once. (3) The body is capped at 4,096 bytes as it streams in (it is read before the signature can be
 checked); invalid UTF-8 never matches. (4) `HEAD` on a core path is 405 (Hono would run the GET handler and spend a
 read grant).
+
+## ADR-016 · The Hub holds the call-time read model and decides proposals in its lane; TiDB is the mirror — Accepted (2026-10-28)
+**Context.** Every Bolna tool must answer within 300 ms, and the Day-0 probe measured TiDB HTTP round trips of
+650–2,200 ms from a Worker. ARCHITECTURE "Main flow" step 3 read customer, Pass state and counters from TiDB on the
+`propose_action` path, and the velocity counters must be read and updated atomically (ten split transfers racing each
+other must not all be allowed). Bolna's `%(execution_id)s` substitution is unconfirmed until Day-0 check 2, and an LLM
+may legitimately repeat an identical proposal later in the same call (scenario 12).
+**Decision.** The tenant's Hub (Durable Object SQLite) holds customers (with a `spoken_name`), Passes, Pass codes,
+passkeys, calls and requests. It loads them from TiDB once (customers refresh in the background every 10 min; Passes,
+codes and passkeys are written by the Hub first, so its copy wins) and writes every change to TiDB through a mirror
+outbox flushed by the same alarm as the ledger (`hub/ports.ts`, `db/mirror.ts`, idempotent statements). `propose_action`
+is one Hub RPC that, inside the serial lane, de-duplicates, identifies the call, builds the Gate context from the Hub's
+own rows (proof, Pass uses, per-period limits in the customer's local time, transfers in the last 10 min, calls in the
+last hour, unusual hour), runs the real Gate, records request + decision + ledger entries, opens the confirmation timer
+and the handoff — then the Worker answers and does events, the Confirm call, grant and Aero Core in `waitUntil`.
+Idempotency (invariant 7, strict): the same `(run_id, params_hash)` is the same request for the whole call, whatever its
+age or state; a retry returns the existing request id/status and never creates a second request, decision, grant or Aero
+Core write (the TiDB unique index stays `(tenant_id, run_id, params_hash)`; migration `0001_hub_mirror` only adds
+`customers.spoken_name`). A repeated transfer is therefore a new call (scenario 12 runs each transfer in its own call;
+velocity counts across calls). Without a usable
+run id, a call is keyed by `sid:<call_sid>` (or the run id an earlier webhook mapped to that call sid); events need a
+real run id, so such a call relies on `check_decision`. A web login warms the Hub (directory load) in the background.
+**Consequences.** No TiDB call on any tool path (a test asserts it); measured `propose_action` median 10 ms in
+Miniflare. The first tool call of a never-warmed Hub waits for the TiDB load once. TiDB lags the Hub by one flush and
+catches up after an outage; the Hub is the authority for anything a call depends on. Run `pnpm db:migrate` (0001) and
+`pnpm seed` again (spoken names) on each database.
+
+## ADR-017 · The core client reads Aero Core by outcome; refusals are E_CORE_REJECTED — Accepted (2026-10-28)
+**Context.** ADR-015 made Aero Core's answers unambiguous (`error.details` outcome hint) and left the API's side to
+Step 7, including what the ledger and the call get when the bank refuses an allowed action.
+**Decision.** `core-client/client.ts`: 200 → executed; 401 `E_GRANT_REUSED` or 500 with `details.outcome = executed`
+→ executed earlier (reference from details, the call hears `done`); 500 `unknown`, any other 5xx, a timeout or an
+unreadable answer → one retry with the SAME grant while it is valid, then `unknown` → fail closed (`deny E_FAIL_CLOSED`);
+anything else without details → not executed. A new reason code `E_CORE_REJECTED` (GATE.md, `reason-codes.ts`) marks a
+bank refusal (400/404): ledger `core_rejected`, event `deny`, and the action does not count towards limits. A refused
+grant keeps its own code. An approved action with no Aero Core route, or a tier-4 approval that may only run after its
+hold, becomes a handoff (event `hold`, reason `H_SPECIALIST` / `P_TIER4_HOLD_24H`). After every Aero Core write the Hub
+broadcasts `core_update` (the balance from the response, or from a statement read with its own grant).
+**Consequences.** Never two grants for one effect; a lost answer cannot turn into a second execution or a false "not
+done". `E_CORE_REJECTED` joins the reason-code list (contract-tested against GATE.md).
+
+## ADR-018 · Passkeys: a small WebAuthn verifier on WebCrypto, attestation "none" — Accepted (2026-10-28)
+**Context.** The Confirm passkey leg and passkey registration need WebAuthn verification in a Worker with a 10 ms CPU
+budget and no `nodejs_compat`. Libraries pull in ASN.1/CBOR stacks and Node shims.
+**Decision.** `apps/api/src/webauthn`: a strict definite-length CBOR decoder (no tags or floats, bounded depth and
+size), COSE → JWK for ES256, EdDSA and RS256, and checks of type, challenge (single use, kept in the Hub), origin
+(`WEB_ORIGIN` allow-list), RP id hash, user presence AND verification, credential id, the signature over
+authenticatorData ‖ SHA-256(clientDataJSON) (ES256 DER → raw for WebCrypto) and a growing sign count. Registration asks
+for attestation "none" and does not check attestation statements: the passkey is bound to the customer by their session.
+An approval's challenge is SHA-256 of the canonical `{request_id, action, params_hash, nonce}`. Declining needs no
+passkey (it only makes things stricter); either answer goes through the Hub's first-answer-wins lane.
+**Consequences.** Measured 0.23 ms per assertion check (ES256, workerd) — far inside the budget. Hardware attestation
+is out of scope for the demo.
+
+## ADR-019 · The scenario runner: one runner, two harnesses; the spec ships as a JSON twin — Accepted (2026-10-28)
+**Context.** Step 7 needed `pnpm test:scenarios` over the real Gate, Pass, ledger, Hub and Aero Core with only Bolna and
+the customer's answers simulated, and the Stage needs the same runs live. The Worker may not parse YAML at runtime.
+**Decision.** `apps/api/src/test-runner/runner.ts` plays a scenario through a `Harness`. Tests use Miniflare
+(`test/scenarios/harness.ts`): the real app with a Bolna recorder, the real Aero Core app imported in-process on a
+Miniflare D1 with this run's throwaway keys, the tenant's real Hub with a shared movable clock (its alarm fired on
+demand), real passkey and `confirm_result` routes. The Stage (`POST /web/stage/run/:n`) uses the live harness: the
+same app in-process against the live Hub and Aero Core, Bolna replaced by a recorder (no call, no event leaves the
+Worker), only declines simulated, waits capped to fit `waitUntil`. `tests/scenarios/scenarios.json` is the committed
+twin of `scenarios.yaml`; a test fails if they differ. Scenario 6 assumes the assistant presented its Pass at the start
+of the call (as scenario 5 does explicitly).
+**Consequences.** 12 of 13 scenarios pass in text mode now; 10 stays pending until Step 12 (browser calls carry the app
+session). A live Stage run acts on the demo customer's real Aero Core rows (re-seed with `pnpm seed:core`), and long
+scenarios (3b's 60 s, 12's ten transfers) do not fit a live run's 30 s.
+
+## ADR-020 · The Hub sweeps executions whose Worker died, with the same grant — Accepted (2026-10-28)
+**Context.** The Worker claims an approved request (`executing`), signs its grant, calls Aero Core and records the
+answer, all in `waitUntil`. If it dies anywhere in between (isolate evicted, `waitUntil` cut off at 30 s, a Hub RPC
+lost), nothing resolves the request: the call only ever hears "pending" and the ledger never closes it (invariant 2).
+A second grant would risk a second execution (invariants 1, 7); a guess either way would be a false outcome.
+**Decision.** `noteGrant` takes the compact JWS and the Hub keeps it in its own SQLite (`executions`; never mirrored,
+logged or returned; deleted when the request is final), refusing a second grant per request or one for another
+request. `beginExecution` arms the Hub's single alarm; it sweeps requests `executing` for 30 s (by then the Worker's
+`waitUntil` is over; the default grant lives 60 s), at most 10 per alarm (`hub/reconcile.ts`). No grant → nothing
+reached Aero Core → `failed`, `deny E_FAIL_CLOSED`. A grant with ≥ 10 s left is presented again — the same token,
+outside the lane, by the shared core client — and its answer recorded like the Worker's (executed or REUSED with
+details → `done` + `core_update`; bank refusal → `deny E_CORE_REJECTED`). Expired or still unknown → `failed`,
+`deny E_FAIL_CLOSED`, `core_rejected` with `reconcile: needed` and the jti, plus a specialist handoff; the Worker's own
+unknown outcome now does the same. `finishExecution` is first-finish-wins: a later finish returns null and its caller
+sends no event; an execution reported after a final `failed` is still appended (`reconcile: needed`) with a handoff,
+so the ledger never misses a real effect. `callCore` treats `E_GRANT_EXPIRED` on a grant that may have run (a retry,
+or the sweep) as unknown, since Aero Core checks expiry before the jti.
+**Consequences.** Every claimed request reaches a final outcome and the call hears exactly one event; Aero Core's
+single-use jti makes a Worker and the sweep presenting together write once (tested). A signed grant rests in DO
+storage for at most its ≤ 120 s life plus one sweep; it only works for that request's exact params. The Hub now needs
+Aero Core (binding or URL) and `HALYN_SIGNING_KEY` (for `core_update`'s statement read). An unknown outcome (failed
+with the reconcile handoff open) counts towards limits and Pass uses (`countsAsUsed`): it may have executed, so the
+limits only get stricter; a definite failure (bank refusal, no grant sent) does not.
+**Amended (2026-10-28, Step 7 review).** (1) *Approved but never claimed.* A Worker can also die after the decision
+and before `beginExecution`; the request then sat `approved` forever (the sweep only watched `executing`). Every
+approval — an allow at proposal time, or a step-up settled `approved` — now records `approvals(request_id,
+approved_at)` in the Hub and arms the alarm; `beginExecution` clears it. The sweep takes requests still `approved`
+30 s later: nothing was signed or sent, so `finishExecution` closes them `failed`, `deny E_FAIL_CLOSED`, ledger
+`core_rejected` with `by: sweep, detail: not_claimed`, one event; a late Worker's claim returns null and sends nothing.
+Only the sweep may close an `approved` request, and only as "not sent". Approvals and executions share the per-alarm
+bound of 10. Chosen over claiming at decision time (the claim is what lets exactly one Worker execute) and over a scan
+of request statuses (requests grow without bound). (2) *Late answers.*
+The confirmation deadline is the Hub's and is checked in its lane on every answer, not only by the alarm: an answer at
+or after it while the alarm is late settles the timeout first — the alarm's own path (deny `C_TIMEOUT`, ledger, apps,
+`timeout` event, the Confirm call stopped) — and is recorded as ignored. A passkey approval challenge lives 30 s past
+the deadline so a late assertion reaches the Hub (one clock decides). (3) *Callback binding.* `confirm_result` counts
+only from the Confirm call Halyn placed for that request (`execution_id` set and equal to the run id); before it is
+attached, when it was never placed, from the Aero call or a `sid:` call it is 404 with nothing recorded. The callback
+leg therefore needs Bolna's real run id on the Confirm call's tool request (Day-0 check 2, or the webhook's call sid →
+run id map); without it the passkey and the timeout remain.
+
+## ADR-021 · WebSocket tickets: the session token never goes in a URL — Accepted (2026-10-28)
+**Context.** Browsers cannot set headers on a WebSocket, so `GET /ws` took the session token (a 12 h bearer
+credential) as `?token=`. The API never logs query strings, but Cloudflare's edge, proxies and browser history may keep
+full URLs, which would leak a replayable session.
+**Decision.** `POST /web/ws-ticket` `{role}` (Bearer session, CORS like every `/web/*` route) → `{ticket, expires_at}`.
+The role must be one the session may take (customer: aero/assistant; console: stage/console), else 401. The tenant's
+Hub issues the ticket body `<tenant>.<32 random bytes>` from its own rng and clock and keeps only its SHA-256 with the
+session kind, customer, role and a 30 s expiry (`ws_tickets`). The Worker seals the body with HMAC-SHA256
+(`SESSION_SECRET`, domain-separated from session signatures). `GET /ws?ticket=…&role=…` checks the seal (so a forged or
+re-labelled ticket never wakes, or creates, a Durable Object), then forwards the upgrade to that tenant's Hub, which
+reads and deletes the ticket in one synchronous step (single use even under concurrent upgrades; burned whatever the
+outcome) and accepts only an unexpired ticket for the same role. The socket is tagged with the role and, for a
+customer, `customer:<id>`. Any `?token=` is refused (401), never silently accepted or ignored. Chosen over a cookie
+(cross-site between the Vercel app and the Worker) and over the `Sec-WebSocket-Protocol` header (would put the session
+in a header proxies also log, and still a long-lived credential).
+**Consequences.** One extra round trip per (re)connect; the web app (`apps/web` `use-hub.ts`) must ask for a fresh ticket
+each time. A leaked ticket is worth at most one socket for 30 s, for one role, and only if nobody used it first.

@@ -10,7 +10,7 @@ optional, flat — at most 16 string/number/boolean/null values — and so far o
 | `/tools/*`, `/webhooks/*` (Bolna) | Source IP ∈ Bolna list (`CF-Connecting-IP`) **and** `x-halyn-secret` header. Both or 401 |
 | `/web/*` (apps) | Bearer session token (demo login), tenant from token |
 | `/core/*` (Aero Core Worker) | Valid Halyn grant in `x-halyn-grant`; else 401 `E_GRANT_MISSING` / `E_GRANT_INVALID` / `E_GRANT_EXPIRED` / `E_GRANT_REUSED` / `E_PARAMS_MISMATCH` |
-| `/ws` (Hub) | Session token as query param, role tag |
+| `/ws` (Hub) | One-time ticket from `POST /web/ws-ticket` (Bearer session) as query param, role tag; never the session token (ADR-021) |
 
 Details (Step 5, `apps/api/src/auth`):
 - **Bolna guard:** both checks always run; a wrong IP, a missing or wrong secret, or no credentials all get the same
@@ -19,8 +19,16 @@ Details (Step 5, `apps/api/src/auth`):
   header `x-demo-code` too) returns `{token, tenant_id, kind, customer_id, expires_at}`. The token is a compact JWS
   (HS256 with `SESSION_SECRET`, `typ: halyn-session+jwt`, ≤ 12 h): a different key and algorithm from grants and Passes,
   so a session can never pass as either. The tenant always comes from the token. `GET /web/me` returns the session.
-- **WebSocket:** `GET /ws?token=<session>&role=<role>` (browsers can't set headers on a WebSocket; the query string is
-  never logged). Customers may listen as `aero` or `assistant`, console users as `stage` or `console`; anything else is 401.
+- **WebSocket** (ADR-021): browsers can't set headers on a WebSocket, and a URL may be kept by edge logs, so the session
+  token never goes in one. First `POST /web/ws-ticket` `{role}` with `Authorization: Bearer <session>` (CORS like every
+  `/web/*` route) → `{ticket, expires_at}` (`WsTicketRequestSchema` / `WsTicketResponseSchema`, `cache-control:
+  no-store`). Customers may ask for `aero` or `assistant`, console users for `stage` or `console`; another role is 401,
+  an unknown role 400. The ticket is opaque and URL-safe: ≥ 256 random bits, kept in the tenant's Hub (its SHA-256 only)
+  bound to the tenant, the session's kind and customer and the role, valid for 30 s, single use, sealed with an HMAC so
+  only tickets this API issued reach a Hub. Then `GET /ws?ticket=<ticket>&role=<role>` (URL-encode the ticket) with the
+  WebSocket upgrade → 101. A used, expired, forged, re-labelled or other-tenant ticket, or one presented for another role
+  (which also burns it), is 401 `E_UNAUTHORIZED`; so is any `?token=` (never silently accepted). Ask for a fresh ticket
+  for every (re)connect. Neither the session nor the ticket is logged (the request log writes the path only).
 - **Errors:** 400 `E_BAD_REQUEST` (validation, with the message), 401 `E_UNAUTHORIZED`, 404 `E_NOT_FOUND`, 500
   `E_FAIL_CLOSED` (never with internal detail). Every request writes one masked JSON log line (path only).
 - **Health:** `GET /health` → `{ok:true, service:"halyn-api"}`, no secrets or database needed.
@@ -41,6 +49,39 @@ Tool requests strip unknown keys (a new Bolna context field cannot break a live 
 schema (`parseActionParams`) become a recorded `deny` with `E_FAIL_CLOSED`, never an HTTP 400. Caller quotes are
 trimmed to the last 5, 300 chars each. `verify_pass` accepts spoken codes ("4 7 2 9 1 5").
 
+How the tools behave (Step 7, `apps/api/src/tools`; ADR-016):
+- **Bodies as Bolna sends them.** Every param is a `%(name)s` substitution, so bodies are normalised first
+  (`normalizeToolBody`, `packages/shared/src/bolna-payloads.ts`): an empty value, `None`/`null` or an unsubstituted
+  `%(…)s` is dropped; `"true"`/`"yes"` become booleans; phone numbers without `+` become E.164 (10 digits starting 6–9
+  or `0`+10 digits are Indian); `caller_quotes` may be a list, a JSON list in a string or plain text; `params` may be an
+  object, a JSON string, or — as the Day-0 agent sends it — the action's param names as top-level keys; integer params
+  written as digits become numbers. Every tool also takes Bolna's auto-injected `call_sid`. Then the strict schema
+  decides (400 `E_BAD_REQUEST` for a malformed envelope).
+- **Run id fallback.** When `run_id` did not substitute, the call is the run id an earlier webhook mapped to that
+  `call_sid`, else `sid:<call_sid>`. Events need a real run id (a Bolna UUID), so a `sid:` call learns its outcome only
+  through `check_decision`.
+- **`lookup_customer`** hashes the calling number (`PHONE_HASH_PEPPER`) and looks it up in the tenant's Hub; failing
+  that, a `claimed_name` (full name, spoken name, or a unique first name) identifies the customer with
+  `registered: false` — never proof, but it tells the Gate whose devices a step-up goes to (scenario 3).
+  `customer_name` is the **spoken form** (Devanagari for Saksham, CLAUDE.md §8); screens use the Roman name.
+- **`get_pass_code`** verifies the Pass token (EdDSA, Halyn's JWKS, this tenant) and mints a code bound to the
+  assistant's calling number (`from_number`, or the Pass's only number); a refused Pass is 400. **`verify_pass`** answers
+  `{valid:false}` for every failure (the reason goes to the log); the 5th failure locks the Pass (ledger `pass_locked`).
+- **`propose_action`** answers `{request_id, status:"pending"}` after ONE Hub call (measured median 10 ms in
+  Miniflare): idempotency, the Gate on the Hub's rows, request + decision + ledger entries, and for a step-up the
+  confirmation timer and the `confirm_request` push. No TiDB on this path. The same `(run_id, params_hash)` is the same
+  request for the whole call, whatever its age or state (invariant 7): a retry returns the existing `request_id` and never a second decision, grant or write. Slow work
+  runs in `waitUntil`: the outcome event, the Confirm call, grant → Aero Core → `done`.
+- **`confirm_result`** answers `{ok:true}` whether or not the answer counted (first answer wins, invariant 10; an answer
+  at or after the 60 s deadline never counts — the Hub settles the timeout first if its alarm has not run yet). 404
+  `E_NOT_FOUND` "No such confirmation", with nothing recorded, unless the run id is exactly the Confirm call Halyn placed
+  for that request: before that call is attached, when it was never placed, from the Aero call itself or from a call
+  known only as `sid:<call_sid>`, no call can answer on the callback leg.
+- **`check_decision`** answers the event the call is in now (`{status:"decided", event}`); 404 for another call's request.
+- **`POST /webhooks/bolna`** takes Bolna's execution record (agent webhook or a tool's pre-call webhook), maps its call
+  sid (`telephony_data.call_sid` or `provider_call_id`) to its run id and records the end of the call and its
+  recording. Unreadable records get `{ok:false}` (no retry); decisions never depend on it.
+
 ## Events Halyn sends into calls (`POST https://api.bolna.ai/v1/call/{run_id}/events`)
 | Event | Properties | Aero graph goes to |
 |---|---|---|
@@ -52,20 +93,50 @@ trimmed to the last 5, 300 chars each. `verify_pass` accepts spoken codes ("4 7 
 | `hold` | `{request_id, reason}` | `protect` → `transfer` |
 | `deny` | `{request_id, reason}` | `refused` |
 
+`reason` is the code that decided it (`C_DECLINED`, `C_TIMEOUT`, `S_COACHING`, `T_DISTRESS`, `I_NO_PROOF`, …). Two
+outcomes arrive where the graph did not expect them before Step 7 (docs/BOLNA.md adds the edges): `deny` after `allow`
+(from `working`) when Aero Core refused (`E_CORE_REJECTED`) or its answer was unknown (`E_FAIL_CLOSED`), and `hold` after
+a step-up (from `awaiting_confirmation`) when an approved action must go to a specialist — above the new-payee cap
+(`P_OVER_LIMIT`, `H_SPECIALIST`), no Aero Core route (`H_SPECIALIST`), or a tier-4 change waiting out its hold
+(`P_TIER4_HOLD_24H`). A 404 from Bolna (the call ended) is logged and the decision stands. The `timeout` event is sent
+by the Hub's own alarm.
+
 ## Web (apps)
 | Endpoint | Purpose |
 |---|---|
 | `POST /web/session` | Demo login (customer or console user) |
-| `GET /web/aero/home` | Balance, activity, alerts for the customer |
-| `POST /web/approvals/:id/options` · `POST /web/approvals/:id/verify` | Passkey challenge / verify |
-| `POST /web/passkeys/register/options` · `/verify` | One-time passkey registration |
+| `GET /web/aero/home` | Balance, activity, card, loan, alerts, pending approvals for the customer (`AeroHomeSchema`) |
+| `POST /web/approvals/:id/options` · `POST /web/approvals/:id/verify` · `POST /web/approvals/:id/decline` | Passkey challenge / verify `{response}` → `{ok, status:"approved"}` / decline `{}` → `{ok, status:"declined"}` |
+| `POST /web/passkeys/register/options` · `/verify` | One-time passkey registration: `{options}` / `{response}` → `{ok:true}` |
 | `POST /web/passes` · `DELETE /web/passes/:id` · `GET /web/passes` | Issue / revoke / list Passes |
 | `POST /web/assistant/tasks` | Start the Assistant's outbound call to Aero |
 | `POST /web/stage/run/:scenario` · `POST /web/stage/region` | Stage controls |
 | `GET /web/calls` · `/web/calls/:id` · `/web/policies` · `/web/handoffs` · `POST /web/handoffs/:id/resolve` | Console |
 | `GET /web/ledger` · `GET /web/ledger/verify` · `GET /web/ledger/export` | Ledger |
 | `POST /web/tests/runs` · `GET /web/tests/runs/:id` · `GET /web/tests/permission-map` | Halyn Test |
-| `GET /ws` | WebSocket to the tenant Hub |
+| `POST /web/ws-ticket` · `GET /ws` | One-time WebSocket ticket, then the WebSocket to the tenant Hub (Auth above) |
+
+Built in Step 7 (`apps/api/src/web`; bodies in `packages/shared/src/api.ts` + `webauthn.ts`):
+- **CORS** on `/web/*` for the origins in `WEB_ORIGIN` (comma-separated allow-list, never `*`): methods GET, POST,
+  DELETE; headers `authorization`, `content-type`, `x-demo-code`. Preflight answers before the session check.
+- **`GET /web/aero/home`** (customer): `accounts` (type, `last4: null` — Aero Core keeps no account number — and
+  balance), `activity` (≤ 20, newest first), `card` and `loan` (`outstanding: null`) come from Aero Core's
+  `statement.view` with a Halyn grant; `accounts` is empty when Aero Core is down. `alerts` (kind `blocked` / `approval`
+  / `info`) and `pending_approvals` (the `confirm_request` fields) come from the customer's requests in the Hub.
+- **Passkeys** (customer; ADR-018): registration options are WebAuthn creation options (`attestation: "none"`, user
+  verification required, EdDSA/ES256/RS256), single-use challenge, 5 minutes. Approval options are request options for
+  the customer's registered passkeys; the challenge binds the request id, action and params hash; 400 "Register a
+  passkey first" without one. Verify checks origin, RP id, UP+UV, signature and sign count. Another customer's request
+  is 404. An answer after another one counted, or at/after the 60 s deadline, is 400 `E_BAD_REQUEST` ("already
+  answered"); the approval challenge lives 30 s past the deadline so a late assertion still reaches the Hub, which
+  settles the timeout (if its alarm is late) and records the answer as ignored.
+- **`GET /web/ledger?limit=N`** (console): the newest N entries (default 50, ≤ 500), oldest first, and `head_hash`.
+  **`GET /web/ledger/verify`** (console): the whole chain against the Hub's head anchor (≤ 5,000 entries per request).
+- **`POST /web/stage/run/:scenario`** `{mode:"text"}` (console) → `{test_run_id, scenario, mode}`: runs that scenario
+  through the real tools against the live Hub (the Stage sees every message; progress as `test_progress`), with Bolna
+  replaced by a recorder (no call is placed) and only declines simulated (ADR-019). `mode:"voice"` is refused (400).
+  **`POST /web/stage/region`** `{region}` → `{ok:true}` stores the Stage's region in the Hub (scenario 10 uses it, Step 12).
+- `POST /web/session` also warms the tenant's Hub (its directory load from TiDB) in the background.
 
 ## Aero Core (`apps/aero-core`)
 Every route needs `x-halyn-grant` — reads too. The request's params are exactly the action's params (docs/ACTIONS.md):
@@ -150,3 +221,7 @@ anything that is not plain JSON data (NaN, Infinity, BigInt, Dates, class instan
 ## WebSocket messages (Hub → apps)
 `decision`, `confirm_request`, `confirm_resolved`, `core_update` (balance/activity), `handoff`, `ledger_append`,
 `call_update` (transcript lines), `test_progress`. All typed in `packages/shared/src/ws.ts`.
+
+Who gets what (Step 7): `decision` (every proposal, and again with `final_outcome` after a step-up), `confirm_resolved`
+and `handoff` go to every role; `confirm_request` to `aero` and `stage`; `ledger_append` and `test_progress` to `stage`
+and `console`; `core_update` to every role after each Aero Core write (the Aero app refetches its home on it).
