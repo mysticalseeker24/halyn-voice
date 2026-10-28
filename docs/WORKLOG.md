@@ -5,7 +5,7 @@ Newest at the top. One entry per session via `/handoff`: what changed, tests run
 ## 2026-10-29 · Steps 13, 15 + slim 14 (Console, Halyn Test) — chat #6
 - Console (Hub reads only, console sessions): Live, Calls + detail (masked transcript, recording), Policies, Passes
   (tenant-wide revoke), Signals (codes/cue ids), Ledger (verify, export), Integrations (agents, guards, health, backlog).
-- Halyn Test: suite runs in the Hub via  +  (3b skipped live), scorecard + changes vs the
+- Halyn Test: suite runs in the Hub via `/web/stage/run` + `suite_run_id` (3b skipped live), scorecard + changes vs the
   previous run, permission map (both Aero graphs GREEN), 3 benign persona agents as files + place/score routes (off).
 - Step 14: runner checks the event follows the decision on every step; screening refuses answers; TESTING.md security map.
 - Tests: verify ✓ — api 916 unit + 44 int, shared 680, aero-core 160 + 49, sdk 48, web 125, root 41; scenarios 13/13
