@@ -65,11 +65,13 @@ Voice: none yet. Smoke plan: 1, 2, 3 (Saksham calls A; 3 from a second phone, st
 5, 6 (`POST /web/assistant/tasks` with `pass_demo` from a customer session; 6 = step-up → decline).
 
 ## Next steps (in order) — only after Saksham's go-ahead (full detail: the chat #6 prompt in docs/HANDOFF.md)
-1. Chat #6: Step 13 (Console pages), Step 14 (scenario rules, coverage, security tests), Step 15 (Halyn Test page:
-   scorecard, run comparison, permission map). Context budget: a new chat past ~50 % (Saksham, 2026-10-29).
+**Priority (Saksham, 2026-10-29): a complete product — every function working end to end — for the submission; the
+build freeze is gone. Screens stay plain until a UI refinement pass (professional, not AI-looking) after all steps.**
+1. Chat #6: Step 13 (all Console pages), Step 15 (Halyn Test page: scorecard, run comparison, permission map, voice-mode
+   path), then a slim Step 14 (rules, security map, counts). One verify + push per chat. Context budget ~50 %.
 2. Carried, only when Saksham asks (09:00–21:00 IST, go-ahead per call): voice smoke 1, 2, 3, 5, 6, 4 and the browser
    call (scenario 10); inbound calls can't carry `user_data`, so 3/4's `security_demo` tag lives in our notes.
-   Steps 16–20 after; **at the end: full testing + hardening**.
+3. Steps 16–20, then full testing + hardening, then the UI refinement pass.
 
 ## Carry into later steps
 - Steps 11/13: approved tier-4 changes become a handoff until the Console release flow exists.
