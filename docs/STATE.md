@@ -1,7 +1,7 @@
 # STATE — read at the start of every chat, update at the end (`/handoff`). Keep it short (speed mode).
 
-_Last updated: 2026-10-29 00:40 IST, chat #4 (still open: voice smoke in the 09:00–21:00 window). Then chat #5 =
-**Step 11** (prompt in `docs/HANDOFF.md`)._
+_Last updated: 2026-10-29 01:20 IST, end of chat #4. Next chat (#5): **chat #4's voice smoke, then Steps 11, 12, 13**
+(prompt in `docs/HANDOFF.md`). Calls only 09:00–21:00 IST with Saksham's go-ahead._
 
 ## Where we are
 - **Done on `main`:** Steps 0–3, 5, 6, 7, 9, Day-0, and **Steps 8 + 10 built and live** (voice smoke pending).
@@ -12,8 +12,8 @@ _Last updated: 2026-10-29 00:40 IST, chat #4 (still open: voice smoke in the 09:
 - **Step 10:** `/web/passes` (options → issue with a passkey challenge bound to the draft; list; revoke),
   `/web/assistant/tasks` (Assistant calls A from B, bound to the Pass: `get_pass_code` sends only `call_sid`), Aero
   "Assistant" tab, Assistant app (Pass card, task box, live log: Pass-code line, decisions, transcript at call end).
-- `pnpm verify` ✓ 2026-10-29 00:30 (api 856 unit + 44 int, web 91, shared 676, aero-core 209, scenarios 14 + 1 skip).
-  **Not pushed yet** (local commits since `05fb72c`).
+- `pnpm verify` ✓ 2026-10-29 00:30 (api 856 unit + 44 int, web 91, shared 676, aero-core 209, scenarios 14 + 1 skip);
+  e2e 12 ✓. **Pushed, CI green** (`8b0733e`, verify + e2e).
 
 ## Bolna facts (binding; details in docs/BOLNA.md)
 - Tool params: never a run id (`%(execution_id)s` isn't a tool variable; a param `run_id` crashes the call); send
@@ -37,7 +37,8 @@ _Last updated: 2026-10-29 00:40 IST, chat #4 (still open: voice smoke in the 09:
 | Saksham's Assistant | `29d45c35-c6c4-44df-9548-76f9b9084a5c` | `agents/assistant.json`; guardrails 9–21 |
 | Old Kavach listener, Day-0 agents (Aero test `c03d110b…`, Confirm test `e0f05bf4…`, Assistant `a4d3d5cf…`, caller `17ad7f4e…`) | — | unlinked, kept; retire only with go-ahead |
 All real agents `restricted: false`; `list_violations` empty (2026-10-29 00:35). Wallet 958.7 ¢. Helpers:
-`scripts/bolna/*.ts` (writes need `--yes`; agent pushes fill `{{API_URL}}` from `HALYN_API_URL`).
+`scripts/bolna/*.ts` (writes need `--yes`; agent pushes fill `{{API_URL}}` from `HALYN_API_URL`); `check-agents.ts` (offline
+gate) and `inspect-agent.mjs` (snapshot summary). Workflow: HANDOFF.md conventions 11–15.
 
 ## Deployed / cloud
 | Thing | Status |
@@ -54,12 +55,14 @@ Text mode (`pnpm test:scenarios`): 1–9, 3b, 11, 12 ✅ (5, 6 = Step 10 done cr
 Voice: none yet. Smoke plan: 1, 2, 3 (Saksham calls A; 3 from a second phone, step-up → Confirm call → decline) and
 5, 6 (`POST /web/assistant/tasks` with `pass_demo` from a customer session; 6 = step-up → decline).
 
-## Next steps (in order) — only after Saksham's go-ahead
-1. Push (ask) → `bash scripts/push.sh`, `gh run watch`.
-2. 09:00–21:00 IST: voice-smoke 1, 2, 3, 5, 6 (go-ahead per call); read calls with raw logs saved to file + a filter
-   script; `list_violations` + COMPLIANCE.md log; scenario table here. Inbound calls can't carry `user_data`, so
-   scenario 3's `security_demo` tag lives only in our notes (Bolna was told in advance).
-3. Step 11 (chat #5). Steps 12–20 in order; **at the end: full testing + hardening** (Step 16 + a final pass).
+## Next steps (in order) — only after Saksham's go-ahead (full detail: the chat #5 prompt in docs/HANDOFF.md)
+0. **Set `DEMO_ACCESS_CODE` on the deployed API** — unset now, so anyone with the URL can open a demo session.
+1. 09:00–21:00 IST: voice-smoke 1, 2, 3, 5, 6 (go-ahead per call); raw logs to file + a filter script;
+   `list_violations` + COMPLIANCE.md log; scenario table here. Inbound calls can't carry `user_data`, so scenario
+   3/4's `security_demo` tag lives in our notes (Bolna was told in advance).
+2. Step 11 (Sarvam coaching layer 2 off the 300 ms path — ADR; hold/transfer; check-in record; Console Handoffs),
+   voice-smoke 4. 3. Step 12 (English agent, Web Call SDK, Stage region; scenario 10). 4. Step 13 (Console pages).
+   Context budget: a new chat when one passes ~40 %. Steps 14–20 after; **at the end: full testing + hardening**.
 
 ## Carry into later steps
 - Steps 11/13: approved tier-4 changes become a handoff until the Console release flow exists.
