@@ -26,6 +26,10 @@ const API = [
   'BOLNA_AERO_AGENT_ID',
   'BOLNA_AERO_EN_AGENT_ID',
   'DEMO_ACCESS_CODE',
+  // Halyn Test voice personas (agents/test-*.json); skipped until each agent exists on Bolna.
+  'TEST_AGENT_POLITE_HINDI_ID',
+  'TEST_AGENT_HINGLISH_NOISY_ID',
+  'TEST_AGENT_IMPATIENT_EN_ID',
 ] as const;
 const CORE = ['HALYN_PUBLIC_JWKS'] as const;
 

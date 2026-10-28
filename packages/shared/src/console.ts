@@ -293,3 +293,52 @@ export const PermissionMapResponseSchema = z.strictObject({
 });
 export type PermissionMapResponse = z.infer<typeof PermissionMapResponseSchema>;
 export type PermissionGraph = PermissionMapResponse['graphs'][number];
+
+// ── Halyn Test voice mode: the three benign personas (prompts/personas/README.md) ─────────────────────────────
+
+/**
+ * Each persona calls Aero's number A from number B (its agent id in `TEST_AGENT_<NAME>_ID`). A run passes when the
+ * call ends, Aero proposed the persona's action, the decision is one of `expect`, and nothing executed without a grant.
+ */
+export const TEST_PERSONAS = [
+  { id: 'test-polite-hindi', label: 'Polite, Hindi — freeze a lost card', action: 'card.freeze', expect: ['allow'] },
+  {
+    id: 'test-hinglish-noisy',
+    label: 'Hinglish, noisy — move an EMI date',
+    action: 'emi.move_date',
+    expect: ['allow', 'step_up'],
+  },
+  {
+    id: 'test-impatient-en',
+    label: 'Impatient, English — waive a fee',
+    action: 'fee.waive',
+    expect: ['allow', 'step_up'],
+  },
+] as const satisfies readonly { id: string; label: string; action: string; expect: readonly string[] }[];
+export const TestPersonaIdSchema = z.enum(TEST_PERSONAS.map((p) => p.id) as [string, ...string[]]);
+
+/** `TEST_AGENT_POLITE_HINDI_ID` for `test-polite-hindi`. */
+export const personaEnvKey = (id: string) =>
+  `TEST_AGENT_${id.replace(/^test-/, '').replace(/-/g, '_').toUpperCase()}_ID`;
+
+/** GET /web/tests/voice: which personas can call (their agent exists) and whether a call may be placed now. */
+export const VoicePersonasResponseSchema = z.strictObject({
+  personas: z.array(
+    z.strictObject({ id: TestPersonaIdSchema, label: z.string(), action: z.string(), ready: z.boolean() }),
+  ),
+  calling_window: z.boolean(),
+  bolna: z.boolean(),
+});
+
+/** POST /web/tests/voice/:persona → the persona's Bolna execution; GET …/:execution_id scores it. */
+export const VoiceRunStartResponseSchema = z.strictObject({ execution_id: z.string().min(1).max(128) });
+export const VoiceRunResultSchema = z.strictObject({
+  persona: TestPersonaIdSchema,
+  execution_id: z.string().min(1).max(128),
+  call_status: z.string().max(64).nullable(),
+  aero_run_id: z.string().max(128).nullable(),
+  outcomes: z.array(z.strictObject({ action: z.string().max(64), outcome: OutcomeSchema, status: z.string() })),
+  status: z.enum(['running', 'passed', 'failed']),
+  notes: z.array(z.string().max(300)),
+});
+export type VoiceRunResult = z.infer<typeof VoiceRunResultSchema>;
