@@ -254,7 +254,8 @@ export function scorecard(run: TestRun): Scorecard {
 
 /** Scenarios whose status differs between the previous run and this one. */
 export function compareRuns(previous: TestRun, current: TestRun): z.infer<typeof TestRunChangeSchema>[] {
-  const status = (run: TestRun, id: z.infer<typeof ScenarioIdSchema>) =>
+  type Change = z.infer<typeof TestRunChangeSchema>;
+  const status = (run: TestRun, id: z.infer<typeof ScenarioIdSchema>): Change['from'] =>
     run.results.find((r) => r.scenario_id === id)?.status ?? 'pending';
   const ids = [...new Set([...previous.scenarios, ...current.scenarios])];
   return ids
