@@ -81,6 +81,39 @@ describe('coaching layer 2', () => {
     expect(ledger.some((e) => e.type === 'grant_issued')).toBe(false);
   });
 
+  it('a request still screening refuses every answer; none of them counts once screening clears it', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((r) => (release = r));
+    const llm = sarvam(0.1);
+    h = await appHarness({ sarvam: async (request) => (await gate, llm.fetch(request)) });
+    const passkey = await h.registerPasskey();
+    const res = await h.tool('propose_action', {
+      run_id: RUN,
+      from_number: REGISTERED,
+      action: 'transfer.new_payee',
+      params: NEW_PAYEE,
+      readback_confirmed: true,
+      caller_quotes: QUOTES,
+    });
+    const { request_id } = (await res.json()) as { request_id: string };
+    await tick();
+    expect(await h.hub.requestState(request_id)).toMatchObject({ screening: true });
+    expect((await h.approve(request_id, passkey)).status).not.toBe(200);
+    const token = await h.customerToken();
+    expect((await h.web(`/web/approvals/${request_id}/decline`, {}, token)).status).not.toBe(200);
+    expect(h.bolna.events.get(RUN) ?? []).toEqual([]);
+
+    release();
+    await h.settle();
+    await tick();
+    expect(await h.hub.requestState(request_id)).toMatchObject({
+      status: 'awaiting_confirmation',
+      final_outcome: null,
+    });
+    expect(h.bolna.events.get(RUN)?.map((e) => e.event)).toEqual(['step_up']);
+  });
+
   it('a low score lets the step-up go on: event, Confirm call and approval sheet only after screening', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => undefined);
     h = await appHarness({ sarvam: sarvam(0.1).fetch });

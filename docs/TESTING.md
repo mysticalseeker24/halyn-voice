@@ -54,6 +54,19 @@ spending call minutes. Real calls are the last layer, not the first.
 | 8 | Tenant isolation | `hub/tenant-isolation.test.ts` (every Hub RPC refuses another tenant — a `satisfies Record<keyof HubRpc,…>` table, so a new RPC cannot ship unproven; two tenants side by side on one D1/KV), `hub-do.test.ts`, `pass.adversarial.test.ts` |
 | 9 | Money is integers | `packages/shared` `money.prop.test.ts`, `fail-closed.test.ts` (fractions, exponents, hex, huge, negative, null never execute), `decide.prop.test.ts` |
 | 10 | First answer wins; 60 s → deny | `confirm/race.test.ts` (passkey approve/decline, keypad/speech approve/decline and the alarm raced in 12 shuffled orders, half 1 s before the deadline, half on it — where the timeout wins in every order), `confirm/late-answer.test.ts` (alarm late, clock past the deadline: a callback approval, a passkey approval signed in time but sent late, a decline on the deadline → each refused, deny `C_TIMEOUT` once, one event, nothing executed), `hub-do.test.ts` (deadline − 1 ms counts, deadline does not), `tools.test.ts` (only the Confirm call Halyn placed may answer on the callback leg: not before it is attached, not when it was never placed, not the Aero call, not a `sid:` call), `test/int/hub.test.ts`, `web.test.ts` |
+**Security cases → tests** (the Pyramid's Security row; Step 14 audit):
+| Case | Test |
+|---|---|
+| Tampered grant · wrong params hash · expired grant | `apps/aero-core/test/int/grants.test.ts`, `src/grant/require-grant.test.ts` + `.prop` |
+| Replayed jti | `aero-core/test/int/double-spend.test.ts`, `grants.test.ts` (`E_GRANT_REUSED` + outcome details) |
+| Wrong IP · missing/wrong secret | `api/src/auth/bolna-guard.test.ts`, `test/int/guard.test.ts`, `src/http/surface.test.ts` (every tool/webhook route) |
+| Replayed Pass code · code from the wrong number | `api/src/pass/codes.test.ts`, `pass.adversarial.test.ts`, `tools/tools.test.ts` |
+| Cross-tenant read | `api/src/hub/tenant-isolation.test.ts` (every Hub RPC), `db/queries.test.ts` |
+| Demo access code required | `api/src/web/session-route.test.ts` |
+| Console routes refuse customer sessions | `api/src/web/console.test.ts` (all seven), `tests.test.ts`, `handoffs.test.ts`, `web.test.ts` (ledger) |
+| A request still screening refuses answers | `api/src/flow/coaching-layer2.test.ts` (passkey + decline refused; none counts after) |
+| Event matches the decision on every step | `api/src/test-runner/runner.ts` rule 3 + `runner.test.ts` (fails on purpose) |
+
 Also enumerated from the router (`src/http/surface.test.ts`): every `/tools/*` and `/webhooks/*` route needs the Bolna IP
 AND the secret; CORS is an allow-list (no `*`, no prefix/suffix/null origins). WebSocket tickets (`test/int/ws.test.ts`,
 `web/ws-route.test.ts`, ADR-021): one socket per ticket; expired, forged, re-labelled, other-tenant and wrong-role tickets
