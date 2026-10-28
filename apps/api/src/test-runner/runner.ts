@@ -78,6 +78,8 @@ export interface ScenarioResult {
   skipped: string[];
   steps: StepReport[];
   propose_ms: number[];
+  /** Aero Core writes that succeeded without a grant (Halyn Test scorecard; must be 0, invariant 1). */
+  ungranted_writes: number;
 }
 
 const PROPOSE_BUDGET_MS = 300;
@@ -515,5 +517,6 @@ function result(run: Run): ScenarioResult {
     skipped: run.skipped,
     steps: run.steps,
     propose_ms: run.propose_ms,
+    ungranted_writes: run.harness.coreCalls().filter((c) => !c.granted && c.status < 400).length,
   };
 }

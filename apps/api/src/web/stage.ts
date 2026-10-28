@@ -13,9 +13,15 @@ import type { AppDeps } from '../flow/context';
 import type { AppEnv } from '../http/app-env';
 import { hubFor } from '../hub/client';
 import { type AppLike, liveHarness, stageRunId } from '../test-runner/live';
-import { runScenario } from '../test-runner/runner';
+import { runScenario, type ScenarioResult } from '../test-runner/runner';
 import { bundledSpec } from '../test-runner/spec';
 import { readJson } from './session-route';
+import { testResult } from './tests';
+
+/** Scenarios a live run cannot fit into one Worker request (3b waits out a 60 s confirmation). */
+const LIVE_SKIP: Record<string, string> = {
+  '3b': 'skipped in live mode: the 60 s confirmation timeout does not fit one Worker request',
+};
 
 // The Stage's controls (console sessions): run one scenario in text mode against the live Hub, so the Stage, the
 // Console and the Aero app see every message as it happens (docs/UI.md), and switch the region (scenario 10). Voice
@@ -33,7 +39,7 @@ export function stageRun(deps: AppDeps, makeApp: (deps: AppDeps) => AppLike) {
     const tenant = consoleTenant(c);
     const id = ScenarioIdSchema.safeParse(c.req.param('scenario'));
     if (!id.success) throw new HalynError('E_NOT_FOUND', 'No such scenario');
-    const { mode } = StageRunRequestSchema.parse(await readJson(c));
+    const { mode, suite_run_id } = StageRunRequestSchema.parse(await readJson(c));
     if (mode !== 'text')
       throw new HalynError('E_BAD_REQUEST', 'Voice runs place real calls: not from the Stage yet');
     const spec = bundledSpec();
@@ -49,9 +55,22 @@ export function stageRun(deps: AppDeps, makeApp: (deps: AppDeps) => AppLike) {
       SESSION_SECRET,
       now,
     );
-    const test_run_id = stageRunId(deps.rng);
     const hub = hubFor(c.env, tenant);
-    const progress = (status: 'running' | 'passed' | 'failed', completed: number) =>
+    const suite = suite_run_id ? await hub.testRuns(suite_run_id) : null;
+    if (suite_run_id && !suite?.run.scenarios.includes(id.data))
+      throw new HalynError('E_NOT_FOUND', 'No such test run or scenario');
+    const test_run_id = suite_run_id ?? stageRunId(deps.rng);
+    let completed = suite ? suite.run.results.filter((r) => r.scenario_id !== id.data).length : 0;
+    const total = suite ? suite.run.scenarios.length : 1;
+    // A suite run records the result first, so the Console reads it back when test_progress arrives.
+    const record = async (result: ScenarioResult) => {
+      if (!suite_run_id) return;
+      const run = await hub
+        .recordTestResult(suite_run_id, testResult(result, new Date(deps.clock.nowMs()).toISOString()))
+        .catch(() => null);
+      if (run) completed = run.results.length;
+    };
+    const progress = (status: 'running' | 'passed' | 'failed', done: number) =>
       hub
         .broadcast(
           {
@@ -60,8 +79,8 @@ export function stageRun(deps: AppDeps, makeApp: (deps: AppDeps) => AppLike) {
             test_run_id,
             scenario_id: id.data,
             status,
-            completed,
-            total: 1,
+            completed: suite_run_id ? Math.min(completed, total) : done,
+            total,
           },
           ['stage', 'console'],
         )
@@ -84,10 +103,23 @@ export function stageRun(deps: AppDeps, makeApp: (deps: AppDeps) => AppLike) {
       },
       deps.clock,
     );
+    const skip = LIVE_SKIP[id.data];
     c.executionCtx.waitUntil(
       (async () => {
         await progress('running', 0);
-        const result = await runScenario(spec, scenario, harness);
+        const result: ScenarioResult = skip
+          ? {
+              id: scenario.id,
+              title: scenario.title,
+              passed: true,
+              failures: [],
+              skipped: [skip],
+              steps: [],
+              propose_ms: [],
+              ungranted_writes: 0,
+            }
+          : await runScenario(spec, scenario, harness);
+        await record(result);
         console.log(
           JSON.stringify({
             level: result.passed ? 'info' : 'warn',

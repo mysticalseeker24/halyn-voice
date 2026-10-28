@@ -33,6 +33,7 @@ import { assistantTask, issuePassRoute, listPasses, passOptions, revokePassRoute
 import { createSession } from './web/session-route';
 import { webCallSession } from './web/web-calls';
 import { stageRegion, stageRun } from './web/stage';
+import { createTestRun, permissionMapRoute, testRunRoute } from './web/tests';
 import { connectWebSocket, wsTicket } from './web/ws-route';
 
 export { HubDO } from './hub/hub-do';
@@ -114,6 +115,9 @@ export function createApp(deps: AppDeps = defaultDeps) {
   app.get('/web/integrations', integrations(deps));
   app.post('/web/stage/run/:scenario', stageRun(deps, createApp));
   app.post('/web/stage/region', stageRegion);
+  app.post('/web/tests/runs', createTestRun(deps));
+  app.get('/web/tests/runs/:id', testRunRoute);
+  app.get('/web/tests/permission-map', permissionMapRoute);
   // The WebSocket: a one-time ticket from the session first, then the upgrade with the ticket (ADR-021).
   app.post('/web/ws-ticket', wsTicket);
   app.get('/ws', connectWebSocket);

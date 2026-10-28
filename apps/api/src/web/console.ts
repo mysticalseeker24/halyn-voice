@@ -8,6 +8,7 @@ import {
   HalynError,
   INTEGRATION_AGENTS,
   IntegrationsResponseSchema,
+  LedgerExportSchema,
   maskNumbers,
   PassIdSchema,
   PolicyListResponseSchema,
@@ -186,7 +187,9 @@ export function ledgerExport(deps: AppDeps) {
     const entries = head ? await hub.ledgerEntries(1, MAX_EXPORT) : [];
     const verify = await verifyLedgerChain(entries, head ? { anchor: head } : {});
     c.header('content-disposition', `attachment; filename="halyn-ledger-${tenant}.json"`);
-    return c.json({ tenant_id: tenant, exported_at: iso(deps.clock.nowMs()), head, verify, entries });
+    return c.json(
+      LedgerExportSchema.parse({ tenant_id: tenant, exported_at: iso(deps.clock.nowMs()), head, verify, entries }),
+    );
   };
 }
 
