@@ -6,6 +6,7 @@ export * from './api';
 export * from './bolna-payloads';
 export * from './canonical-json';
 export * from './clock';
+export * from './console';
 export * from './core';
 export * from './crypto';
 export * from './decision';

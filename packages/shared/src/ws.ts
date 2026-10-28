@@ -34,7 +34,12 @@ const message = <T extends (typeof WS_MESSAGE_TYPES)[number], S extends z.ZodRaw
   z.strictObject({ type: z.literal(type), at: IsoDateTimeSchema, ...shape });
 
 export const WsMessageSchema = z.discriminatedUnion('type', [
-  message('decision', { action: ActionIdSchema, decision: DecisionSchema }),
+  /** `cues`: coaching cue ids (never the caller's words), for the Console's live view. */
+  message('decision', {
+    action: ActionIdSchema,
+    decision: DecisionSchema,
+    cues: z.array(z.string().min(1).max(64)).max(32).optional(),
+  }),
   /** Drives the Aero app's approval sheet: the exact action, then Approve with passkey / Decline. */
   message('confirm_request', {
     request_id: RequestIdSchema,

@@ -15,7 +15,7 @@
   `jws.ts`, `decision.ts` (outcomes and strictness order), `events.ts` (events injected into calls), `api.ts`
   (tool and web bodies, incl. the Aero app's home, approvals, passkeys, ledger list), `bolna-payloads.ts` (Bolna tool
   bodies normalised from `%(name)s` strings, execution records, REST responses), `webauthn.ts` (WebAuthn JSON shapes),
-  `action-summary.ts` (`describeAction`: the one sentence a customer confirms), `ws.ts` (Hub → apps messages), `clock.ts` (`Clock`, `Rng` — injected, never read here),
+  `action-summary.ts` (`describeAction`: the one sentence a customer confirms), `ws.ts` (Hub → apps messages), `console.ts` (Console + Halyn Test responses, `scorecard`, `compareRuns`), `clock.ts` (`Clock`, `Rng` — injected, never read here),
   `crypto.ts` (the one implementation of base64url, SHA-256, params hash, Ed25519 JWK import and EdDSA compact JWS
   sign/verify — WebCrypto `subtle` only), `mask.ts` (phone/account numbers → last 4), `ledger.ts` (entry schema, chain
   hash, `verifyLedgerChain`).
