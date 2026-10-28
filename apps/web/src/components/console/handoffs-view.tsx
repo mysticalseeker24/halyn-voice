@@ -32,14 +32,17 @@ export function HandoffsView({ api }: { api: ApiClient }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>({});
 
-  const load = useCallback(async () => {
-    setError(null);
-    try {
-      setHandoffs((await api.handoffs()).handoffs);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not load handoffs.');
-    }
-  }, [api]);
+  const load = useCallback(
+    () =>
+      api.handoffs().then(
+        (res) => {
+          setHandoffs(res.handoffs);
+          setError(null);
+        },
+        (err: unknown) => setError(err instanceof Error ? err.message : 'Could not load handoffs.'),
+      ),
+    [api],
+  );
 
   useEffect(() => {
     void load();
@@ -59,7 +62,12 @@ export function HandoffsView({ api }: { api: ApiClient }) {
 
   if (error && !handoffs)
     return (
-      <ErrorState title="Could not load handoffs" message={error} retryLabel="Try again" onRetry={load} />
+      <ErrorState
+        title="Could not load handoffs"
+        message={error}
+        retryLabel="Try again"
+        onRetry={() => void load()}
+      />
     );
   if (!handoffs) return <LoadingState label="Loading handoffs…" />;
   if (handoffs.length === 0)
