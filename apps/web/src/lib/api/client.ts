@@ -10,6 +10,9 @@ import {
   SignalsResponseSchema,
   TestRunCreateRequestSchema,
   TestRunResponseSchema,
+  VoicePersonasResponseSchema,
+  VoiceRunResultSchema,
+  VoiceRunStartResponseSchema,
   WebCallSessionRequestSchema,
   WebCallSessionSchema,
   HandoffListResponseSchema,
@@ -226,6 +229,12 @@ export function createApiClient(options: ApiClientOptions = {}) {
         StageRunRequestSchema.parse({ mode: 'text', suite_run_id: suiteRunId }),
       ),
     permissionMap: () => request(PermissionMapResponseSchema, 'GET', '/web/tests/permission-map'),
+    voicePersonas: () => request(VoicePersonasResponseSchema, 'GET', '/web/tests/voice'),
+    /** Places a real persona call (B → A): only with Saksham's go-ahead; the API refuses without the agent. */
+    startVoiceRun: (persona: string) =>
+      request(VoiceRunStartResponseSchema, 'POST', `/web/tests/voice/${id(persona)}`, {}),
+    voiceRun: (persona: string, executionId: string) =>
+      request(VoiceRunResultSchema, 'GET', `/web/tests/voice/${id(persona)}/${id(executionId)}`),
   };
 }
 
