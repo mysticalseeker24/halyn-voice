@@ -1,0 +1,107 @@
+{
+  "halyn": {
+    "outbound": true,
+    "note": "Saksham's Assistant, simple agent, outbound from number B to Aero's number A (agent to agent). Prompts: prompts/assistant-agent.md. Started only by POST /web/assistant/tasks, which binds the call to one Pass: get_pass_code sends call_sid only (no run id, no token, no Bolna argument names). {{API_URL}} and {{HALYN_TOOL_SECRET}} are filled at push time and never stored here."
+  },
+  "agent_config": {
+    "agent_name": "Saksham's Assistant",
+    "agent_type": "other",
+    "agent_welcome_message": "Hello, I'm an AI assistant calling on behalf of {{customer_name}}, with permission. This call is recorded.",
+    "webhook_url": "{{API_URL}}/webhooks/bolna?key={{HALYN_TOOL_SECRET}}",
+    "calling_guardrails": { "call_start_hour": 9, "call_end_hour": 21 },
+    "tasks": [
+      {
+        "task_type": "conversation",
+        "toolchain": { "execution": "parallel", "pipelines": [["transcriber", "llm", "synthesizer"]] },
+        "task_config": {
+          "optimize_latency": true,
+          "call_terminate": 180,
+          "hangup_after_LLMCall": true,
+          "call_cancellation_prompt": "End the call once every part of the task is done or declined and you have thanked the bank's agent, or when the bank's agent says goodbye.",
+          "hangup_after_silence": 20,
+          "number_of_words_for_interruption": 3,
+          "incremental_delay": 300,
+          "dtmf_enabled": false,
+          "voicemail": false
+        },
+        "tools_config": {
+          "input": { "format": "wav", "provider": "vobiz" },
+          "output": { "format": "wav", "provider": "vobiz" },
+          "api_tools": {
+            "tools": [
+              {
+                "key": "custom_task",
+                "name": "get_pass_code",
+                "description": "Get a fresh six-digit Halyn Pass code for this call, when the bank asks for it.",
+                "pre_call_message": "",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "call_sid": { "type": "string", "description": "Telephony call id. Filled automatically." }
+                  },
+                  "required": []
+                }
+              }
+            ],
+            "tools_params": {
+              "get_pass_code": {
+                "url": "{{API_URL}}/tools/get_pass_code",
+                "method": "POST",
+                "headers": { "x-halyn-secret": "{{HALYN_TOOL_SECRET}}" },
+                "param": { "call_sid": "%(call_sid)s" },
+                "pre_call_webhook_url": "{{API_URL}}/webhooks/bolna?key={{HALYN_TOOL_SECRET}}",
+                "pre_call_webhook_param": { "tool": "get_pass_code" }
+              }
+            }
+          },
+          "llm_agent": {
+            "agent_type": "simple_llm_agent",
+            "agent_flow_type": "streaming",
+            "llm_config": {
+              "provider": "openai",
+              "family": "openai",
+              "model": "gpt-5.4-mini",
+              "temperature": 1,
+              "max_tokens": 150,
+              "reasoning_effort": "none",
+              "verbosity": "low",
+              "agent_flow_type": "streaming"
+            }
+          },
+          "transcriber": {
+            "provider": "sarvam",
+            "model": "saaras:v4",
+            "language": "hi",
+            "stream": true,
+            "encoding": "linear16",
+            "sampling_rate": 16000,
+            "endpointing": 300,
+            "task": "transcribe",
+            "context": "An AI assistant calls Aero Bank's AI agent for its customer; the bank speaks Hindi or English and asks for a Halyn Pass code.",
+            "keywords": "Aero Bank, Halyn Pass, statement, EMI, payee, IFSC"
+          },
+          "synthesizer": {
+            "provider": "sarvam",
+            "stream": true,
+            "caching": true,
+            "buffer_size": 200,
+            "audio_format": "wav",
+            "provider_config": {
+              "model": "bulbul:v4-flash",
+              "voice": "Shubh (Customer)",
+              "voice_id": "shubh_hi_customer",
+              "language": "hi",
+              "speed": 1.1,
+              "loudness": 1
+            }
+          }
+        }
+      }
+    ]
+  },
+  "agent_prompts": {
+    "task_1": {
+      "system_prompt": "You are a personal AI assistant calling Aero Bank on behalf of {{customer_name}}, with their permission. The bank's agent is also an AI. Speak English, in short sentences.\nYour task: {{task}}\n- Say clearly that you are an AI assistant acting for {{customer_name}}.\n- When the bank asks for a Halyn Pass code, call get_pass_code, then read the six digits one by one with short pauses, for example \"four, seven, two, nine, one, five\". Never make up digits.\n- Do one part of the task at a time. When the bank reads details back, say a clear \"yes\" only if they match your task.\n- Accept the bank's decision politely. If the bank needs to confirm with {{customer_name}} or cannot do something, thank them and go on to the next part.\n- Never ask for or share any OTP, PIN, password or full account number.\n- When every part is done or declined, thank the agent, say goodbye and end the call."
+    }
+  }
+}
