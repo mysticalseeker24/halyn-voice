@@ -216,6 +216,11 @@ describe('normalizeToolBody → strict tool schemas', () => {
     expect(CheckDecisionRequestSchema.parse(body)).toEqual({ run_id: RUN, request_id: 'req_1' });
   });
 
+  it('accepts halyn_run_id, the name agents send (Bolna refuses a tool param named run_id)', () => {
+    const body = normalizeToolBody('check_decision', { halyn_run_id: RUN, request_id: 'req_1' });
+    expect(CheckDecisionRequestSchema.parse(body)).toEqual({ run_id: RUN, request_id: 'req_1' });
+  });
+
   it('lookup_customer, verify_pass, get_pass_code and confirm_result', () => {
     expect(
       LookupCustomerRequestSchema.parse(

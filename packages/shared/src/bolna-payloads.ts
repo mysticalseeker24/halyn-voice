@@ -139,13 +139,14 @@ export function bolnaParams(action: unknown, body: Record<string, unknown>): unk
 
 /**
  * A tool body as the strict request schema expects it (api.ts). `run_id` stays undefined when Bolna could not
- * substitute it; the API then falls back to the call's `call_sid` (docs/BOLNA.md, ADR-016).
+ * substitute it; the API then falls back to the call's `call_sid` (docs/BOLNA.md, ADR-016). Agents send the run id
+ * as `halyn_run_id`: Bolna refuses a tool param named `run_id` (it clashes with its own keyword; Day-0 check 2).
  */
 export function normalizeToolBody(tool: BolnaTool, raw: unknown): unknown {
   if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) return raw;
   const body = raw as Record<string, unknown>;
   const common = {
-    run_id: bolnaValue(body.run_id ?? body.execution_id),
+    run_id: bolnaValue(body.halyn_run_id ?? body.run_id ?? body.execution_id),
     call_sid: bolnaValue(body.call_sid),
   };
   switch (tool) {
