@@ -6,7 +6,7 @@
   "agent_config": {
     "agent_name": "Halyn Day-0 - Confirm test",
     "agent_type": "other",
-    "agent_welcome_message": "Namaste {{customer_name}}, this is Aero Bank's automated security confirmation, an AI assistant. This call is recorded.",
+    "agent_welcome_message": "Namaste {{customer_name}}, this is Aero Bank's automated security confirmation, an AI assistant. This call is recorded. We received a request to {{action_summary}}. Do you approve it? Please say yes or no.",
     "calling_guardrails": {
       "call_start_hour": 9,
       "call_end_hour": 21
@@ -24,7 +24,7 @@
           "hangup_after_LLMCall": true,
           "hangup_after_silence": 20,
           "number_of_words_for_interruption": 2,
-          "dtmf_enabled": true,
+          "dtmf_enabled": false,
           "voicemail": false
         },
         "tools_config": {
