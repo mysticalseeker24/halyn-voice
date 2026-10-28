@@ -13,7 +13,9 @@
   GET routes may only take string/enum params), `policy-pack.ts` (YAML source schema + normalised compiled schema +
   `compilePolicyPack`), `pass.ts`, `grant.ts`,
   `jws.ts`, `decision.ts` (outcomes and strictness order), `events.ts` (events injected into calls), `api.ts`
-  (tool and web bodies), `ws.ts` (Hub → apps messages), `clock.ts` (`Clock`, `Rng` — injected, never read here),
+  (tool and web bodies, incl. the Aero app's home, approvals, passkeys, ledger list), `bolna-payloads.ts` (Bolna tool
+  bodies normalised from `%(name)s` strings, execution records, REST responses), `webauthn.ts` (WebAuthn JSON shapes),
+  `action-summary.ts` (`describeAction`: the one sentence a customer confirms), `ws.ts` (Hub → apps messages), `clock.ts` (`Clock`, `Rng` — injected, never read here),
   `crypto.ts` (the one implementation of base64url, SHA-256, params hash, Ed25519 JWK import and EdDSA compact JWS
   sign/verify — WebCrypto `subtle` only), `mask.ts` (phone/account numbers → last 4), `ledger.ts` (entry schema, chain
   hash, `verifyLedgerChain`).

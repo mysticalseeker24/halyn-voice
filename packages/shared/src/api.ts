@@ -1,5 +1,7 @@
 import { z } from 'zod';
-import { HandoffStatusSchema } from './decision';
+import { AccountTypeSchema, ActionIdSchema } from './actions';
+import { CoreBalanceSchema, CoreTransactionSchema } from './core';
+import { ConfirmChannelSchema, HandoffStatusSchema } from './decision';
 import type { ErrorDetails } from './errors';
 import { OutcomeEventSchema } from './events';
 import {
@@ -8,6 +10,7 @@ import {
   Hex64Schema,
   IdSchema,
   IsoDateTimeSchema,
+  Last4Schema,
   PassIdSchema,
   RequestIdSchema,
   RunIdSchema,
@@ -24,15 +27,28 @@ import {
   PassStatusSchema,
 } from './pass';
 import { type ReasonCode, ReasonCodeSchema } from './reason-codes';
+import { LedgerEntrySchema } from './ledger';
+import { MoneySchema, PositiveMoneySchema } from './money';
 import { LanguageSchema, RegionSchema } from './region';
+import {
+  AuthenticationCredentialJsonSchema,
+  CreationOptionsJsonSchema,
+  RegistrationCredentialJsonSchema,
+  RequestOptionsJsonSchema,
+} from './webauthn';
+import { HubRoleSchema } from './ws';
 
 // docs/API.md. Requests from Bolna use z.object (unknown keys are stripped, so a new Bolna context field
 // can't break a live call); everything Halyn sends back is strict.
 
 // ── Bolna-facing tools (/tools/*, IP allowlist + x-halyn-secret) ───────────────────────────────────
 
+/** Bolna's call id, auto-injected into every tool (docs/BOLNA.md); maps a call whose run id did not substitute. */
+const CallSidSchema = z.string().min(1).max(124).optional();
+
 export const LookupCustomerRequestSchema = z.object({
   run_id: RunIdSchema,
+  call_sid: CallSidSchema,
   from_number: E164Schema,
   claimed_name: z.string().min(1).max(80).optional(),
 });
@@ -46,6 +62,7 @@ export const LookupCustomerResponseSchema = z.strictObject({
 
 export const VerifyPassRequestSchema = z.object({
   run_id: RunIdSchema,
+  call_sid: CallSidSchema,
   from_number: E164Schema,
   code: PassCodeInputSchema,
 });
@@ -66,6 +83,7 @@ export const CALLER_QUOTES = { max: 5, max_chars: 300 } as const;
  */
 export const ProposeActionRequestSchema = z.object({
   run_id: RunIdSchema,
+  call_sid: CallSidSchema,
   from_number: E164Schema.optional(),
   channel: z.enum(['phone', 'web']),
   action: z.string().min(1).max(64),
@@ -86,11 +104,18 @@ export const ProposeActionResponseSchema = z.strictObject({
 });
 
 /** Assistant only: trade the Pass token for a fresh one-time code. */
-export const GetPassCodeRequestSchema = z.object({ run_id: RunIdSchema, pass_token: CompactJwsSchema });
+export const GetPassCodeRequestSchema = z.object({
+  run_id: RunIdSchema,
+  call_sid: CallSidSchema,
+  pass_token: CompactJwsSchema,
+  /** The assistant's calling number; when absent, the Pass must list exactly one number. */
+  from_number: E164Schema.optional(),
+});
 export const GetPassCodeResponseSchema = z.strictObject({ code: PassCodeSchema });
 
 export const ConfirmResultRequestSchema = z.object({
   run_id: RunIdSchema,
+  call_sid: CallSidSchema,
   request_id: RequestIdSchema,
   answer: z.enum(['approve', 'decline']),
   method: z.enum(['speech', 'keypad']),
@@ -98,7 +123,11 @@ export const ConfirmResultRequestSchema = z.object({
 export const OkResponseSchema = z.strictObject({ ok: z.boolean() });
 
 /** Fallback polling if event injection fails: returns the event the call would have received. */
-export const CheckDecisionRequestSchema = z.object({ run_id: RunIdSchema, request_id: RequestIdSchema });
+export const CheckDecisionRequestSchema = z.object({
+  run_id: RunIdSchema,
+  call_sid: CallSidSchema,
+  request_id: RequestIdSchema,
+});
 export const CheckDecisionResponseSchema = z.discriminatedUnion('status', [
   z.strictObject({ request_id: RequestIdSchema, status: z.literal('pending') }),
   z.strictObject({ request_id: RequestIdSchema, status: z.literal('decided'), event: OutcomeEventSchema }),
@@ -138,6 +167,22 @@ export const SessionResponseSchema = z.strictObject({
   tenant_id: TenantIdSchema,
   kind: z.enum(['customer', 'console']),
   customer_id: CustomerIdSchema.nullable(),
+  expires_at: IsoDateTimeSchema,
+});
+
+/**
+ * POST /web/ws-ticket `{role}` (Bearer session): a one-time ticket for `GET /ws?ticket=…&role=…`, so the session token
+ * never travels in a URL (ADR-021). The role must be one the session may take (customer: aero/assistant; console:
+ * stage/console).
+ */
+export const WsTicketRequestSchema = z.strictObject({ role: HubRoleSchema });
+/** Opaque to the apps and URL-safe; opens one socket, for that role, within 30 s (`expires_at`). Never log it. */
+export const WsTicketResponseSchema = z.strictObject({
+  ticket: z
+    .string()
+    .min(43)
+    .max(256)
+    .regex(/^[A-Za-z0-9_.-]+$/, 'expected a URL-safe ticket'),
   expires_at: IsoDateTimeSchema,
 });
 
@@ -182,4 +227,89 @@ export const HandoffResolveRequestSchema = z.strictObject({
 export const HandoffResolveResponseSchema = z.strictObject({
   ok: z.literal(true),
   status: HandoffStatusSchema.exclude(['open']),
+});
+
+// ── Aero app: home, passkeys, the Confirm passkey leg (server side Step 7; screens Step 9, apps/web) ─────────────
+
+/** Something the customer should know about, for the Aero app's alert list (newest first). Never a full number. */
+export const AeroAlertSchema = z.strictObject({
+  id: z.string().min(1).max(64),
+  /** blocked: Halyn denied or held it · approval: waiting for the customer · info: anything else. */
+  kind: z.enum(['blocked', 'info', 'approval']),
+  title: z.string().min(1).max(120),
+  body: z.string().min(1).max(300),
+  at: IsoDateTimeSchema,
+});
+export type AeroAlert = z.infer<typeof AeroAlertSchema>;
+
+/** A step-up waiting for this customer: the fields of the `confirm_request` WebSocket message. */
+export const PendingApprovalSchema = z.strictObject({
+  request_id: RequestIdSchema,
+  action: ActionIdSchema,
+  summary: z.string().min(1).max(300),
+  amount: MoneySchema.nullable(),
+  channels: z.array(ConfirmChannelSchema).min(1),
+  expires_at: IsoDateTimeSchema,
+});
+export type PendingApproval = z.infer<typeof PendingApprovalSchema>;
+
+/**
+ * GET /web/aero/home (customer session). Balances, activity, card and loan come from Aero Core's `statement.view`
+ * (with a Halyn grant, like every Aero Core read); `accounts` is empty when Aero Core is unreachable. `last4` is the
+ * account number's last 4 digits (never more) and `outstanding` the loan amount still owed.
+ */
+export const AeroHomeSchema = z.strictObject({
+  customer: z.strictObject({ id: CustomerIdSchema, name: z.string().min(1).max(80) }),
+  accounts: z.array(
+    z.strictObject({ type: AccountTypeSchema, last4: Last4Schema, balance: CoreBalanceSchema }),
+  ),
+  activity: z.array(CoreTransactionSchema).max(20),
+  alerts: z.array(AeroAlertSchema).max(20),
+  card: z.strictObject({ last4: Last4Schema, status: z.enum(['active', 'frozen']) }).nullable(),
+  loan: z
+    .strictObject({
+      id: IdSchema,
+      emi: PositiveMoneySchema,
+      emi_day: z.int().min(1).max(28),
+      outstanding: CoreBalanceSchema,
+    })
+    .nullable(),
+  passkey_registered: z.boolean(),
+  pending_approvals: z.array(PendingApprovalSchema).max(10),
+});
+export type AeroHome = z.infer<typeof AeroHomeSchema>;
+
+/** POST /web/passkeys/register/options → WebAuthn creation options (SimpleWebAuthn `optionsJSON`). */
+export const PasskeyRegisterOptionsResponseSchema = z.strictObject({ options: CreationOptionsJsonSchema });
+/** POST /web/approvals/:id/options → WebAuthn request options bound to this request's exact action. */
+export const ApprovalOptionsResponseSchema = z.strictObject({ options: RequestOptionsJsonSchema });
+/** Either options response (the web client's generic parser). */
+export const WebauthnOptionsResponseSchema = z.union([
+  PasskeyRegisterOptionsResponseSchema,
+  ApprovalOptionsResponseSchema,
+]);
+
+/** POST /web/passkeys/register/verify: `startRegistration()`'s JSON. */
+export const PasskeyRegisterVerifyRequestSchema = z.object({ response: RegistrationCredentialJsonSchema });
+export const PasskeyRegisterVerifyResponseSchema = z.strictObject({ ok: z.literal(true) });
+
+/**
+ * POST /web/approvals/:id/verify: `startAuthentication()`'s JSON. A confirmation answer (invariant 10): if another
+ * channel answered first, or the 60 s ran out, it is recorded and refused with 400 E_BAD_REQUEST.
+ */
+export const ApprovalVerifyRequestSchema = z.object({ response: AuthenticationCredentialJsonSchema });
+export const ApprovalVerifyResponseSchema = z.strictObject({
+  ok: z.literal(true),
+  status: z.literal('approved'),
+});
+/** POST /web/approvals/:id/decline (body `{}`): no passkey needed, a decline only makes things stricter. */
+export const ApprovalDeclineResponseSchema = z.strictObject({
+  ok: z.literal(true),
+  status: z.literal('declined'),
+});
+
+/** GET /web/ledger?limit=N (console): the newest N entries, oldest first, and the Hub's chain head. */
+export const LedgerListResponseSchema = z.strictObject({
+  entries: z.array(LedgerEntrySchema),
+  head_hash: Hex64Schema.nullable(),
 });

@@ -25,6 +25,8 @@ import {
   StageRunResponseSchema,
   VerifyPassRequestSchema,
   VerifyPassResponseSchema,
+  WsTicketRequestSchema,
+  WsTicketResponseSchema,
 } from './api';
 
 const RUN = 'b1f6c8e2-7d3a-4c1e-9f00-123456789abc';
@@ -257,5 +259,21 @@ describe('web', () => {
     expect(ok(HandoffResolveRequestSchema, { action: 'approve' })).toBe(false);
     expect(ok(HandoffResolveResponseSchema, { ok: true, status: 'blocked' })).toBe(true);
     expect(ok(HandoffResolveResponseSchema, { ok: true, status: 'open' })).toBe(false);
+  });
+
+  it('ws ticket: asked for one Hub role; an opaque, URL-safe, short-lived ticket back', () => {
+    for (const role of ['stage', 'console', 'aero', 'assistant'])
+      expect(ok(WsTicketRequestSchema, { role })).toBe(true);
+    expect(ok(WsTicketRequestSchema, { role: 'admin' })).toBe(false);
+    expect(ok(WsTicketRequestSchema, {})).toBe(false);
+    expect(ok(WsTicketRequestSchema, { role: 'aero', token: 'x' })).toBe(false);
+    const ticket = `ten_aero.${'A'.repeat(43)}.${'b_-'.repeat(14)}c`;
+    const at = '2026-10-28T10:00:30.000Z';
+    expect(ok(WsTicketResponseSchema, { ticket, expires_at: at })).toBe(true);
+    expect(ok(WsTicketResponseSchema, { ticket: 'short', expires_at: at })).toBe(false);
+    expect(ok(WsTicketResponseSchema, { ticket: `${ticket}&role=x`, expires_at: at })).toBe(false);
+    expect(ok(WsTicketResponseSchema, { ticket: `${ticket} `, expires_at: at })).toBe(false);
+    expect(ok(WsTicketResponseSchema, { ticket, expires_at: 'soon' })).toBe(false);
+    expect(ok(WsTicketResponseSchema, { ticket, expires_at: at, role: 'aero' })).toBe(false);
   });
 });
