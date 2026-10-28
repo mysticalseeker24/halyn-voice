@@ -20,6 +20,10 @@ import {
   type Rng,
   sha256Hex,
   TenantIdSchema,
+  type TestRun,
+  type TestScenarioResult,
+  TestScenarioResultSchema,
+  TestRunSchema,
   type WsMessage,
   WsMessageSchema,
 } from '@halyn/shared';
@@ -520,6 +524,7 @@ export class HubDO extends DurableObject<Env> {
               call_sid: existing.call_sid ?? input.call_sid,
               ended_at: input.ended ? (existing.ended_at ?? now) : existing.ended_at,
               purpose: existing.purpose ?? input.purpose,
+              recording_url: input.recording_url ?? existing.recording_url ?? null,
             }
           : {
               id: `call_${input.run_id.replace(/[^A-Za-z0-9]/g, '').slice(0, 40) || 'unknown'}`,
@@ -537,6 +542,7 @@ export class HubDO extends DurableObject<Env> {
               started_at: now,
               ended_at: input.ended ? now : null,
               purpose: input.purpose,
+              recording_url: input.recording_url,
             };
         this.store.putCall(call);
         this.store.enqueue({
@@ -1386,6 +1392,114 @@ export class HubDO extends DurableObject<Env> {
     } catch {
       // already closed
     }
+  }
+
+  // ── Console reads (Step 13) and Halyn Test runs (Step 15): the Hub's read model, never TiDB ──────────
+
+  /** Console Calls: the newest calls and their requests. */
+  async consoleCalls(
+    tenant_id: string,
+    limit = 50,
+  ): Promise<HubResult<{ calls: CallState[]; requests: RequestRecord[] }>> {
+    return this.guard(() => {
+      this.bindTenant(tenant_id);
+      const calls = this.store.calls(Math.min(Math.max(1, limit), 200));
+      return { calls, requests: this.store.requestsOfRuns(calls.map((c) => c.run_id)) };
+    });
+  }
+
+  /** One call with its requests and their handoffs; null when the tenant has no such call. */
+  async consoleCall(
+    tenant_id: string,
+    run_id: string,
+  ): Promise<HubResult<{ call: CallState; requests: RequestRecord[]; handoffs: Handoff[] } | null>> {
+    return this.guard(() => {
+      this.bindTenant(tenant_id);
+      const call = this.store.call(run_id);
+      if (!call) return null;
+      const requests = this.store.requestsOfRuns([run_id]).slice(-200);
+      const handoffs = requests.flatMap((r) => {
+        const handoff = r.handoff_id ? this.store.handoff(r.handoff_id) : null;
+        return handoff ? [handoff] : [];
+      });
+      return { call, requests, handoffs };
+    });
+  }
+
+  /** The tenant's newest requests, newest first (Console Signals). */
+  async consoleRequests(tenant_id: string, limit = 500): Promise<HubResult<RequestRecord[]>> {
+    return this.guard(() => {
+      this.bindTenant(tenant_id);
+      return this.store.recentRequests(Math.min(Math.max(1, limit), 1000));
+    });
+  }
+
+  /** Every Pass of the tenant (Console Passes). */
+  async consolePasses(tenant_id: string): Promise<HubResult<PassRow[]>> {
+    return this.guard(() =>
+      this.serial(async () => {
+        const tenant = this.bindTenant(tenant_id);
+        await this.ensureDirectory(tenant);
+        return this.store.allPasses(500);
+      }),
+    );
+  }
+
+  /** Rows waiting in the TiDB mirror outbox (Console Integrations). */
+  async mirrorBacklog(tenant_id: string): Promise<HubResult<number>> {
+    return this.guard(() => {
+      this.bindTenant(tenant_id);
+      return this.store.mirrorCount();
+    });
+  }
+
+  async createTestRun(tenant_id: string, run: TestRun): Promise<HubResult<TestRun>> {
+    return this.guard(() =>
+      this.serial(async () => {
+        this.bindTenant(tenant_id);
+        const parsed = TestRunSchema.parse(run);
+        if (this.store.testRun(parsed.id)) failClosed('test run exists');
+        this.store.putTestRun(parsed);
+        return parsed;
+      }),
+    );
+  }
+
+  /** A scenario's result for a suite run (replaces an earlier one); null when the run or scenario is unknown. */
+  async recordTestResult(
+    tenant_id: string,
+    test_run_id: string,
+    result: TestScenarioResult,
+  ): Promise<HubResult<TestRun | null>> {
+    return this.guard(() =>
+      this.serial(async () => {
+        this.bindTenant(tenant_id);
+        const run = this.store.testRun(test_run_id);
+        const parsed = TestScenarioResultSchema.parse(result);
+        if (!run || !run.scenarios.includes(parsed.scenario_id)) return null;
+        const next: TestRun = {
+          ...run,
+          results: [...run.results.filter((r) => r.scenario_id !== parsed.scenario_id), parsed],
+        };
+        this.store.putTestRun(next);
+        return next;
+      }),
+    );
+  }
+
+  /** A run (by id, or the latest) and the run before it; null when there is none. */
+  async testRuns(
+    tenant_id: string,
+    id: string | null,
+  ): Promise<HubResult<{ run: TestRun; previous: TestRun | null } | null>> {
+    return this.guard(() => {
+      this.bindTenant(tenant_id);
+      const run = id ? this.store.testRun(id) : (this.store.testRuns(1)[0] ?? null);
+      if (!run) return null;
+      const previous =
+        this.store.testRuns(2, Date.parse(run.started_at)).find((r) => r.id !== run.id) ?? null;
+      return { run, previous };
+    });
   }
 
   /** Broadcast a validated Hub message to every socket, or to the given roles. Returns how many got it. */

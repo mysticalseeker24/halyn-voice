@@ -4,6 +4,8 @@ import {
   type Handoff,
   HalynError,
   HandoffSchema,
+  type TestRun,
+  TestRunSchema,
 } from '@halyn/shared';
 import type { z } from 'zod';
 import { type PassCodeRow, PassCodeRowSchema, type PassRow, PassRowSchema } from '../pass';
@@ -50,6 +52,11 @@ const TABLES = [
   // Specialist handoffs (Console Handoffs): the read model the release/block flow works on; TiDB gets a mirror row.
   'CREATE TABLE IF NOT EXISTS handoffs (id TEXT PRIMARY KEY, request_id TEXT NOT NULL, status TEXT NOT NULL, created_at INTEGER NOT NULL, row TEXT NOT NULL)',
   'CREATE INDEX IF NOT EXISTS handoffs_created ON handoffs (created_at)',
+  'CREATE INDEX IF NOT EXISTS calls_started ON calls (started_at)',
+  'CREATE INDEX IF NOT EXISTS requests_run ON requests (run_id, created_at)',
+  'CREATE INDEX IF NOT EXISTS requests_created ON requests (created_at)',
+  // Halyn Test runs (Step 15): one row per suite run, its scenario results appended as they arrive.
+  'CREATE TABLE IF NOT EXISTS test_runs (id TEXT PRIMARY KEY, started_at INTEGER NOT NULL, row TEXT NOT NULL)',
 ];
 
 /** A request in flight between beginExecution and its final outcome. */
@@ -163,6 +170,13 @@ export class HubStore {
   }
 
   /** The customer's Passes, oldest first (the Aero app's list). */
+  /** Every Pass of the tenant (Console Passes). */
+  allPasses(limit: number): PassRow[] {
+    return this.rows('SELECT row FROM passes ORDER BY id DESC LIMIT ?', limit).map((r) =>
+      parse(PassRowSchema, r, 'pass'),
+    );
+  }
+
   passesOf(customer_id: string): PassRow[] {
     return this.rows('SELECT row FROM passes WHERE customer_id = ? ORDER BY id', customer_id).map((r) =>
       parse(PassRowSchema, r, 'Pass'),
@@ -281,6 +295,13 @@ export class HubStore {
     );
   }
 
+  /** Newest first (Console Calls). */
+  calls(limit: number): CallState[] {
+    return this.rows('SELECT row FROM calls ORDER BY started_at DESC, run_id DESC LIMIT ?', limit).map((r) =>
+      parse(CallStateSchema, r, 'call'),
+    );
+  }
+
   /** Calls from this number since `since` (S_CALL_BURST). */
   callsFromNumberSince(number_hash: string, since: number): number {
     return (
@@ -331,6 +352,22 @@ export class HubStore {
     ).map((r) => parse(RequestRecordSchema, r, 'request'));
   }
 
+  /** The requests of these calls, oldest first. */
+  requestsOfRuns(run_ids: readonly string[]): RequestRecord[] {
+    if (run_ids.length === 0) return [];
+    return this.rows(
+      `SELECT row FROM requests WHERE run_id IN (${run_ids.map(() => '?').join(', ')}) ORDER BY created_at, request_id`,
+      ...run_ids,
+    ).map((r) => parse(RequestRecordSchema, r, 'request'));
+  }
+
+  /** The tenant's newest requests, newest first (Console Signals). */
+  recentRequests(limit: number): RequestRecord[] {
+    return this.rows('SELECT row FROM requests ORDER BY created_at DESC, request_id DESC LIMIT ?', limit).map(
+      (r) => parse(RequestRecordSchema, r, 'request'),
+    );
+  }
+
   // ── handoffs ───────────────────────────────────────────────────────────────────────────────────
 
   putHandoff(handoff: Handoff): void {
@@ -363,6 +400,31 @@ export class HubStore {
       customer_id,
       limit,
     ).map((r) => parse(RequestRecordSchema, r, 'request'));
+  }
+
+  // ── Halyn Test runs ─────────────────────────────────────────────────────────────────────────
+
+  putTestRun(run: TestRun): void {
+    this.sql.exec(
+      'INSERT OR REPLACE INTO test_runs (id, started_at, row) VALUES (?, ?, ?)',
+      run.id,
+      Date.parse(run.started_at),
+      checked(TestRunSchema, run, 'test_run'),
+    );
+  }
+
+  testRun(id: string): TestRun | null {
+    const row = this.rows('SELECT row FROM test_runs WHERE id = ?', id)[0];
+    return row ? parse(TestRunSchema, row, 'test_run') : null;
+  }
+
+  /** Runs started at or before `before` (default: any), newest first. */
+  testRuns(limit: number, before = Number.MAX_SAFE_INTEGER): TestRun[] {
+    return this.rows(
+      'SELECT row FROM test_runs WHERE started_at <= ? ORDER BY started_at DESC, id DESC LIMIT ?',
+      before,
+      limit,
+    ).map((r) => parse(TestRunSchema, r, 'test_run'));
   }
 
   // ── policy packs used by requests (resolveStepUp needs the pack the Gate decided with) ─────────

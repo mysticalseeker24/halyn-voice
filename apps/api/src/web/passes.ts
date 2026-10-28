@@ -34,7 +34,7 @@ const CONSENT_TTL_MS = 2 * 60 * 1000;
 
 type Draft = z.output<typeof PassOptionsRequestSchema>;
 
-function summary(row: PassRow, nowMs: number) {
+export function summary(row: PassRow, nowMs: number) {
   return {
     id: row.id,
     assistant_name: row.assistant_name,

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { FinalOutcomeSchema, OutcomeSchema } from './decision';
-import { HandoffSchema } from './api';
+import { HandoffSchema, PassSummarySchema } from './api';
 import { IdSchema, IsoDateTimeSchema, Last4Schema, RequestIdSchema, ScenarioIdSchema } from './ids';
 import { CompiledPolicyPackSchema } from './policy-pack';
 import { ReasonCodeSchema } from './reason-codes';
@@ -93,6 +93,11 @@ export const SignalsResponseSchema = z.strictObject({
     .max(50),
 });
 export type SignalsResponse = z.infer<typeof SignalsResponseSchema>;
+
+/** GET /web/console/passes: every Pass of the tenant, with its customer; DELETE …/:id revokes one. */
+export const ConsolePassSchema = PassSummarySchema.extend({ customer_id: z.string().min(1).max(64) });
+export const ConsolePassListResponseSchema = z.strictObject({ passes: z.array(ConsolePassSchema).max(500) });
+export const ConsolePassRevokeResponseSchema = z.strictObject({ pass: ConsolePassSchema });
 
 export const INTEGRATION_AGENTS = ['aero_in', 'aero_en', 'confirm', 'assistant'] as const;
 

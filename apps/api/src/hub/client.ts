@@ -1,4 +1,13 @@
-import type { Handoff, HubRole, JsonValue, LedgerEntry, Region, WsMessage } from '@halyn/shared';
+import type {
+  Handoff,
+  HubRole,
+  JsonValue,
+  LedgerEntry,
+  Region,
+  TestRun,
+  TestScenarioResult,
+  WsMessage,
+} from '@halyn/shared';
 import type { LedgerHead } from '../ledger';
 import type { PassRow } from '../pass';
 import type { ExecutionResult, IdentifyInput, ProposeInput, ProposeOutcome } from './flows';
@@ -52,6 +61,14 @@ export type HubRpc = Pick<
   | 'webCallCustomer'
   | 'registerWebCall'
   | 'issueWsTicket'
+  | 'consoleCalls'
+  | 'consoleCall'
+  | 'consoleRequests'
+  | 'consolePasses'
+  | 'mirrorBacklog'
+  | 'createTestRun'
+  | 'recordTestResult'
+  | 'testRuns'
 >;
 
 export function hubStub(env: Pick<Env, 'HUB'>, tenant_id: string): HubRpc {
@@ -162,6 +179,23 @@ export function hubFor(env: Pick<Env, 'HUB'>, tenant_id: string) {
     issueWsTicket: async (
       input: Parameters<HubRpc['issueWsTicket']>[1],
     ): Promise<{ body: string; expires_at: string }> => unwrap(await stub.issueWsTicket(tenant_id, input)),
+
+    // Console reads (Step 13) and Halyn Test runs (Step 15).
+    consoleCalls: async (limit?: number): Promise<{ calls: CallState[]; requests: RequestRecord[] }> =>
+      unwrap(await stub.consoleCalls(tenant_id, limit)),
+    consoleCall: async (
+      run_id: string,
+    ): Promise<{ call: CallState; requests: RequestRecord[]; handoffs: Handoff[] } | null> =>
+      unwrap(await stub.consoleCall(tenant_id, run_id)),
+    consoleRequests: async (limit?: number): Promise<RequestRecord[]> =>
+      unwrap(await stub.consoleRequests(tenant_id, limit)),
+    consolePasses: async (): Promise<PassRow[]> => unwrap(await stub.consolePasses(tenant_id)),
+    mirrorBacklog: async (): Promise<number> => unwrap(await stub.mirrorBacklog(tenant_id)),
+    createTestRun: async (run: TestRun): Promise<TestRun> => unwrap(await stub.createTestRun(tenant_id, run)),
+    recordTestResult: async (test_run_id: string, result: TestScenarioResult): Promise<TestRun | null> =>
+      unwrap(await stub.recordTestResult(tenant_id, test_run_id, result)),
+    testRuns: async (id: string | null): Promise<{ run: TestRun; previous: TestRun | null } | null> =>
+      unwrap(await stub.testRuns(tenant_id, id)),
   };
 }
 

@@ -64,6 +64,14 @@ const RPC_CALLS = {
   finishScreening: (s, t) => s.finishScreening(t, 'req_x', null),
   handoffs: (s, t) => s.handoffs(t),
   resolveHandoff: (s, t) => s.resolveHandoff(t, { id: 'ho_x', action: 'block', note: null }),
+  consoleCalls: (s, t) => s.consoleCalls(t),
+  consoleCall: (s, t) => s.consoleCall(t, 'run'),
+  consoleRequests: (s, t) => s.consoleRequests(t),
+  consolePasses: (s, t) => s.consolePasses(t),
+  mirrorBacklog: (s, t) => s.mirrorBacklog(t),
+  createTestRun: (s, t) => s.createTestRun(t, {} as never),
+  recordTestResult: (s, t) => s.recordTestResult(t, 'trun_x', {} as never),
+  testRuns: (s, t) => s.testRuns(t, null),
 } satisfies Record<keyof HubRpc, (stub: HubRpc, tenant: string) => Promise<unknown>>;
 
 describe('every Hub RPC is bound to its tenant', () => {

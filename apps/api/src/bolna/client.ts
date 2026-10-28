@@ -17,12 +17,37 @@ import { z } from 'zod';
 //   POST /call                      {agent_id, recipient_phone_number, from_phone_number, user_data} → {execution_id}
 //   POST /call/{execution_id}/stop  stops a queued or scheduled call
 //   GET  /executions/{id}           the execution record
+//   GET  /v2/agent/{id}             an agent (Console Integrations: name, status, restricted, webhook host only)
 // `fetch` is injected: the Worker passes the global fetch, tests a recorder. Nothing here throws on an event: a call
 // that has ended is a normal outcome (the decision stands and the app shows it, docs/ARCHITECTURE.md).
 
 export const BOLNA_API_BASE = 'https://api.bolna.ai';
 const DEFAULT_TIMEOUT_MS = 4000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** The fields of an agent the Console shows; nothing else of the agent (its prompts, tool secrets) is kept. */
+const AgentInfoSchema = z.looseObject({
+  agent_name: z.string().max(120).nullish(),
+  agent_status: z.string().max(40).nullish(),
+  restricted: z.boolean().nullish(),
+  webhook_url: z.string().nullish(),
+  agent_config: z.looseObject({ webhook_url: z.string().nullish() }).nullish(),
+});
+export interface AgentInfo {
+  name: string | null;
+  status: string | null;
+  restricted: boolean | null;
+  webhook_host: string | null;
+}
+
+function hostOf(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    return new URL(url).host;
+  } catch {
+    return null;
+  }
+}
 
 export type FetchLike = (request: Request) => Promise<Response>;
 
@@ -165,6 +190,28 @@ export function createBolnaClient(options: BolnaClientOptions) {
         return res.ok;
       } catch {
         return false;
+      }
+    },
+
+    /** An agent's name, status, restricted flag and webhook host; null when Bolna has none or is unreachable. */
+    async getAgent(id: string): Promise<AgentInfo | null> {
+      try {
+        const res = await send('GET', `/v2/agent/${encodeURIComponent(id)}`);
+        if (!res.ok) {
+          await res.body?.cancel();
+          return null;
+        }
+        const parsed = AgentInfoSchema.safeParse(await json(res));
+        if (!parsed.success) return null;
+        const a = parsed.data;
+        return {
+          name: a.agent_name ?? null,
+          status: a.agent_status ?? null,
+          restricted: a.restricted ?? null,
+          webhook_host: hostOf(a.agent_config?.webhook_url ?? a.webhook_url),
+        };
+      } catch {
+        return null;
       }
     },
 

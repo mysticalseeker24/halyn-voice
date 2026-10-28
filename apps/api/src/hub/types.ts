@@ -78,6 +78,8 @@ export const CallStateSchema = z.strictObject({
   started_at: z.int().nonnegative(),
   ended_at: z.int().nonnegative().nullable(),
   purpose: z.string().max(32).nullable(),
+  /** Bolna's recording link from the execution webhook (Console Calls). Absent on rows from before Step 13. */
+  recording_url: z.url().max(2000).nullable().optional(),
 });
 export type CallState = z.infer<typeof CallStateSchema>;
 

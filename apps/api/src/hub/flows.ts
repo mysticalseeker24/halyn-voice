@@ -424,6 +424,7 @@ function broadcastDecision(core: HubCore, record: RequestRecord): void {
     at: iso(core.clock.nowMs()),
     action: record.gate.action,
     decision: record.decision,
+    ...(record.coaching.cues.length > 0 ? { cues: record.coaching.cues.slice(0, 32) } : {}),
   });
 }
 

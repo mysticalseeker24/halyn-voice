@@ -10,6 +10,16 @@ import { notFound, onError } from './http/errors';
 import { requestLog } from './http/request-log';
 import { bolnaRoutes } from './tools/routes';
 import { aeroHome } from './web/aero-home';
+import {
+  callDetail,
+  consolePasses,
+  consoleRevokePass,
+  integrations,
+  ledgerExport,
+  listCalls,
+  listPolicies,
+  signalsRoute,
+} from './web/console';
 import { listHandoffs, resolveHandoffRoute } from './web/handoffs';
 import { ledgerList, ledgerVerify } from './web/ledger';
 import {
@@ -94,6 +104,14 @@ export function createApp(deps: AppDeps = defaultDeps) {
   app.post('/web/handoffs/:id/resolve', resolveHandoffRoute(deps));
   app.get('/web/ledger', ledgerList);
   app.get('/web/ledger/verify', ledgerVerify);
+  app.get('/web/ledger/export', ledgerExport(deps));
+  app.get('/web/calls', listCalls(deps));
+  app.get('/web/calls/:id', callDetail(deps));
+  app.get('/web/policies', listPolicies);
+  app.get('/web/console/passes', consolePasses(deps));
+  app.delete('/web/console/passes/:id', consoleRevokePass(deps));
+  app.get('/web/signals', signalsRoute(deps));
+  app.get('/web/integrations', integrations(deps));
   app.post('/web/stage/run/:scenario', stageRun(deps, createApp));
   app.post('/web/stage/region', stageRegion);
   // The WebSocket: a one-time ticket from the session first, then the upgrade with the ticket (ADR-021).
