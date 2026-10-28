@@ -114,6 +114,34 @@ function eventNames(events: readonly OutcomeEvent[]): string[] {
   return events.map((e) => e.event);
 }
 
+/** What may follow each event on a call (the Aero graph's event edges). */
+const FOLLOWS: Record<string, readonly string[]> = {
+  allow: ['done', 'deny'],
+  step_up: ['approved', 'denied', 'timeout', 'hold'],
+  approved: ['done', 'deny'],
+};
+
+/**
+ * SCENARIOS.md rule 3, on every step: the call hears the decision first (allow / step_up / hold / deny), then only
+ * what the graph allows after it (done / approved / denied / timeout). Test mode must see at least the first event;
+ * live mode cannot listen, so it checks what it saw.
+ */
+function eventsFollowDecision(run: Run, at: string, outcome: string, events: readonly string[]): void {
+  if (events.length === 0) {
+    check(run, run.harness.mode !== 'test', `${at}: no event reached the call (decision ${outcome})`);
+    return;
+  }
+  check(run, events[0] === outcome, `${at}: first event ${String(events[0])}, decision ${outcome}`);
+  for (let i = 1; i < events.length; i++) {
+    const prev = events[i - 1] ?? '';
+    check(
+      run,
+      (FOLLOWS[prev] ?? []).includes(events[i] ?? ''),
+      `${at}: event ${String(events[i])} cannot follow ${prev}`,
+    );
+  }
+}
+
 async function identify(run: Run, region: Scenario['region']): Promise<void> {
   const { scenario, harness, spec } = run;
   if (scenario.caller.from === 'app_session' || run.from === null) return;
@@ -239,6 +267,7 @@ async function expectations(
     propose_ms: null,
   };
   if (!record) return report;
+  eventsFollowDecision(run, at, record.decision.outcome, events);
   if (e.decision)
     check(
       run,
@@ -373,9 +402,18 @@ async function runSteps(run: Run): Promise<void> {
         run.run_id = harness.newRunId();
         await identify(run, scenario.region);
       }
+      const before = harness.events(run.run_id).length;
       const { request_id } = await propose(run, step.propose);
       await harness.settle();
-      decisions.push(request_id ? await harness.request(request_id) : null);
+      const record = request_id ? await harness.request(request_id) : null;
+      if (record)
+        eventsFollowDecision(
+          run,
+          `#${i + 1}`,
+          record.decision.outcome,
+          eventNames(harness.events(run.run_id).slice(before)),
+        );
+      decisions.push(record);
     }
     for (const rule of scenario.expect_sequence) {
       const indexes = rule.index

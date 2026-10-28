@@ -123,6 +123,20 @@ describe('runScenario reports every way Halyn can be wrong', () => {
     expect(text).toMatch(/unmasked numbers/);
   });
 
+  it('an event that does not match the decision, or follows it out of order, fails every step (rule 3)', async () => {
+    const ev = (event: string) => ({ event, properties: { request_id: 'req_1' } }) as never;
+    const heard = (events: string[]) => {
+      let first = true;
+      return () => (first ? ((first = false), []) : events.map(ev));
+    };
+    const wrong = await runScenario(spec, scenario('8'), fake({ events: heard(['allow', 'done']) }));
+    expect(wrong.failures.join('\n')).toMatch(/first event allow, decision deny/);
+    const order = await runScenario(spec, scenario('8'), fake({ events: heard(['deny', 'done']) }));
+    expect(order.failures.join('\n')).toMatch(/event done cannot follow deny/);
+    const silent = await runScenario(spec, scenario('8'), fake({ events: () => [] }));
+    expect(silent.failures.join('\n')).toMatch(/no event reached the call \(decision deny\)/);
+  });
+
   it('a step-up that never rings, a passkey the harness cannot sign, a missing request, a broken ledger', async () => {
     const broken = [brokenEntry()];
     const r3 = await runScenario(spec, scenario('3'), fake({ request: async () => null }, broken));
