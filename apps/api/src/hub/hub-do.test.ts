@@ -241,18 +241,60 @@ describe('HubDO confirmations', () => {
     );
     expect(answers).toEqual([{ accepted: 0 }]);
   });
+
+  it('an answer at or after the deadline while the alarm is late settles the timeout first and is refused', async () => {
+    const { raw, client, clock } = await hub();
+    await client.startConfirmation({ request_id: 'req_1', channels: ['passkey'], timeout_seconds: 10 });
+    await client.startConfirmation({ request_id: 'req_2', channels: ['passkey'], timeout_seconds: 10 });
+    clock.advance(9_999);
+    // 1 ms before the deadline: still in time.
+    expect(
+      await client.resolveConfirmation({ request_id: 'req_2', answer: 'approved', channel: 'passkey' }),
+    ).toEqual({ accepted: true, status: 'approved', channel: 'passkey' });
+    clock.advance(1);
+    // On the deadline, alarm not run: the timeout wins and the answer is recorded as ignored.
+    expect(
+      await client.resolveConfirmation({ request_id: 'req_1', answer: 'approved', channel: 'passkey' }),
+    ).toEqual({ accepted: false, status: 'timeout', channel: null });
+    expect(await client.confirmationResult('req_1')).toEqual({
+      accepted: true,
+      status: 'timeout',
+      channel: null,
+    });
+    // The late alarm then has nothing left to settle: one `confirmed` entry each.
+    await runDurableObjectAlarm(raw);
+    const confirmed = (await client.ledgerEntries())
+      .filter((e) => e.type === 'confirmed')
+      .map((e) => [e.ref_id, e.payload]);
+    expect(confirmed).toEqual([
+      ['req_2', { status: 'approved', channel: 'passkey', reason: 'C_APPROVED' }],
+      ['req_1', { status: 'timeout', channel: null, reason: 'C_TIMEOUT' }],
+    ]);
+    const answers = await runInDurableObject(raw, (_: HubDO, state) =>
+      state.storage.sql
+        .exec<{ request_id: string; accepted: number }>(
+          'SELECT request_id, accepted FROM confirmation_answers ORDER BY id',
+        )
+        .toArray(),
+    );
+    expect(answers).toEqual([
+      { request_id: 'req_2', accepted: 1 },
+      { request_id: 'req_1', accepted: 0 },
+    ]);
+  });
 });
 
 describe('HubDO WebSocket endpoint and broadcasts', () => {
-  it('answers 404 to anything but a /ws upgrade, 400 to a bad role and 403 to another tenant', async () => {
+  it('answers 404 to anything but a /ws upgrade, 400 to a bad role, 403 to another tenant, 401 without a ticket', async () => {
     const { tenant, raw, client } = await hub();
     await client.ledgerHead(); // binds the tenant
     expect((await raw.fetch('https://hub.internal/other')).status).toBe(404);
     expect((await raw.fetch('https://hub.internal/ws')).status).toBe(404);
-    const headers = (role: string, t: string) => ({
+    const headers = (role: string, t: string, ticket?: string) => ({
       upgrade: 'websocket',
       'x-halyn-role': role,
       'x-halyn-tenant': t,
+      ...(ticket ? { 'x-halyn-ticket': ticket } : {}),
     });
     expect((await raw.fetch('https://hub.internal/ws', { headers: headers('admin', tenant) })).status).toBe(
       400,
@@ -260,6 +302,29 @@ describe('HubDO WebSocket endpoint and broadcasts', () => {
     expect(
       (await raw.fetch('https://hub.internal/ws', { headers: headers('stage', 'ten_other') })).status,
     ).toBe(403);
+    // The Worker has checked the ticket's seal; the Hub still owns single use, expiry and the role.
+    expect((await raw.fetch('https://hub.internal/ws', { headers: headers('stage', tenant) })).status).toBe(
+      401,
+    );
+    const { body } = await client.issueWsTicket({ kind: 'console', customer_id: null, role: 'stage' });
+    expect(
+      (await raw.fetch('https://hub.internal/ws', { headers: headers('stage', tenant, `${body}x`) })).status,
+    ).toBe(401);
+  });
+
+  it('issues tickets only for a role the session kind may take, bound to this tenant', async () => {
+    const { tenant, stub, client } = await hub();
+    expect(
+      await stub.issueWsTicket(tenant, { kind: 'customer', customer_id: 'cus_saksham', role: 'stage' }),
+    ).toEqual(failure('E_FAIL_CLOSED', /role/));
+    expect(await stub.issueWsTicket(tenant, { kind: 'console', customer_id: null, role: 'aero' })).toEqual(
+      failure('E_FAIL_CLOSED', /role/),
+    );
+    expect(await stub.issueWsTicket(tenant, { kind: 'customer', customer_id: null, role: 'aero' })).toEqual(
+      failure('E_FAIL_CLOSED', /invalid ticket/),
+    );
+    const issued = await client.issueWsTicket({ kind: 'customer', customer_id: 'cus_saksham', role: 'aero' });
+    expect(issued.body.startsWith(`${tenant}.`)).toBe(true);
   });
 
   it('validates broadcasts and counts sockets per role', async () => {

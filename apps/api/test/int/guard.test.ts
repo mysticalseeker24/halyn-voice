@@ -26,9 +26,9 @@ describe('bolnaGuard on the deployed routes', () => {
     }
   });
 
-  it('lets the Bolna IP with the secret through to the Step 7 placeholder', async () => {
+  it('lets the Bolna IP with the secret through to the tool (which refuses an empty body with 400)', async () => {
     const res = await tool({ 'cf-connecting-ip': BOLNA_IP, 'x-halyn-secret': TOOL_SECRET });
-    expect(res.status).toBe(501);
+    expect(res.status).toBe(400);
     await res.body?.cancel();
   });
 });

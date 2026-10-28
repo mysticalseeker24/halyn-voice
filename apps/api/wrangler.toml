@@ -16,7 +16,13 @@ class_name = "HubDO"
 tag = "v1"
 new_sqlite_classes = ["HubDO"]
 
-# Compiled policy packs and agent ids. Namespace id: docs/RUNBOOK.md first-time setup, step 4.
+# Aero Core (apps/aero-core), the mock bank: Worker to Worker, never over the public internet. The core client uses
+# this binding; without it, the AERO_CORE_URL var (local dev against `wrangler dev` of aero-core).
+[[services]]
+binding = "AERO_CORE"
+service = "halyn-aero-core"
+
+# Compiled policy packs (key pack:<tenant>:<region>, docs/RUNBOOK.md) and agent ids. Namespace id: docs/RUNBOOK.md first-time setup, step 4.
 [[kv_namespaces]]
 binding = "CONFIG"
 

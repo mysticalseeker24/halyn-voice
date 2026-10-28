@@ -1,9 +1,9 @@
 import { HalynError, type LedgerEntry, LedgerEntrySchema, TenantIdSchema } from '@halyn/shared';
-import { and, asc, eq, gte, sql } from 'drizzle-orm';
+import { and, asc, eq, gt, gte, sql } from 'drizzle-orm';
 import type { TiDBServerlessDatabase } from 'drizzle-orm/tidb-serverless';
 import type { PassRow } from '../pass';
 import type * as schema from './schema';
-import { customers, ledgerEntries, passes, policyPacks, TABLES, tenants } from './schema';
+import { customers, ledgerEntries, passCodes, passes, policyPacks, TABLES, tenants } from './schema';
 
 // Tenant-scoped helpers: every one takes tenant_id first and filters on it (invariant 8). They return Drizzle
 // builders (awaitable), so callers `await` them and tests can read the SQL offline with `.toSQL()`.
@@ -46,6 +46,33 @@ export function selectCustomer(db: AnyDb, tenant_id: string, customer_id: string
     .from(customers)
     .where(and(eq(customers.tenant_id, tenant(tenant_id)), eq(customers.id, customer_id)))
     .limit(1);
+}
+
+/** Every customer of the tenant (the Hub's directory load, ADR-016). */
+export function selectCustomers(db: AnyDb, tenant_id: string) {
+  return db
+    .select()
+    .from(customers)
+    .where(eq(customers.tenant_id, tenant(tenant_id)))
+    .orderBy(asc(customers.id));
+}
+
+/** Every Pass of the tenant (the Hub's directory load). */
+export function selectPasses(db: AnyDb, tenant_id: string) {
+  return db
+    .select()
+    .from(passes)
+    .where(eq(passes.tenant_id, tenant(tenant_id)))
+    .orderBy(asc(passes.id));
+}
+
+/** Pass codes of the tenant that have not expired by `now` (older ones can never verify). */
+export function selectLivePassCodes(db: AnyDb, tenant_id: string, now: Date) {
+  return db
+    .select()
+    .from(passCodes)
+    .where(and(eq(passCodes.tenant_id, tenant(tenant_id)), gt(passCodes.expires_at, now)))
+    .orderBy(asc(passCodes.id));
 }
 
 export function selectPolicyPack(db: AnyDb, tenant_id: string, region: string) {
@@ -109,6 +136,7 @@ export function upsertCustomer(db: AnyDb, tenant_id: string, row: typeof custome
     .onDuplicateKeyUpdate({
       set: {
         name: row.name,
+        spoken_name: row.spoken_name ?? null,
         region: row.region,
         language: row.language,
         registered_number_hash: row.registered_number_hash,

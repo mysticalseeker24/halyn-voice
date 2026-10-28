@@ -46,7 +46,7 @@ describe('TiDB schema', () => {
         expect(column.name).not.toMatch(/(^|_)(e164|phone|registered_number)$/);
   });
 
-  it('keeps invariant 7 as a unique (tenant, run, params_hash) index', () => {
+  it('keeps invariant 7 as a unique (tenant, run, params_hash) index (ADR-016)', () => {
     const index = getTableConfig(TABLES.action_requests).indexes.find(
       (i) => i.config.name === 'action_requests_idempotency',
     );

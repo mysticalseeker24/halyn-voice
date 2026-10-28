@@ -2,17 +2,42 @@
   "$schema": "https://turborepo.com/schema.json",
   "extends": ["//"],
   "tasks": {
+    "lint": {
+      "dependsOn": ["^build", "@halyn/sdk#build"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build", "@halyn/sdk#build"]
+    },
     "test:unit": {
-      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/tests/scenarios/**", "$TURBO_ROOT$/policy-packs/*.yaml"]
+      "dependsOn": ["^build", "@halyn/sdk#build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/tests/scenarios/**",
+        "$TURBO_ROOT$/tests/fixtures/bolna/**",
+        "$TURBO_ROOT$/policy-packs/*.yaml",
+        "$TURBO_ROOT$/apps/aero-core/src/**",
+        "$TURBO_ROOT$/apps/aero-core/migrations/**"
+      ]
     },
     "test:scenarios": {
-      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/tests/scenarios/**"]
+      "dependsOn": ["^build", "@halyn/sdk#build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/tests/scenarios/**",
+        "$TURBO_ROOT$/policy-packs/*.yaml",
+        "$TURBO_ROOT$/apps/aero-core/src/**",
+        "$TURBO_ROOT$/apps/aero-core/migrations/**"
+      ]
     },
     "test:int": {
       "cache": false,
+      "dependsOn": ["^build", "@halyn/sdk#build"],
       "env": ["TIDB_TEST_DATABASE_URL"],
       "inputs": [
         "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/tests/fixtures/bolna/**",
+        "$TURBO_ROOT$/apps/aero-core/src/**",
+        "$TURBO_ROOT$/apps/aero-core/migrations/**",
         "$TURBO_ROOT$/scripts/lib/**",
         "$TURBO_ROOT$/scripts/db-migrate.ts",
         "$TURBO_ROOT$/scripts/test-db-setup.ts"

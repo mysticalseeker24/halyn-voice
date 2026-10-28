@@ -1,4 +1,5 @@
 import { ErrorEnvelopeSchema } from '@halyn/shared';
+import { env } from 'cloudflare:workers';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BOLNA_IP, testEnv, TOOL_SECRET } from '../test/fixtures/api';
 import app from './index';
@@ -22,14 +23,15 @@ describe('halyn-api routes', () => {
     expect(ErrorEnvelopeSchema.parse(await res.json()).error.code).toBe('E_NOT_FOUND');
   });
 
-  it('puts the tool and webhook placeholders behind the Bolna guard (501 until Step 7)', async () => {
+  it('puts the tools and the webhook behind the Bolna guard', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => undefined);
     const guarded = { 'cf-connecting-ip': BOLNA_IP, 'x-halyn-secret': TOOL_SECRET };
     for (const path of ['/tools/propose_action', '/webhooks/bolna']) {
       expect((await app.request(path, { method: 'POST' }, testEnv())).status, path).toBe(401);
-      const res = await app.request(path, { method: 'POST', headers: guarded }, testEnv());
-      expect(res.status, path).toBe(501);
-      expect(ErrorEnvelopeSchema.parse(await res.json()).error.code).toBe('E_FAIL_CLOSED');
+      // Through the guard, the handler reads the body: none is a 400, not a 401.
+      const res = await app.request(path, { method: 'POST', headers: guarded }, testEnv({ HUB: env.HUB }));
+      expect(res.status, path).toBe(400);
+      expect(ErrorEnvelopeSchema.parse(await res.json()).error.code).toBe('E_BAD_REQUEST');
     }
   });
 });

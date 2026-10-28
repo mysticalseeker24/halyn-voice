@@ -90,9 +90,13 @@ Where the rules above leave a choice, the Gate does this. Each one is tested.
 P_HUMAN_ONLY_ABOVE_LIMIT S_UNREGISTERED_NUMBER S_CALL_BURST S_UNUSUAL_HOUR S_LOW_LIVENESS S_VELOCITY S_COACHING
 T_DISTRESS H_SPECIALIST X_PASS_IN_SCOPE X_PASS_OUT_OF_SCOPE X_PASS_INVALID I_NO_PROOF R_READBACK_NOT_CONFIRMED
 C_APPROVED C_DECLINED C_TIMEOUT E_FAIL_CLOSED E_GRANT_MISSING E_GRANT_INVALID E_GRANT_REUSED E_GRANT_EXPIRED
-E_PARAMS_MISMATCH E_UNAUTHORIZED E_BAD_REQUEST E_NOT_FOUND`
+E_PARAMS_MISMATCH E_CORE_REJECTED E_UNAUTHORIZED E_BAD_REQUEST E_NOT_FOUND`
 
 The last three are API errors, not Gate outcomes: 401 (Bolna IP + secret or session token), 400 (validation), 404.
+`E_CORE_REJECTED` is not a Gate outcome either: Aero Core refused an allowed (or approved) action — fee already
+waived, balance too low, no such card. Nothing executed; the ledger gets `core_rejected` and the call a `deny`. A grant
+Aero Core refuses keeps its own code (`E_GRANT_*`, `E_PARAMS_MISMATCH`); an outcome Halyn cannot establish after one
+retry with the same grant is `E_FAIL_CLOSED` (`apps/api/src/core-client`, ADR-017).
 
 ## Properties that tests must prove (fast-check)
 - Adding any signal never produces a *more permissive* outcome (allow < step_up < hold/deny ordering).

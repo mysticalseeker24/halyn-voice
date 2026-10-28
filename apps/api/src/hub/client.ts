@@ -1,7 +1,9 @@
-import type { HubRole, JsonValue, LedgerEntry, WsMessage } from '@halyn/shared';
+import type { HubRole, JsonValue, LedgerEntry, Region, WsMessage } from '@halyn/shared';
 import type { LedgerHead } from '../ledger';
-import type { ConfirmationOutcome, HubAppend, HubDO, StartConfirmation } from './hub-do';
+import type { ExecutionResult, IdentifyInput, ProposeInput, ProposeOutcome } from './flows';
+import type { ConfirmationOutcome, CustomerView, HubAppend, HubDO, StartConfirmation } from './hub-do';
 import { type HubResult, toFailure, unwrap } from './result';
+import type { CallState, CredentialRecord, DirectoryCustomer, RequestRecord } from './types';
 
 /**
  * The Hub's RPC surface with its declared signatures. The runtime's generated stub type maps every value through its
@@ -19,6 +21,26 @@ export type HubRpc = Pick<
   | 'confirmationResult'
   | 'broadcast'
   | 'sockets'
+  | 'warm'
+  | 'identifyCaller'
+  | 'verifyPassCode'
+  | 'mintPassCode'
+  | 'propose'
+  | 'requestState'
+  | 'runIdForCallSid'
+  | 'recordExecution'
+  | 'beginExecution'
+  | 'noteGrant'
+  | 'finishExecution'
+  | 'attachCallback'
+  | 'customerView'
+  | 'putChallenge'
+  | 'takeChallenge'
+  | 'passkeys'
+  | 'savePasskey'
+  | 'setStageRegion'
+  | 'stageRegion'
+  | 'issueWsTicket'
 >;
 
 export function hubStub(env: Pick<Env, 'HUB'>, tenant_id: string): HubRpc {
@@ -61,5 +83,52 @@ export function hubFor(env: Pick<Env, 'HUB'>, tenant_id: string) {
     broadcast: async (message: WsMessage, roles?: HubRole[]): Promise<number> =>
       unwrap(await stub.broadcast(tenant_id, message, roles)),
     sockets: async (): Promise<Record<HubRole, number>> => unwrap(await stub.sockets(tenant_id)),
+
+    // ADR-016: the call-time read model and the proposal lane.
+    warm: async (): Promise<number> => unwrap(await stub.warm(tenant_id)),
+    identifyCaller: async (
+      input: IdentifyInput,
+    ): Promise<{ call: CallState; customer: DirectoryCustomer | null }> =>
+      unwrap(await stub.identifyCaller(tenant_id, input)),
+    verifyPassCode: async (input: Parameters<HubRpc['verifyPassCode']>[1]) =>
+      unwrap(await stub.verifyPassCode(tenant_id, input)),
+    mintPassCode: async (input: { pass_id: string; calling_number: string }) =>
+      unwrap(await stub.mintPassCode(tenant_id, input)),
+    propose: async (input: ProposeInput): Promise<ProposeOutcome> =>
+      unwrap(await stub.propose(tenant_id, input)),
+    requestState: async (request_id: string): Promise<RequestRecord | null> =>
+      unwrap(await stub.requestState(tenant_id, request_id)),
+    runIdForCallSid: async (call_sid: string): Promise<string | null> =>
+      unwrap(await stub.runIdForCallSid(tenant_id, call_sid)),
+    recordExecution: async (input: Parameters<HubRpc['recordExecution']>[1]): Promise<boolean> =>
+      unwrap(await stub.recordExecution(tenant_id, input)),
+    beginExecution: async (request_id: string): Promise<RequestRecord | null> =>
+      unwrap(await stub.beginExecution(tenant_id, request_id)),
+    noteGrant: async (request_id: string, grant: Parameters<HubRpc['noteGrant']>[2]): Promise<true> =>
+      unwrap(await stub.noteGrant(tenant_id, request_id, grant)),
+    /** Null: the request was already final (the Hub's sweep finished it first); nothing changed (ADR-020). */
+    finishExecution: async (request_id: string, result: ExecutionResult): Promise<RequestRecord | null> =>
+      unwrap(await stub.finishExecution(tenant_id, request_id, result)),
+    attachCallback: async (request_id: string, execution_id: string | null): Promise<true> =>
+      unwrap(await stub.attachCallback(tenant_id, request_id, execution_id)),
+    customerView: async (customer_id: string): Promise<CustomerView> =>
+      unwrap(await stub.customerView(tenant_id, customer_id)),
+    putChallenge: async (input: Parameters<HubRpc['putChallenge']>[1]): Promise<true> =>
+      unwrap(await stub.putChallenge(tenant_id, input)),
+    takeChallenge: async (input: Parameters<HubRpc['takeChallenge']>[1]): Promise<boolean> =>
+      unwrap(await stub.takeChallenge(tenant_id, input)),
+    passkeys: async (customer_id: string): Promise<CredentialRecord[]> =>
+      unwrap(await stub.passkeys(tenant_id, customer_id)),
+    savePasskey: async (credential: CredentialRecord): Promise<true> =>
+      unwrap(await stub.savePasskey(tenant_id, credential)),
+    setStageRegion: async (region: Region): Promise<Region> =>
+      unwrap(await stub.setStageRegion(tenant_id, region)),
+    stageRegion: async (): Promise<Region> => unwrap(await stub.stageRegion(tenant_id)),
+    /** A one-time WebSocket ticket body (ADR-021); the Worker seals it before handing it out. */
+    issueWsTicket: async (
+      input: Parameters<HubRpc['issueWsTicket']>[1],
+    ): Promise<{ body: string; expires_at: string }> => unwrap(await stub.issueWsTicket(tenant_id, input)),
   };
 }
+
+export type HubClient = ReturnType<typeof hubFor>;

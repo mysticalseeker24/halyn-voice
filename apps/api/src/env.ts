@@ -1,4 +1,4 @@
-import { HalynError, TenantIdSchema } from '@halyn/shared';
+import { E164Schema, HalynError, RegionSchema, TenantIdSchema } from '@halyn/shared';
 import { z } from 'zod';
 
 // Worker configuration, validated lazily per route group: /health needs nothing, and a route whose settings are
@@ -53,13 +53,58 @@ export const SigningEnvSchema = z.object({
   PHONE_HASH_PEPPER: Secret,
 });
 
+const Uuid = z
+  .string()
+  .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'expected a UUID');
+
+/** The tenant Bolna's tools act for (one tenant per deployment; web routes take theirs from the session). */
+export const TenantEnvSchema = z.object({ DEFAULT_TENANT_ID: TenantIdSchema });
+
+/** Hashing calling numbers for lookup_customer and the callback check. */
+export const PhoneEnvSchema = z.object({ PHONE_HASH_PEPPER: Secret });
+
+/** Pass tokens are verified with Halyn's public keys (get_pass_code). */
+export const JwksEnvSchema = z.object({ HALYN_PUBLIC_JWKS: z.string().min(1) });
+
+/** Bolna's REST API: events into calls, outbound calls, executions (src/bolna). The base is overridable for tests. */
+export const BolnaEnvSchema = z.object({
+  BOLNA_API_KEY: z.string().min(1),
+  BOLNA_API_BASE: z.url().optional(),
+});
+
+/**
+ * The Confirm callback (src/confirm): Bolna's Confirm agent, calling from number B, and the one number it may ring —
+ * Saksham's own (docs/COMPLIANCE.md: outbound calls only to numbers he owns). The callback rings it only when its hash
+ * equals the customer's registered number. Missing or invalid → the step-up uses the passkey alone.
+ */
+export const ConfirmEnvSchema = z.object({
+  BOLNA_CONFIRM_AGENT_ID: Uuid,
+  NUMBER_B: E164Schema,
+  CUSTOMER_PHONE: E164Schema,
+});
+
+/** Aero Core: the AERO_CORE service binding when present, else this URL (src/core-client). */
+export const CoreEnvSchema = z.object({ AERO_CORE_URL: z.url().optional() });
+
+/** The region a phone call is in until lookup_customer says otherwise (number A is an Indian line). */
+export const RegionEnvSchema = z.object({ DEFAULT_REGION: RegionSchema.default('IN') });
+
 export const IntegrationsEnvSchema = z.object({
   BOLNA_API_KEY: z.string().min(1),
   SARVAM_API_KEY: z.string().min(1),
 });
 
 export const WebEnvSchema = z.object({
-  WEB_ORIGIN: z.url(),
+  /** The web app's origins (comma-separated): CORS allow-list and the only origins a passkey may come from. */
+  WEB_ORIGIN: z
+    .string()
+    .transform((s) =>
+      s
+        .split(',')
+        .map((o) => o.trim().replace(/\/+$/, ''))
+        .filter(Boolean),
+    )
+    .pipe(z.array(z.url()).min(1)),
   RP_ID: z.string().min(1),
 });
 

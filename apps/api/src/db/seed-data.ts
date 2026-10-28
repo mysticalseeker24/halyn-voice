@@ -20,6 +20,8 @@ export const SEED_TENANT = 'ten_aero';
 /** Number B: the assistant's calling number (docs/STATE.md). */
 export const ASSISTANT_NUMBER = '+918065356379';
 const PASS_DAYS = 30;
+/** The customer's name as voices say it (lookup_customer, the Confirm call's user_data). */
+export const SPOKEN_NAME = 'सक्षम';
 
 export interface SeedInput {
   /** The customer's registered number (CUSTOMER_PHONE). */
@@ -48,6 +50,8 @@ export async function buildSeed(input: SeedInput): Promise<SeedRows> {
     id,
     tenant_id: SEED_TENANT,
     name: 'Saksham Mishra',
+    // Voices say the Devanagari form: Sarvam speaks Roman "Saksham" with a long "Saa" (CLAUDE.md §8).
+    spoken_name: SPOKEN_NAME,
     region,
     language,
     registered_number_hash: numberHash,

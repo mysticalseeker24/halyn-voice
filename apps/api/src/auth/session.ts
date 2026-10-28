@@ -49,7 +49,8 @@ export interface Session {
 
 const keys = new Map<string, Promise<CryptoKey>>();
 
-function hmacKey(secret: string): Promise<CryptoKey> {
+/** The HMAC-SHA256 key for SESSION_SECRET, imported once per isolate (sessions, and the WebSocket ticket seal). */
+export function hmacKey(secret: string): Promise<CryptoKey> {
   let key = keys.get(secret);
   if (!key) {
     key = crypto.subtle.importKey('raw', utf8(secret), { name: 'HMAC', hash: 'SHA-256' }, false, [

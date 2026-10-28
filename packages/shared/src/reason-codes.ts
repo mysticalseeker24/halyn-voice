@@ -33,6 +33,7 @@ export const REASON_CODES = [
   'E_GRANT_REUSED',
   'E_GRANT_EXPIRED',
   'E_PARAMS_MISMATCH',
+  'E_CORE_REJECTED',
   'E_UNAUTHORIZED',
   'E_BAD_REQUEST',
   'E_NOT_FOUND',
@@ -128,6 +129,10 @@ export const REASON_CODE_INFO: { readonly [C in ReasonCode]: ReasonCodeInfo } = 
   E_PARAMS_MISMATCH: {
     category: 'error',
     description: 'Request parameters do not match the grant params_hash.',
+  },
+  E_CORE_REJECTED: {
+    category: 'error',
+    description: 'Aero Core refused an allowed action (bank rule or missing resource): nothing executed.',
   },
   E_UNAUTHORIZED: {
     category: 'error',

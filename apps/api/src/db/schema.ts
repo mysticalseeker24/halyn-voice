@@ -36,6 +36,8 @@ export const customers = mysqlTable(
     id: id(),
     tenant_id: tenantId(),
     name: varchar('name', { length: 80 }).notNull(),
+    /** What voices say (TTS): Saksham is written सक्षम (CLAUDE.md §8). Screens use `name`. */
+    spoken_name: varchar('spoken_name', { length: 80 }),
     region: char('region', { length: 2 }).notNull(),
     language: varchar('language', { length: 8 }).notNull(),
     /** SHA-256(PHONE_HASH_PEPPER ‖ E.164): the full number is never stored. */
@@ -143,7 +145,7 @@ export const actionRequests = mysqlTable(
   },
   (t) => [
     primaryKey({ columns: [t.tenant_id, t.id] }),
-    // Invariant 7: an LLM retry of the same proposal never creates a second request.
+    // Invariant 7: the same (run_id, params_hash) is one request for the whole call; the Hub answers a retry with it.
     uniqueIndex('action_requests_idempotency').on(t.tenant_id, t.run_id, t.params_hash),
   ],
 );
