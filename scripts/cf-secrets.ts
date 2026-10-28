@@ -27,7 +27,8 @@ const CORE = ['HALYN_PUBLIC_JWKS'] as const;
 loadEnv();
 const args = parseArgs(process.argv.slice(2));
 const target = args.positional[0];
-if (target !== 'api' && target !== 'core') throw new Error('usage: cf-secrets.ts <api|core> [--db=…] [--yes]');
+if (target !== 'api' && target !== 'core')
+  throw new Error('usage: cf-secrets.ts <api|core> [--db=…] [--yes]');
 const names = target === 'api' ? API : CORE;
 const values: Record<string, string> = {};
 const skipped: string[] = [];
@@ -44,7 +45,9 @@ if (values.TIDB_DATABASE_URL) {
   url.pathname = `/${args.options.get('db') ?? 'halyn_dev'}`;
   values.TIDB_DATABASE_URL = url.toString();
 }
-console.log(`${target}: ${Object.keys(values).join(', ')}${skipped.length ? ` (not in .env, skipped: ${skipped.join(', ')})` : ''}`);
+console.log(
+  `${target}: ${Object.keys(values).join(', ')}${skipped.length ? ` (not in .env, skipped: ${skipped.join(', ')})` : ''}`,
+);
 requireYes(args, `put ${Object.keys(values).length} secrets on the deployed ${target} Worker`);
 if (args.flags.has('dry-run')) process.exit(0);
 
@@ -53,11 +56,20 @@ const file = resolve('scripts/out', `${target}-secrets.json`);
 writeFileSync(file, JSON.stringify(values), { mode: 0o600 });
 try {
   // Relative to the package dir pnpm runs in: the repo path has spaces, and Windows needs shell: true.
-  const out = execFileSync('pnpm', ['--filter', pkg, 'exec', 'wrangler', 'secret', 'bulk', `../../scripts/out/${target}-secrets.json`], {
-    encoding: 'utf8',
-    shell: process.platform === 'win32',
-  });
-  console.log(out.split('\n').filter((l) => /success|uploaded|error|fail/i.test(l)).join('\n'));
+  const out = execFileSync(
+    'pnpm',
+    ['--filter', pkg, 'exec', 'wrangler', 'secret', 'bulk', `../../scripts/out/${target}-secrets.json`],
+    {
+      encoding: 'utf8',
+      shell: process.platform === 'win32',
+    },
+  );
+  console.log(
+    out
+      .split('\n')
+      .filter((l) => /success|uploaded|error|fail/i.test(l))
+      .join('\n'),
+  );
 } finally {
   rmSync(file, { force: true });
 }

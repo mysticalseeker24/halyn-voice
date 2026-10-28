@@ -197,7 +197,9 @@ export type PassDraft = z.input<typeof PassDraftSchema>;
 /** POST /web/passes/options → request options whose challenge binds the draft (`ApprovalOptionsResponseSchema`). */
 export const PassOptionsRequestSchema = PassDraftSchema;
 /** POST /web/passes: the same draft and the passkey assertion over its challenge. */
-export const IssuePassRequestSchema = PassDraftSchema.extend({ response: AuthenticationCredentialJsonSchema });
+export const IssuePassRequestSchema = PassDraftSchema.extend({
+  response: AuthenticationCredentialJsonSchema,
+});
 export const PassSummarySchema = z.strictObject({
   id: PassIdSchema,
   assistant_name: z.string().min(1).max(80),
@@ -217,7 +219,10 @@ export const AssistantTaskRequestSchema = z.strictObject({
   task: z.string().trim().min(3).max(300),
   pass_id: PassIdSchema,
 });
-export const AssistantTaskResponseSchema = z.strictObject({ ok: z.literal(true), execution_id: z.string().min(1) });
+export const AssistantTaskResponseSchema = z.strictObject({
+  ok: z.literal(true),
+  execution_id: z.string().min(1),
+});
 
 export const StageRunRequestSchema = z.strictObject({ mode: z.enum(['text', 'voice']).default('text') });
 export const StageRunResponseSchema = z.strictObject({

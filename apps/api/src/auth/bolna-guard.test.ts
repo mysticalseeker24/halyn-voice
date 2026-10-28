@@ -68,19 +68,26 @@ describe('bolnaGuard on webhooks (secret in ?key=, ADR-022)', () => {
 
   it('still needs the Bolna IP and the exact secret', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => undefined);
-    expect((await post(`/webhooks/bolna?key=${TOOL_SECRET}`, { 'cf-connecting-ip': '203.0.113.7' })).status).toBe(401);
-    expect((await post(`/webhooks/bolna?key=${TOOL_SECRET.slice(0, 10)}`, { 'cf-connecting-ip': BOLNA_IP })).status).toBe(
-      401,
-    );
+    expect(
+      (await post(`/webhooks/bolna?key=${TOOL_SECRET}`, { 'cf-connecting-ip': '203.0.113.7' })).status,
+    ).toBe(401);
+    expect(
+      (await post(`/webhooks/bolna?key=${TOOL_SECRET.slice(0, 10)}`, { 'cf-connecting-ip': BOLNA_IP }))
+        .status,
+    ).toBe(401);
     expect((await post('/webhooks/bolna', { 'cf-connecting-ip': BOLNA_IP })).status).toBe(401);
   });
 
   it('never takes ?key= on /tools/*', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => undefined);
-    const res = await app.request(`/tools/probe?key=${TOOL_SECRET}`, {
-      method: 'POST',
-      headers: { 'cf-connecting-ip': BOLNA_IP },
-    }, testEnv());
+    const res = await app.request(
+      `/tools/probe?key=${TOOL_SECRET}`,
+      {
+        method: 'POST',
+        headers: { 'cf-connecting-ip': BOLNA_IP },
+      },
+      testEnv(),
+    );
     expect(res.status).toBe(401);
   });
 });

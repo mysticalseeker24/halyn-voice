@@ -27,7 +27,11 @@ const draft = {
   expires_in_days: 7,
 };
 
-async function consent(passkey: SoftPasskey, body: unknown, token: string): Promise<AuthenticationCredentialJson> {
+async function consent(
+  passkey: SoftPasskey,
+  body: unknown,
+  token: string,
+): Promise<AuthenticationCredentialJson> {
   const res = await h.web('/web/passes/options', body, token);
   expect(res.status).toBe(200);
   const { options } = (await res.json()) as { options: Parameters<SoftPasskey['authenticate']>[0] };
@@ -42,7 +46,11 @@ describe('issuing a Pass with passkey consent', () => {
     const res = await h.web('/web/passes', { ...draft, response }, token);
     expect(res.status).toBe(201);
     const issued = IssuePassResponseSchema.parse(await res.json());
-    expect(issued.pass).toMatchObject({ assistant_numbers: [ASSISTANT], status: 'active', scopes: draft.scopes });
+    expect(issued.pass).toMatchObject({
+      assistant_numbers: [ASSISTANT],
+      status: 'active',
+      scopes: draft.scopes,
+    });
     const verified = await verifyPassToken(
       issued.token,
       await importVerifyKeys(String((h.env as unknown as Record<string, unknown>).HALYN_PUBLIC_JWKS)),
@@ -77,14 +85,21 @@ describe('issuing a Pass with passkey consent', () => {
     expect((await h.web('/web/passes/options', critical, token)).status).toBe(400);
     const none = await h.web('/web/passes/options', draft, token);
     expect(ErrorEnvelopeSchema.parse(await none.json()).error.message).toMatch(/passkey/i);
-    expect(await code(await h.web('/web/passes/options', draft, await h.consoleToken()))).toBe('E_UNAUTHORIZED');
+    expect(await code(await h.web('/web/passes/options', draft, await h.consoleToken()))).toBe(
+      'E_UNAUTHORIZED',
+    );
   });
 });
 
 describe('revoking a Pass', () => {
   it('revokes at once: the Pass mints no more codes; another customer gets 404', async () => {
     const token = await h.customerToken();
-    const other = await h.web('/web/passes/pass_demo', undefined, await h.customerToken('cus_saksham_us'), 'DELETE');
+    const other = await h.web(
+      '/web/passes/pass_demo',
+      undefined,
+      await h.customerToken('cus_saksham_us'),
+      'DELETE',
+    );
     expect(other.status).toBe(404);
     const res = await h.web('/web/passes/pass_demo', undefined, token, 'DELETE');
     expect(res.status).toBe(200);
@@ -108,7 +123,11 @@ describe('the Assistant task', () => {
     expect(res.status).toBe(201);
     const { execution_id } = (await res.json()) as { execution_id: string };
     const call = h.bolna.calls.find((c) => c.execution_id === execution_id);
-    expect(call?.user_data).toMatchObject({ task: task.task, customer_name: SPOKEN, purpose: 'assistant_task' });
+    expect(call?.user_data).toMatchObject({
+      task: task.task,
+      customer_name: SPOKEN,
+      purpose: 'assistant_task',
+    });
     expect(JSON.stringify(call?.user_data)).not.toMatch(/Saksham|eyJ/);
 
     const minted = await h.tool('get_pass_code', { run_id: execution_id, from_number: ASSISTANT });
@@ -135,7 +154,11 @@ describe('the Assistant task', () => {
 describe('the Assistant app hears the call', () => {
   it('gets a system line when the code is minted and the masked transcript when the call ends', async () => {
     const token = await h.customerToken();
-    const res = await h.web('/web/assistant/tasks', { task: 'Get my statement.', pass_id: 'pass_demo' }, token);
+    const res = await h.web(
+      '/web/assistant/tasks',
+      { task: 'Get my statement.', pass_id: 'pass_demo' },
+      token,
+    );
     const { execution_id } = (await res.json()) as { execution_id: string };
     const assistant = await h.listen('assistant');
     await h.tool('get_pass_code', { run_id: execution_id, from_number: ASSISTANT });
@@ -150,7 +173,8 @@ describe('the Assistant app hears the call', () => {
       body: JSON.stringify({
         id: execution_id,
         status: 'completed',
-        transcript: 'assistant: Hello, I am calling for my customer.\nuser: Your account ending 9876543210 is fine.',
+        transcript:
+          'assistant: Hello, I am calling for my customer.\nuser: Your account ending 9876543210 is fine.',
       }),
     });
     await h.settle();

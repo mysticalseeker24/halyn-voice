@@ -93,7 +93,12 @@ describe('spokenSummary', () => {
       'Freeze the card ending 8 8 1 2',
     );
     const wire = describeAction(
-      proposed('wire.new', { amount_minor: 800000, currency: 'USD', payee_account_last4: '3310', routing_last4: '0021' }),
+      proposed('wire.new', {
+        amount_minor: 800000,
+        currency: 'USD',
+        payee_account_last4: '3310',
+        routing_last4: '0021',
+      }),
     );
     const spoken = spokenSummary(wire);
     expect(spoken).toContain('account ending 3 3 1 0');

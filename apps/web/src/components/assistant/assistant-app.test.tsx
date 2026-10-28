@@ -4,7 +4,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AssistantAccessView } from '@/components/aero/assistant-access-view';
 import { AeroShell } from '@/components/aero/aero-shell';
 import { FakeWebSocket } from '@/test/fake-websocket';
-import { aeroHome, approvalOptionsBody, decisionMessage, jsonResponse, NOW, sessionBody, wsTicketBody } from '@/test/fixtures';
+import {
+  aeroHome,
+  approvalOptionsBody,
+  decisionMessage,
+  jsonResponse,
+  NOW,
+  sessionBody,
+  wsTicketBody,
+} from '@/test/fixtures';
 import { AssistantApp } from './assistant-app';
 
 const webauthn = vi.hoisted(() => ({ startAuthentication: vi.fn(), startRegistration: vi.fn() }));
@@ -68,13 +76,29 @@ describe("Saksham's Assistant", () => {
     expect(screen.getByTestId('pass-card')).toHaveTextContent('Move EMI date ×1');
     await userEvent.click(screen.getByRole('button', { name: 'Call Aero for me' }));
     await waitFor(() => expect(calls.some((c) => c.key === 'POST /web/assistant/tasks')).toBe(true));
-    expect(calls.find((c) => c.key === 'POST /web/assistant/tasks')?.body).toMatchObject({ pass_id: 'pass_demo' });
+    expect(calls.find((c) => c.key === 'POST /web/assistant/tasks')?.body).toMatchObject({
+      pass_id: 'pass_demo',
+    });
     expect(await screen.findByText(RUN)).toBeInTheDocument();
     const socket = await FakeWebSocket.ready();
     act(() => {
-      socket.send({ type: 'call_update', at: NOW, run_id: RUN, agent: 'assistant', speaker: 'system', text: 'Halyn issued a one-time Pass code for this call (5 minutes, single use).' });
+      socket.send({
+        type: 'call_update',
+        at: NOW,
+        run_id: RUN,
+        agent: 'assistant',
+        speaker: 'system',
+        text: 'Halyn issued a one-time Pass code for this call (5 minutes, single use).',
+      });
       socket.send(decisionMessage('allow', ['X_PASS_IN_SCOPE']));
-      socket.send({ type: 'call_update', at: NOW, run_id: RUN, agent: 'assistant', speaker: 'system', text: 'assistant: I am calling for my customer.\nuser: Thank you, the statement is on its way.' });
+      socket.send({
+        type: 'call_update',
+        at: NOW,
+        run_id: RUN,
+        agent: 'assistant',
+        speaker: 'system',
+        text: 'assistant: I am calling for my customer.\nuser: Thank you, the statement is on its way.',
+      });
     });
     expect(await screen.findByText(/one-time Pass code/)).toBeInTheDocument();
     expect(screen.getAllByText('ALLOWED').length).toBeGreaterThan(0);
@@ -92,9 +116,20 @@ describe('Aero: authorise an assistant', () => {
   it('issues a Pass with the passkey and revokes one in a tap', async () => {
     routes['POST /web/passes/options'] = () => jsonResponse(approvalOptionsBody());
     routes['POST /web/passes'] = (body) =>
-      jsonResponse({ pass: pass({ id: 'pass_new', scopes: (body as { scopes: unknown }).scopes }), token: 'aaa.bbb.ccc' }, 201);
+      jsonResponse(
+        {
+          pass: pass({ id: 'pass_new', scopes: (body as { scopes: unknown }).scopes }),
+          token: 'aaa.bbb.ccc',
+        },
+        201,
+      );
     routes['DELETE /web/passes/pass_demo'] = () => jsonResponse({ pass: pass({ status: 'revoked' }) });
-    webauthn.startAuthentication.mockResolvedValue({ id: 'Y3JlZC1pZA', rawId: 'Y3JlZC1pZA', type: 'public-key', response: {} });
+    webauthn.startAuthentication.mockResolvedValue({
+      id: 'Y3JlZC1pZA',
+      rawId: 'Y3JlZC1pZA',
+      type: 'public-key',
+      response: {},
+    });
     render(
       <AeroShell>
         <main>
@@ -105,9 +140,16 @@ describe('Aero: authorise an assistant', () => {
     expect(await screen.findAllByTestId('pass-row')).toHaveLength(1);
     await userEvent.click(screen.getByRole('button', { name: 'Approve with passkey' }));
     expect(await screen.findByText(/Pass issued/)).toBeInTheDocument();
-    const issued = calls.find((c) => c.key === 'POST /web/passes')?.body as { assistant: { numbers: string[] }; scopes: unknown[] };
+    const issued = calls.find((c) => c.key === 'POST /web/passes')?.body as {
+      assistant: { numbers: string[] };
+      scopes: unknown[];
+    };
     expect(issued.assistant.numbers).toEqual(['+918065356379']);
-    expect(issued.scopes).toEqual([{ action: 'statement.view' }, { action: 'card.freeze' }, { action: 'emi.move_date', max_uses: 1 }]);
+    expect(issued.scopes).toEqual([
+      { action: 'statement.view' },
+      { action: 'card.freeze' },
+      { action: 'emi.move_date', max_uses: 1 },
+    ]);
     expect(screen.getAllByTestId('pass-row')).toHaveLength(2);
     await userEvent.click(screen.getAllByRole('button', { name: 'Revoke' })[0] as HTMLElement);
     expect(await screen.findByText('REVOKED')).toBeInTheDocument();

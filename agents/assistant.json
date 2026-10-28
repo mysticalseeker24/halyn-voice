@@ -37,7 +37,10 @@
                 "parameters": {
                   "type": "object",
                   "properties": {
-                    "call_sid": { "type": "string", "description": "Telephony call id. Filled automatically." }
+                    "call_sid": {
+                      "type": "string",
+                      "description": "Telephony call id. Filled automatically."
+                    }
                   },
                   "required": []
                 }

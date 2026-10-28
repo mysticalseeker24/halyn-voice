@@ -77,7 +77,9 @@ export function passOptions(deps: AppDeps) {
     const passkeys = await flow.hub.passkeys(customer_id);
     if (passkeys.length === 0) throw new HalynError('E_BAD_REQUEST', 'Register a passkey first');
     const digest = await draftDigest(customer_id, draft);
-    const bound = await sha256Hex(canonicalJson({ draft: digest, nonce: base64urlEncode(deps.rng.bytes(16)) }));
+    const bound = await sha256Hex(
+      canonicalJson({ draft: digest, nonce: base64urlEncode(deps.rng.bytes(16)) }),
+    );
     const challenge = base64urlEncode(Uint8Array.from(bound.match(/../g) ?? [], (h) => parseInt(h, 16)));
     await flow.hub.putChallenge({
       challenge,
@@ -146,7 +148,9 @@ export function revokePassRoute(deps: AppDeps) {
   return async (c: Context<AppEnv>) => {
     const { tenant, customer_id } = customer(c);
     const id = PassIdSchema.safeParse(c.req.param('id'));
-    const row = id.success ? await flowContext(c.env, tenant, deps).hub.revokePass(customer_id, id.data) : null;
+    const row = id.success
+      ? await flowContext(c.env, tenant, deps).hub.revokePass(customer_id, id.data)
+      : null;
     if (!row) throw new HalynError('E_NOT_FOUND', 'No such Pass');
     return c.json(RevokePassResponseSchema.parse({ pass: summary(row, deps.clock.nowMs()) }));
   };

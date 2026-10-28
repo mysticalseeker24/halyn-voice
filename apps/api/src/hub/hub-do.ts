@@ -674,7 +674,11 @@ export class HubDO extends DurableObject<Env> {
     );
   }
 
-  async revokePass(tenant_id: string, customer_id: string, pass_id: string): Promise<HubResult<PassRow | null>> {
+  async revokePass(
+    tenant_id: string,
+    customer_id: string,
+    pass_id: string,
+  ): Promise<HubResult<PassRow | null>> {
     return this.guard(() =>
       this.serial(async () => {
         const tenant = this.bindTenant(tenant_id);

@@ -65,7 +65,11 @@ export function AssistantAccessView() {
     const scopes: PassScope[] = SCOPES.filter((s) => chosen.includes(s.action)).map((s) =>
       s.max_uses ? { action: s.action, max_uses: s.max_uses } : { action: s.action },
     );
-    const draft = { assistant: { name: name.trim(), numbers: [number.trim()] }, scopes, expires_in_days: days };
+    const draft = {
+      assistant: { name: name.trim(), numbers: [number.trim()] },
+      scopes,
+      expires_in_days: days,
+    };
     try {
       const { options } = await api.passOptions(draft);
       const response = await startAuthentication({
@@ -91,7 +95,8 @@ export function AssistantAccessView() {
 
   if (loadError)
     return <ErrorState title={copy.errorTitle} message={loadError} retryLabel={copy.retry} onRetry={load} />;
-  if (!passes || home.status === 'loading') return <LoadingState label={copy.loading} className="text-slate-800" />;
+  if (!passes || home.status === 'loading')
+    return <LoadingState label={copy.loading} className="text-slate-800" />;
   const registered = home.status === 'ready' && home.data.passkey_registered;
 
   return (
@@ -115,7 +120,9 @@ export function AssistantAccessView() {
               </span>
             </div>
             <p className="mt-1 text-sm text-slate-700">
-              {p.scopes.map((s) => copy[SCOPES.find((x) => x.action === s.action)?.key ?? 'assistantScopes']).join(' · ')}
+              {p.scopes
+                .map((s) => copy[SCOPES.find((x) => x.action === s.action)?.key ?? 'assistantScopes'])
+                .join(' · ')}
             </p>
             <p className="mt-1 text-sm text-slate-600">
               {copy.passUntil} {new Date(p.expires_at).toLocaleDateString()}
@@ -181,11 +188,15 @@ export function AssistantAccessView() {
             className="min-h-11 w-24 rounded-xl border border-slate-300 px-3 text-base"
           />
         </label>
-        {registered ? null : <p className="text-sm font-semibold text-amber-900">{copy.assistantNeedsPasskey}</p>}
+        {registered ? null : (
+          <p className="text-sm font-semibold text-amber-900">{copy.assistantNeedsPasskey}</p>
+        )}
         <button
           type="button"
           onClick={() => void authorise()}
-          disabled={!registered || phase === 'working' || chosen.length === 0 || !number.trim() || !name.trim()}
+          disabled={
+            !registered || phase === 'working' || chosen.length === 0 || !number.trim() || !name.trim()
+          }
           className="min-h-12 rounded-2xl bg-sky-700 px-4 text-base font-semibold text-white disabled:opacity-60"
         >
           {phase === 'working' ? copy.working : copy.assistantCta}

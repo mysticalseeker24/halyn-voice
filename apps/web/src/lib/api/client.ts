@@ -137,7 +137,12 @@ export function createApiClient(options: ApiClientOptions = {}) {
 
     /** Halyn Pass (docs/PASS.md): consent options bound to the draft, then issue with the passkey assertion. */
     passOptions: (draft: PassDraft) =>
-      request(WebauthnOptionsResponseSchema, 'POST', '/web/passes/options', PassOptionsRequestSchema.parse(draft)),
+      request(
+        WebauthnOptionsResponseSchema,
+        'POST',
+        '/web/passes/options',
+        PassOptionsRequestSchema.parse(draft),
+      ),
     issuePass: (draft: PassDraft, response: unknown) =>
       request(IssuePassResponseSchema, 'POST', '/web/passes', { ...draft, response }),
     listPasses: () => request(ListPassesResponseSchema, 'GET', '/web/passes'),

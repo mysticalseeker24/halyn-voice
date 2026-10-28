@@ -14,7 +14,8 @@ export function bolnaGuard(options: { querySecret?: boolean } = {}): MiddlewareH
   return async (c, next) => {
     const { BOLNA_SOURCE_IPS, HALYN_TOOL_SECRET } = requireEnv(c.env, ToolEnvSchema);
     const ipOk = BOLNA_SOURCE_IPS.includes(c.req.header('cf-connecting-ip') ?? '');
-    const given = c.req.header('x-halyn-secret') ?? (options.querySecret ? c.req.query('key') : undefined) ?? '';
+    const given =
+      c.req.header('x-halyn-secret') ?? (options.querySecret ? c.req.query('key') : undefined) ?? '';
     const secretOk = timingSafeEqual(given, HALYN_TOOL_SECRET);
     if (!(ipOk && secretOk)) throw new HalynError('E_UNAUTHORIZED', 'Unauthorized');
     await next();

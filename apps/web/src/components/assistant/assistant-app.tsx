@@ -55,7 +55,9 @@ export function PassCard({ pass }: { pass: PassSummary }) {
     >
       <div className="flex items-center justify-between bg-indigo-600 px-5 py-3">
         <p className="font-mono text-sm font-bold tracking-widest">HALYN PASS</p>
-        <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${active ? 'bg-white text-indigo-700' : 'bg-slate-300 text-slate-900'}`}>
+        <span
+          className={`rounded-full px-2 py-0.5 text-xs font-bold ${active ? 'bg-white text-indigo-700' : 'bg-slate-300 text-slate-900'}`}
+        >
           {pass.status.toUpperCase()}
         </span>
       </div>
@@ -89,7 +91,10 @@ export function PassCard({ pass }: { pass: PassSummary }) {
 }
 
 export function AssistantApp() {
-  const { state, api, token, retry, submitCode } = useDemoSession({ kind: 'customer', customerId: DEMO_CUSTOMER_ID });
+  const { state, api, token, retry, submitCode } = useDemoSession({
+    kind: 'customer',
+    customerId: DEMO_CUSTOMER_ID,
+  });
   const [passes, setPasses] = useState<PassSummary[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [passId, setPassId] = useState<string | null>(null);
@@ -168,8 +173,18 @@ export function AssistantApp() {
       </div>
     );
   if (state.status === 'error')
-    return <ErrorState title="Could not sign in" message={state.message} retryLabel="Try again" onRetry={retry} />;
-  if (loadError) return <ErrorState title="Could not load your Passes" message={loadError} retryLabel="Try again" onRetry={load} />;
+    return (
+      <ErrorState title="Could not sign in" message={state.message} retryLabel="Try again" onRetry={retry} />
+    );
+  if (loadError)
+    return (
+      <ErrorState
+        title="Could not load your Passes"
+        message={loadError}
+        retryLabel="Try again"
+        onRetry={load}
+      />
+    );
   if (state.status === 'loading' || !passes) return <LoadingState label="Loading…" />;
 
   const active = passes.filter((p) => p.status === 'active');

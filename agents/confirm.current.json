@@ -10,13 +10,7 @@
       "task_type": "conversation",
       "toolchain": {
         "execution": "parallel",
-        "pipelines": [
-          [
-            "transcriber",
-            "llm",
-            "synthesizer"
-          ]
-        ]
+        "pipelines": [["transcriber", "llm", "synthesizer"]]
       },
       "task_config": {
         "voicemail": false,
@@ -72,10 +66,7 @@
               "name": "confirm_result",
               "parameters": {
                 "type": "object",
-                "required": [
-                  "answer",
-                  "request_id"
-                ],
+                "required": ["answer", "request_id"],
                 "properties": {
                   "answer": {
                     "type": "string",
@@ -98,9 +89,7 @@
           "tools_params": {
             "confirm_result": {
               "url": "https://halyn-api.halyn-api.workers.dev/tools/confirm_result",
-              "nodes": [
-                "record"
-              ],
+              "nodes": ["record"],
               "param": {
                 "answer": "%(answer)s",
                 "call_sid": "%(call_sid)s",
@@ -140,10 +129,7 @@
                       "answer": {
                         "type": "string",
                         "description": "approve for a clear yes (हाँ, हाँ जी, जी हाँ, yes, approve). decline for a clear no (नहीं, ना, no, decline, मैंने नहीं किया), and also when the answer is still unclear after asking again.",
-                        "allowed_values": [
-                          "approve",
-                          "decline"
-                        ]
+                        "allowed_values": ["approve", "decline"]
                       }
                     },
                     "to_node_id": "record",
@@ -327,10 +313,7 @@
   "agent_category": "graph_agent",
   "sip_headers": null,
   "memory_config": null,
-  "dispositions": [
-    "bb5b505b-7c2d-50f4-836c-6e9dfde50ef8",
-    "d6b8c19d-4a6d-58a6-85f1-cb37475dc9ef"
-  ],
+  "dispositions": ["bb5b505b-7c2d-50f4-836c-6e9dfde50ef8", "d6b8c19d-4a6d-58a6-85f1-cb37475dc9ef"],
   "single_prompt_ui": false,
   "agent_prompts": {
     "task_1": {

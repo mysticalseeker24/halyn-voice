@@ -42,8 +42,14 @@
                       "type": "string",
                       "description": "The full name the caller said, or an empty string if they have not said one."
                     },
-                    "call_sid": { "type": "string", "description": "Telephony call id. Filled automatically." },
-                    "from_number": { "type": "string", "description": "Calling number. Filled automatically." }
+                    "call_sid": {
+                      "type": "string",
+                      "description": "Telephony call id. Filled automatically."
+                    },
+                    "from_number": {
+                      "type": "string",
+                      "description": "Calling number. Filled automatically."
+                    }
                   },
                   "required": ["claimed_name"]
                 }
@@ -56,9 +62,18 @@
                 "parameters": {
                   "type": "object",
                   "properties": {
-                    "code": { "type": "string", "description": "The six digits the assistant said, digits only." },
-                    "call_sid": { "type": "string", "description": "Telephony call id. Filled automatically." },
-                    "from_number": { "type": "string", "description": "Calling number. Filled automatically." }
+                    "code": {
+                      "type": "string",
+                      "description": "The six digits the assistant said, digits only."
+                    },
+                    "call_sid": {
+                      "type": "string",
+                      "description": "Telephony call id. Filled automatically."
+                    },
+                    "from_number": {
+                      "type": "string",
+                      "description": "Calling number. Filled automatically."
+                    }
                   },
                   "required": ["code"]
                 }
@@ -87,8 +102,14 @@
                       "type": "string",
                       "description": "The caller's last one or two sentences, word for word."
                     },
-                    "call_sid": { "type": "string", "description": "Telephony call id. Filled automatically." },
-                    "from_number": { "type": "string", "description": "Calling number. Filled automatically." }
+                    "call_sid": {
+                      "type": "string",
+                      "description": "Telephony call id. Filled automatically."
+                    },
+                    "from_number": {
+                      "type": "string",
+                      "description": "Calling number. Filled automatically."
+                    }
                   },
                   "required": ["action", "params", "readback_confirmed", "caller_quotes"]
                 }
@@ -206,7 +227,11 @@
                   "function_call": "propose_action",
                   "edges": [
                     { "to_node_id": "working", "condition_type": "event", "event_name": "allow" },
-                    { "to_node_id": "awaiting_confirmation", "condition_type": "event", "event_name": "step_up" },
+                    {
+                      "to_node_id": "awaiting_confirmation",
+                      "condition_type": "event",
+                      "event_name": "step_up"
+                    },
                     { "to_node_id": "protect", "condition_type": "event", "event_name": "hold" },
                     { "to_node_id": "refused", "condition_type": "event", "event_name": "deny" }
                   ]

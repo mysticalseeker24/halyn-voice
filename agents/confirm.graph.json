@@ -43,8 +43,14 @@
                   "type": "object",
                   "properties": {
                     "answer": { "type": "string", "description": "approve or decline" },
-                    "request_id": { "type": "string", "description": "The request id from the call details." },
-                    "call_sid": { "type": "string", "description": "Telephony call id. Filled automatically." }
+                    "request_id": {
+                      "type": "string",
+                      "description": "The request id from the call details."
+                    },
+                    "call_sid": {
+                      "type": "string",
+                      "description": "Telephony call id. Filled automatically."
+                    }
                   },
                   "required": ["answer", "request_id"]
                 }
