@@ -51,7 +51,7 @@
                       "type": "string",
                       "description": "The caller's last one or two sentences."
                     },
-                    "run_id": {
+                    "halyn_run_id": {
                       "type": "string",
                       "description": "Call id. Filled automatically; never ask the caller."
                     },
@@ -86,7 +86,7 @@
                 "method": "POST",
                 "headers": { "x-halyn-secret": "{{HALYN_TOOL_SECRET}}" },
                 "param": {
-                  "run_id": "%(execution_id)s",
+                  "halyn_run_id": "%(execution_id)s",
                   "call_sid": "%(call_sid)s",
                   "from_number": "%(from_number)s",
                   "to_number": "%(to_number)s",

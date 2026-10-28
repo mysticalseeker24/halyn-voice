@@ -40,7 +40,7 @@
                       "type": "string",
                       "description": "The request id. Filled automatically."
                     },
-                    "run_id": { "type": "string", "description": "Call id. Filled automatically." }
+                    "halyn_run_id": { "type": "string", "description": "Call id. Filled automatically." }
                   },
                   "required": ["answer", "method"]
                 }
@@ -55,7 +55,7 @@
                   "answer": "%(answer)s",
                   "method": "%(method)s",
                   "request_id": "%(request_id)s",
-                  "run_id": "%(execution_id)s"
+                  "halyn_run_id": "%(execution_id)s"
                 }
               }
             }
