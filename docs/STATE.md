@@ -1,10 +1,20 @@
 # STATE — read at the start of every chat, update at the end (`/handoff`). Keep it short (speed mode).
 
-_Last updated: 2026-10-29 05:10 IST, end of chat #5 (Steps 11 + 12 built, deployed, pushed; CI green `6efbbf8`). Next: chat #6 → Steps 13, 14, 15 (voice smoke only when Saksham asks)._
+_Last updated: 2026-10-29 05:30 IST, end of chat #6 (Steps 13, 15 and a slim 14 built and committed locally; not pushed or deployed yet). Next: chat #7 → Step 16, the full testing + hardening pass (voice smoke only when Saksham asks)._
 
 ## Where we are
 - **Done on `main`:** Steps 0–3, 5, 6, 7, 9, Day-0, **Steps 8 + 10 live** (voice smoke pending), **Step 11 built**
-  (deployed; voice-smoke 4 pending), **Step 12 built** (deployed; the real browser call is pending).
+  (deployed; voice-smoke 4 pending), **Step 12 built** (deployed; the real browser call is pending), **Steps 13, 15,
+  slim 14 built** (chat #6; the API changes are not deployed yet).
+- **Step 13 (Console):** Live (Hub stream, role console; decisions carry cue ids), Calls + call detail (requests,
+  handoffs, masked Bolna transcript, recording link kept on the Hub call state), Policies (KV packs, "Test this pack"),
+  Passes (tenant-wide, revoke), Signals (codes/cue ids only), Ledger (verify, JSON export), Integrations (agents via
+  `GET /v2/agent`: name/status/restricted/webhook host; guard booleans; Aero Core health; mirror backlog). Hub reads only.
+- **Step 15 (Halyn Test):** suite runs stored in the Hub (`POST /web/tests/runs`, one `/web/stage/run` per scenario with
+  `suite_run_id`; 3b = skipped live), scorecard + changes vs the previous run, permission map (both Aero graphs GREEN),
+  voice mode: `agents/test-*.json` (3 benign personas, files only) + place/score routes; button off until
+  `TEST_AGENT_*_ID` exist. **Step 14:** runner rule "event matches the decision" on every step; screening-refuses-answers
+  test; TESTING.md maps every security case to its test.
 - **Step 11:** Sarvam coaching layer 2 after the 300 ms answer (ADR-024: money allow/step_up wait as `screening`,
   `escalateForCoaching` → hold); Hub handoff records + booked check-in (record only); `GET /web/handoffs`,
   `POST /web/handoffs/:id/resolve` (release executes with a grant); Console shell + `/console/handoffs`.
@@ -19,8 +29,8 @@ _Last updated: 2026-10-29 05:10 IST, end of chat #5 (Steps 11 + 12 built, deploy
 - **Step 10:** `/web/passes` (options → issue with a passkey challenge bound to the draft; list; revoke),
   `/web/assistant/tasks` (Assistant calls A from B, bound to the Pass: `get_pass_code` sends only `call_sid`), Aero
   "Assistant" tab, Assistant app (Pass card, task box, live log: Pass-code line, decisions, transcript at call end).
-- `DEMO_ACCESS_CODE` set on the deployed API (2026-10-29). `pnpm verify` ✓ 04:00 IST (all text scenarios with layer 2 on);
-  e2e 12 ✓. Pushed `6efbbf8`, CI green (verify + e2e).
+- `DEMO_ACCESS_CODE` set on the deployed API (2026-10-29). Chat #6: `pnpm verify` ✓ 05:45 IST (scenarios 13/13, api 916 +
+  44 int, web 125), e2e 15 ✓; committed locally (push + API deploy on Saksham's go-ahead). Last pushed: `6efbbf8`.
 
 ## Bolna facts (binding; details in docs/BOLNA.md)
 - Tool params: never a run id (`%(execution_id)s` isn't a tool variable; a param `run_id` crashes the call); send
@@ -64,19 +74,24 @@ Text mode (`pnpm test:scenarios`): all 13 ✅ (1–12, 3b), coaching layer 2 on 
 Voice: none yet. Smoke plan: 1, 2, 3 (Saksham calls A; 3 from a second phone, step-up → Confirm call → decline) and
 5, 6 (`POST /web/assistant/tasks` with `pass_demo` from a customer session; 6 = step-up → decline).
 
-## Next steps (in order) — only after Saksham's go-ahead (full detail: the chat #6 prompt in docs/HANDOFF.md)
+## Next steps (in order) — only after Saksham's go-ahead (full detail: the chat #7 prompt in docs/HANDOFF.md)
 **Priority (Saksham, 2026-10-29): a complete product — every function working end to end — for the submission; the
 build freeze is gone. Screens stay plain until a UI refinement pass (professional, not AI-looking) after all steps.**
-1. Chat #6: Step 13 (all Console pages), Step 15 (Halyn Test page: scorecard, run comparison, permission map, voice-mode
-   path), then a slim Step 14 (rules, security map, counts). One verify + push per chat. Context budget ~50 %.
-2. Carried, only when Saksham asks (09:00–21:00 IST, go-ahead per call): voice smoke 1, 2, 3, 5, 6, 4 and the browser
-   call (scenario 10); inbound calls can't carry `user_data`, so 3/4's `security_demo` tag lives in our notes.
-3. Steps 16–20, then full testing + hardening, then the UI refinement pass.
+0. If chat #6 ended before it: push chat #6's commits (`bash scripts/push.sh`, CI both jobs) and deploy the API
+   (`pnpm deploy:api`) — each on Saksham's go-ahead.
+1. Chat #7: Step 16 — the full testing + hardening pass (PROMPTS.md Step 16 + its speed-mode extension).
+2. Waiting for Saksham (09:00–21:00 IST, go-ahead per call or agent): voice smoke 1, 2, 3, 5, 6, 4 and the browser
+   call (scenario 10) — inbound calls can't carry `user_data`, so 3/4's `security_demo` tag lives in our notes; create
+   the three persona agents (`pnpm exec tsx scripts/bolna/agent.ts create agents/test-<persona>.json --yes` → `restricted: false` → `TEST_AGENT_*_ID` in
+   `.env` → `cf-secrets.ts api --yes`), then voice runs from /console/test.
+3. Steps 17–20 (Step 17: Vercel + `WEB_ORIGIN`/`RP_ID` + the phone passkey), then the UI refinement pass.
 
 ## Carry into later steps
 - Steps 11/13: approved tier-4 changes become a handoff until the Console release flow exists.
-- Steps 15/17: live Stage runs touch the demo customer's real Aero Core rows (demo reset); 3b (60 s) and 12 don't fit a
-  Worker's 30 s `waitUntil` → run long scenarios inside the Hub (alarm-stepped).
+- Steps 15/17: live Stage/Test runs touch the demo customer's real Aero Core rows (demo reset); 3b (60 s) is reported
+  "skipped in live mode"; if 12 times out live, run long scenarios inside the Hub (alarm-stepped).
+- Voice personas: Aero's side of a persona call is matched by number B's last 4 + start time (±30 s); check it on the
+  first real run (and whether Bolna accepts `api_tools: null` on create).
 - Step 12 browser call: if tools 400 on a non-phone `from_number` or the call sid never maps, read the raw logs first.
 - Step 13/19: files in KV `file:<tenant>:<kind>:<id>` (ADR-023). Step 17: deploy web to Vercel, set `WEB_ORIGIN` +
   `RP_ID` on the API, register the passkey on the phone.

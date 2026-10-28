@@ -2,6 +2,15 @@
 
 Newest at the top. One entry per session via `/handoff`: what changed, tests run (with counts), what's next, anything risky.
 
+## 2026-10-29 · Steps 13, 15 + slim 14 (Console, Halyn Test) — chat #6
+- Console (Hub reads only, console sessions): Live, Calls + detail (masked transcript, recording), Policies, Passes
+  (tenant-wide revoke), Signals (codes/cue ids), Ledger (verify, export), Integrations (agents, guards, health, backlog).
+- Halyn Test: suite runs in the Hub via  +  (3b skipped live), scorecard + changes vs the
+  previous run, permission map (both Aero graphs GREEN), 3 benign persona agents as files + place/score routes (off).
+- Step 14: runner checks the event follows the decision on every step; screening refuses answers; TESTING.md security map.
+- Tests: verify ✓ — api 916 unit + 44 int, shared 680, aero-core 160 + 49, sdk 48, web 125, root 41; scenarios 13/13
+  (15 tests); coverage gate/pass/ledger/grants ≥ 99 %, shared 99.9 %, sdk 100 %; e2e 15 ✓. Not deployed, not pushed.
+
 ## 2026-10-29 · Step 12 built (US region, browser calls) — chat #5
 - `POST /web/calls/session`: mints the Bolna web-call session (key stays server-side; the mint returns `run_id`) for
   the region's agent and registers that run in the Hub as the customer's browser call (proof `app_session`; US →
