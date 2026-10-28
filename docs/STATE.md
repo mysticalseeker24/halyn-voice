@@ -1,14 +1,18 @@
 # STATE — read at the start of every chat, update at the end (`/handoff`). Keep it short (speed mode).
 
-_Last updated: 2026-10-29 04:00 IST, chat #5 (Step 11 built, not deployed). Next in this chat: Step 12; voice smoke
-1, 2, 3, 5, 6 + 4 from 09:00 IST (go-ahead per call; deploy Step 11 first)._
+_Last updated: 2026-10-29 04:45 IST, chat #5 (Steps 11 + 12 built and deployed; not pushed). Next: voice smoke 1, 2,
+3, 5, 6, 4 and the browser call (scenario 10) from 09:00 IST (go-ahead per call), then Step 13._
 
 ## Where we are
 - **Done on `main`:** Steps 0–3, 5, 6, 7, 9, Day-0, **Steps 8 + 10 live** (voice smoke pending), **Step 11 built**
-  (local commits; deploy + voice-smoke 4 pending).
+  (deployed; voice-smoke 4 pending), **Step 12 built** (deployed; the real browser call is pending). Not pushed yet.
 - **Step 11:** Sarvam coaching layer 2 after the 300 ms answer (ADR-024: money allow/step_up wait as `screening`,
   `escalateForCoaching` → hold); Hub handoff records + booked check-in (record only); `GET /web/handoffs`,
   `POST /web/handoffs/:id/resolve` (release executes with a grant); Console shell + `/console/handoffs`.
+- **Step 12:** `POST /web/calls/session` mints the Bolna web-call session for the region's agent and registers the
+  run id as the customer's browser call (proof app_session; US → `cus_saksham_us`); Aero "Call Aero" card
+  (`@bolna/web-call` 3.0.1); `aero-en` agent (English, USD, Deepgram Asteria, web only, no transfer). Stage region
+  switch was already wired. Scenario 10 passes in text mode.
   Working mode: **CLAUDE.md §5 speed mode** (one chat per step, no subagents, light tests, local commits, ask before push).
 - **Step 8:** prompts in Devanagari Hindi (voice: Sarvam `bulbul:v4-flash` `simran_enhi_banking_expressive` 1.1×,
   Saksham's pick; endpointing 300 ms). API + Aero Core deployed; Aero graph on A, Confirm graph (speech only, hangs up
@@ -39,15 +43,17 @@ _Last updated: 2026-10-29 04:00 IST, chat #5 (Step 11 built, not deployed). Next
 | Aero graph (`aero-hi`) | `f02fa07d-54e8-4140-a318-72b816c10a57` | `agents/aero.graph.json`, snapshot `aero.current.json` |
 | Halyn Confirm graph | `96a6c2a2-9695-4876-8a34-41112d812077` | `agents/confirm.graph.json`; guardrails 9–21 |
 | Saksham's Assistant | `29d45c35-c6c4-44df-9548-76f9b9084a5c` | `agents/assistant.json`; guardrails 9–21 |
+| Aero English, US web (`aero-en`) | `f281278d-90cb-4550-a285-60f2abcb7638` | `agents/aero-en.graph.json` (generated: `scripts/bolna/make-aero-en.mjs`); web only |
 | Old Kavach listener, Day-0 agents (Aero test `c03d110b…`, Confirm test `e0f05bf4…`, Assistant `a4d3d5cf…`, caller `17ad7f4e…`) | — | unlinked, kept; retire only with go-ahead |
-All real agents `restricted: false`; `list_violations` empty (2026-10-29 00:35). Wallet 958.7 ¢. Helpers:
+All real agents `restricted: false` (aero-en checked 2026-10-29 04:40); `list_violations` empty (00:35). Wallet 958.7 ¢.
+Use `agent.ts get --out` for snapshots: the MCP `get_agent` returns the tool secret in plain text. Helpers:
 `scripts/bolna/*.ts` (writes need `--yes`; agent pushes fill `{{API_URL}}` from `HALYN_API_URL`); `check-agents.ts` (offline
 gate) and `inspect-agent.mjs` (snapshot summary). Workflow: HANDOFF.md conventions 11–15.
 
 ## Deployed / cloud
 | Thing | Status |
 |---|---|
-| API Worker | `https://halyn-api.halyn-api.workers.dev` (15 secrets via `scripts/cf-secrets.ts api --yes`) |
+| API Worker | `https://halyn-api.halyn-api.workers.dev` (18 secrets via `scripts/cf-secrets.ts api --yes`; Steps 11 + 12 deployed `dee65a7f`) |
 | Aero Core Worker | `https://halyn-aero-core.halyn-api.workers.dev`; D1 `aero-core` `bfc0e8a5…` seeded |
 | KV `CONFIG` | `0944d7d7…`; `pack:ten_aero:IN` / `:US` uploaded. **Files go here too** (ADR-023; R2 refused, no card; S3 if final round) |
 | TiDB `halyn_dev` | migrated (0001) + seeded (real number, `pass_demo` → number B, 30 days) — the Worker's DB |
@@ -55,7 +61,7 @@ gate) and `inspect-agent.mjs` (snapshot summary). Workflow: HANDOFF.md conventio
 `*.workers.dev` opened from this machine on 2026-10-28 (curl /health 200).
 
 ## Scenario status
-Text mode (`pnpm test:scenarios`): 1–9, 3b, 11, 12 ✅ (5, 6 = Step 10 done criterion ✅); 10 pending Step 12.
+Text mode (`pnpm test:scenarios`): all 13 ✅ (1–12, 3b), coaching layer 2 on (mock Sarvam).
 Voice: none yet. Smoke plan: 1, 2, 3 (Saksham calls A; 3 from a second phone, step-up → Confirm call → decline) and
 5, 6 (`POST /web/assistant/tasks` with `pass_demo` from a customer session; 6 = step-up → decline).
 
@@ -63,15 +69,16 @@ Voice: none yet. Smoke plan: 1, 2, 3 (Saksham calls A; 3 from a second phone, st
 1. 09:00–21:00 IST: voice-smoke 1, 2, 3, 5, 6 (go-ahead per call); raw logs to file + a filter script;
    `list_violations` + COMPLIANCE.md log; scenario table here. Inbound calls can't carry `user_data`, so scenario
    3/4's `security_demo` tag lives in our notes (Bolna was told in advance).
-2. Step 11 (Sarvam coaching layer 2 off the 300 ms path — ADR; hold/transfer; check-in record; Console Handoffs),
-   voice-smoke 4. 3. Step 12 (English agent, Web Call SDK, Stage region; scenario 10). 4. Step 13 (Console pages).
+2. Voice-smoke 4 (coached customer from the registered phone → hold → protect → transfer; confirm SPECIALIST_NUMBER is
+   Saksham's first). 3. Browser call (scenario 10): local web app → Aero "Call Aero" with the Stage region US → ask a
+   $8,000 wire → hold. 4. Push (Saksham held it after Step 11), CI. 5. Step 13 (Console pages).
    Context budget: a new chat when one passes ~40 %. Steps 14–20 after; **at the end: full testing + hardening**.
 
 ## Carry into later steps
 - Steps 11/13: approved tier-4 changes become a handoff until the Console release flow exists.
 - Steps 15/17: live Stage runs touch the demo customer's real Aero Core rows (demo reset); 3b (60 s) and 12 don't fit a
   Worker's 30 s `waitUntil` → run long scenarios inside the Hub (alarm-stepped).
-- Step 12: scenario 10 (browser calls carry the app session); check 7 (web call) on the real API.
+- Step 12 browser call: if tools 400 on a non-phone `from_number` or the call sid never maps, read the raw logs first.
 - Step 13/19: files in KV `file:<tenant>:<kind>:<id>` (ADR-023). Step 17: deploy web to Vercel, set `WEB_ORIGIN` +
   `RP_ID` on the API, register the passkey on the phone.
 - Step 19: clone lines in voice C then `atempo=1.25`; `scripts/clone-clips.ts` refuses Roman "Saksham".

@@ -111,8 +111,10 @@ by the Hub's own alarm.
 | `POST /web/passkeys/register/options` · `/verify` | One-time passkey registration: `{options}` / `{response}` → `{ok:true}` |
 | `POST /web/passes/options` · `POST /web/passes` · `DELETE /web/passes/:id` · `GET /web/passes` | Pass consent options (challenge binds the draft) / issue `{assistant, scopes, expires_in_days, response}` → `{pass, token}` / revoke → `{pass}` / list → `{passes}` (Step 10) |
 | `POST /web/assistant/tasks` | `{task, pass_id}` → `{ok, execution_id}`: the Assistant agent calls A from B (09:00–21:00 IST), bound to that Pass, so its `get_pass_code` sends only `call_sid` |
+| `POST /web/calls/session` | Customer: `{region?}` → Bolna's web-call session (single-use, ~120 s) for `@bolna/web-call`; region (default: the Stage's) picks the Aero agent; the run id is registered as this customer's browser call (channel `web`, proof `app_session`; in US the customer's US record) (Step 12) |
 | `POST /web/stage/run/:scenario` · `POST /web/stage/region` | Stage controls |
-| `GET /web/calls` · `/web/calls/:id` · `/web/policies` · `/web/handoffs` · `POST /web/handoffs/:id/resolve` | Console |
+| `GET /web/calls` · `/web/calls/:id` · `/web/policies` | Console (Step 13) |
+| `GET /web/handoffs` · `POST /web/handoffs/:id/resolve` | Console: `{handoffs}` newest first (Hub read model, check-in record) · `{action: release|block, note?}` → `{ok, status}`; first resolution wins (400 after); release of a held request approves it and the Worker executes it with a grant (Step 11) |
 | `GET /web/ledger` · `GET /web/ledger/verify` · `GET /web/ledger/export` | Ledger |
 | `POST /web/tests/runs` · `GET /web/tests/runs/:id` · `GET /web/tests/permission-map` | Halyn Test |
 | `POST /web/ws-ticket` · `GET /ws` | One-time WebSocket ticket, then the WebSocket to the tenant Hub (Auth above) |
