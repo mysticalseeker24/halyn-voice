@@ -1,9 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const apps = [
-  { path: '/console', heading: 'Halyn Console' },
-  { path: '/assistant', heading: "Saksham's Assistant" },
-];
+const apps = [{ path: '/console', heading: 'Halyn Console' }];
 
 test('home links to the four apps', async ({ page }) => {
   await page.goto('/');
@@ -19,4 +16,4 @@ for (const app of apps) {
   });
 }
 
-// /stage and /aero have their own specs (they need the mocked API).
+// /stage, /aero and /assistant have their own specs (they need the mocked API).
