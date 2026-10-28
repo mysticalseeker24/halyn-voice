@@ -2,7 +2,8 @@
 
 Chat #1 (Oct 25–27) built Steps 0–3, 5 and the Day-0 setup. Chat #2 (Oct 27–28) built Step 6 (Aero Core) + its
 review fixes, set the secrets, re-seeded `halyn_dev` with the real number, made the Sarvam voice clones (check 8) and
-redeployed the Day-0 probe for check 11. Everything a new chat needs is in the repo: `CLAUDE.md` (auto-loaded) →
+redeployed the Day-0 probe for check 11. Chat #3 (Oct 28) built Steps 7 + 9, switched to speed mode (CLAUDE.md §5)
+and ran Day-0 (checks 1–5 pass; Bolna tool-param rules learned; probe deleted). Everything a new chat needs is in the repo: `CLAUDE.md` (auto-loaded) →
 `docs/STATE.md` (auto-loaded via CLAUDE.md) → this file → the docs they point to. Nothing lives only in chat history.
 
 ## Open the new chat in `E:\Code and Shit\DevLabs\Bolna Buildathon\Build 2\halyn-voice`
@@ -51,36 +52,25 @@ non-protective prompt wording and misspellings of Saksham's name).
     @ffprobe-installer/ffprobe` in a scratch folder works (`ffmpeg-static`'s GitHub download is reset); in the Bash
     tool use `(cd sub && …)` subshells so the working directory stays at the repo root.
 
-## Parallel plan for chat #3 (Saksham's choice)
-- **Step 7** (api-builder → test-engineer) owns `apps/api`, `packages/shared`, `packages/sdk`, `tests/scenarios`,
-  `tests/fixtures`. **Step 8** follows Step 7 (it deploys the API) with bolna-voice-engineer.
-- **Step 9** (web-builder, parallel) owns `apps/web` and `docs/screens/` only. It reads `@halyn/shared` (`ws.ts`,
-  `api.ts`, `core.ts`) but never edits it: shared-type needs go into its report and the Step 7 agent (or you) adds them.
-  Endpoints Step 7 hasn't built yet are mocked in web tests from the shapes in `docs/API.md`.
-- Two test suites at once cause the known flakes: verify each commit **after** both agents finish.
 
-## Prompt to paste into the new chat
+## Prompt to paste into the new chat (chat #4 → Step 8)
 ```text
-We're continuing Halyn (Bolna Symphony Buildathon) in a fresh chat (chat #3). Nothing is lost: the repo is the memory.
-We are building the WHOLE product end to end, perfectly — no freeze cut, no fallbacks we could avoid, every step in
-PROMPTS.md and all 12 scenarios. Work token-lean (docs/HANDOFF.md convention 6): tight subagent briefs, Sonnet for
-routine agents, small fixes inline, short status updates.
+Continue Halyn (Bolna Symphony Buildathon), chat #4. The repo is the memory: CLAUDE.md and docs/STATE.md are loaded;
+read docs/HANDOFF.md conventions. Work in SPEED MODE (CLAUDE.md §5): you build everything yourself in this chat — no
+subagents — every function working end to end, light tests, small local commits as pieces work, one `pnpm verify`
+before the push, quiet commands, status ≤ 5 lines. Ask me only before pushing and before any Bolna call / agent change /
+relink / deploy / DB write.
 
-1. Read docs/HANDOFF.md (follow every convention), then check the real state: `git status`, `git log --oneline -20`,
-   `gh run list --limit 3`, IST time, Bolna wallet (get_user_info, cents), `list_violations`.
-2. Tell me in ≤ 8 lines what's done, what's pending and today's plan.
-3. Day-0 calls (docs/DAY0.md run order): [I approve them today from 09:00 IST, ≤ 20 billed minutes — delete this
-   bracket if you want to be asked first]. Tell me exactly when to call A and when to pick up; check 11 comes from the
-   probe's `timings_on_request` log. Afterwards: restricted on all agents, list_violations, COMPLIANCE.md log, results
-   into STATE.md + DAY0.md, /pull-call fixtures into tests/fixtures/bolna, then delete the probe and its KV/D1.
-4. Step 7 (PROMPTS.md): api-builder (Opus) then test-engineer (Sonnet). Include the carry-forwards in STATE.md
-   (spoken name सक्षम for customer_name; read Aero Core errors by error.details — E_GRANT_REUSED on Halyn's own retry
-   means executed; propose_action ≤ 300 ms with TiDB off the hot path). Done when scenarios 1, 2, 3, 3b, 7, 8, 11, 12
-   pass in `pnpm test:scenarios`.
-5. In parallel with Step 7: Step 9 with web-builder (Sonnet), owning apps/web only (HANDOFF "Parallel plan").
-6. Then Step 8 with bolna-voice-engineer — deploys, agent creation, relinking A and every call need my go-ahead.
-7. After each step: verify, code-reviewer (Sonnet), /handoff, show me the commit split (more, smaller commits), and
-   after my OK verify each commit (scripts/verify-commits.sh), push, watch CI.
-Always: never print secrets, never place calls or change Bolna agents/numbers or deploy without my go-ahead in this
-chat, and write my name in any spoken text as सक्षम मिश्रा.
+1. Check state in one go: `git status`, `git log --oneline -5`, `gh run list --limit 1`, IST time, Bolna wallet.
+   If local commits are unpushed, show me the list and ask to push.
+2. Step 8 (PROMPTS.md), using the Day-0 rules in STATE.md "Bolna facts learned on Day-0":
+   a. Voice first: make the agents sound human — every Hindi word a voice speaks in Devanagari, short warm greeting,
+      tuned Sarvam bulbul:v3 pace/speaker/endpointing (offer me 2–3 short samples to pick from).
+   b. `pnpm db:migrate` + `pnpm seed` on halyn_dev; deploy API + Aero Core (go-ahead).
+   c. Create the Aero graph agent and the Confirm agent from prompts/ + docs/BOLNA.md (no run id / method params,
+      call_sid on every tool, webhook_url = /webhooks/bolna, LLM node speaks the reference, DTMF off), verify
+      restricted=false, relink number A (go-ahead).
+   d. Voice-smoke scenarios 1, 2, 3 with me (3 tagged security_demo), then list_violations + COMPLIANCE.md log.
+3. /handoff (short), ask to push, then give me the prompt for chat #5 (Step 9 is done → Step 10).
+Write my name in any spoken text as सक्षम मिश्रा.
 ```

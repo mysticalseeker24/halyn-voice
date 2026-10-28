@@ -22,9 +22,13 @@ Newest at the top. One entry per session via `/handoff`: what changed, tests run
   `docs/screens/`.
 - Tests: `TURBO_FORCE=true pnpm verify` green — shared 673, sdk 48, api unit 836+, api int 43 (incl. the TiDB suite
   on `halyn_test`), aero-core 160 + 49, web 92, tooling 41; scenarios 14 passed + 1 skipped (10); web e2e 12/12.
-- Not done (Saksham paused for token budget): Day-0 calls; `db:migrate` + `seed` on `halyn_dev`; Step 8.
-- Risks: Bolna contract fixtures are still `synthetic-from-docs` until Day-0 recordings; the Confirm callback leg
-  needs the real run id on the Confirm call (Day-0 check 2).
+- Speed mode adopted (Saksham, token budget): one worker per chat, no subagents, light tests, coverage 60% outside
+  the pure core, local commits, ask only before push (CLAUDE.md §5, HANDOFF 4–6; agents default to Sonnet).
+- Day-0 calls 15:08–15:40 IST (11 calls, 33.9 ¢): checks 1–5 ✅, 6 ✗ (DTMF silences Vobiz speech), 7 skipped,
+  11 ✅ for the design (TiDB from BOM 64 ms–3.4 s → off the call path; D1 ~65–105 ms). Learned: no run id in tool
+  params (call_sid + webhook map), no `method`/`run_id` argument names, static nodes can't speak the reference, Hindi
+  must be Devanagari for TTS, voice felt slow/robotic. Real fixtures recorded; probe + KV + D1 deleted.
+- Not done: push (ask), `db:migrate` + `seed` on `halyn_dev`, Step 8 (voice first).
 
 ## 2026-10-27 · Step 6 (Aero Core) + check 8 voice clones + secrets — chat #2
 - Secrets: `pnpm keys:generate halyn-2026-10`; `.env` gained the signing key, JWKS, `PASS_CODE_PEPPER`,
