@@ -247,6 +247,17 @@ describe('normalizeToolBody → strict tool schemas', () => {
         normalizeToolBody('confirm_result', { run_id: RUN, request_id: 'req_1', answer: 'Yes', method: '' }),
       ),
     ).toEqual({ run_id: RUN, request_id: 'req_1', answer: 'approve', method: 'speech' });
+    // Agents send answer_method: Bolna refuses a tool param named `method` (its HTTP method keyword; Day-0 call 2).
+    expect(
+      ConfirmResultRequestSchema.parse(
+        normalizeToolBody('confirm_result', {
+          run_id: RUN,
+          request_id: 'req_1',
+          answer: 'no',
+          answer_method: 'keypad',
+        }),
+      ),
+    ).toMatchObject({ request_id: 'req_1', answer: 'decline', method: 'keypad' });
   });
 
   it('passes non-objects through for the schema to refuse', () => {

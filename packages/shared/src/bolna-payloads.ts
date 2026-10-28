@@ -181,7 +181,7 @@ export function normalizeToolBody(tool: BolnaTool, raw: unknown): unknown {
         ...common,
         request_id: bolnaValue(body.request_id),
         answer: bolnaAnswer(body.answer),
-        method: bolnaValue(body.method) ?? 'speech',
+        method: bolnaValue(body.answer_method ?? body.method) ?? 'speech',
       };
     case 'check_decision':
       return { ...common, request_id: bolnaValue(body.request_id) };

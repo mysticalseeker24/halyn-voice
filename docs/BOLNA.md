@@ -44,7 +44,10 @@ Keep descriptions short and protective. Requests come only from Bolna's three IP
 What the API accepts (Step 7, docs/API.md "How the tools behave"): **send no run id in tool params** (Day-0, 2026-10-28):
 a param named `run_id` is refused by Bolna's tool runner ("got multiple values for keyword argument 'run_id'" →
 `agent_llm_error`, hang-up), and `%(execution_id)s` is not a tool variable (KeyError → "ERROR CALLING API:
-'execution_id'"). The API maps the call by `call_sid` from the execution/pre-call webhooks (ADR-016 fallback). Then add
+'execution_id'"). The API maps the call by `call_sid` from the execution/pre-call webhooks (ADR-016 fallback), so
+**every agent's `webhook_url` must be Halyn's `/webhooks/bolna`** (the Confirm call too). Tool params must also avoid
+Bolna's own argument names — `run_id`, `method` (refused: "ERROR CALLING API: 'method'"), and to be safe `url`,
+`headers`, `param`: `confirm_result` sends `answer_method`. Then add
 `call_sid` to every tool (`"call_sid": "%(call_sid)s"`); `from_number` as `%(from_number)s` (with or without `+`).
 `propose_action` may send its params as one `params` object or each param under its own name (as the Day-0 agent
 does); `readback_confirmed` may be `"true"`/`"false"`; `caller_quotes` may be one string. `lookup_customer` takes
