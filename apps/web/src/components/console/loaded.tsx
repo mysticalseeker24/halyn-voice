@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useEffectEvent, useState } from 'react';
 import { EmptyState, ErrorState, LoadingState } from '@/components/states';
 
 // Every Console view loads once from the API and shows a loading, empty or error state (apps/web/CLAUDE.md).
@@ -22,12 +22,11 @@ export function Loaded<T>({
   const [state, setState] = useState<
     { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; data: T }
   >({ status: 'loading' });
-  const latest = useRef(load);
-  latest.current = load;
-  const alive = useRef(true);
-
-  const reload = useCallback(() => {
-    latest.current().then(
+  // Each reload bumps the nonce; the effect reads the latest `load` without re-running when its identity changes.
+  const [nonce, setNonce] = useState(0);
+  const reload = useCallback(() => setNonce((n) => n + 1), []);
+  const fetchData = useEffectEvent((alive: { current: boolean }) =>
+    load().then(
       (data) => alive.current && setState({ status: 'ready', data }),
       (err: unknown) =>
         alive.current &&
@@ -35,16 +34,16 @@ export function Loaded<T>({
           status: 'error',
           message: err instanceof Error ? err.message : `Could not load ${what}.`,
         }),
-    );
-  }, [what]);
+    ),
+  );
 
   useEffect(() => {
-    alive.current = true;
-    reload();
+    const alive = { current: true };
+    void fetchData(alive);
     return () => {
       alive.current = false;
     };
-  }, [reload]);
+  }, [nonce]);
 
   if (state.status === 'loading') return <LoadingState label={`Loading ${what}…`} />;
   if (state.status === 'error')

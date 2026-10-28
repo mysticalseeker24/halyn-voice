@@ -195,7 +195,7 @@ function VoicePanel({ api }: { api: ApiClient }) {
                       type="button"
                       disabled={!can}
                       onClick={() =>
-                        api.startVoiceRun(p.id).then(
+                        void api.startVoiceRun(p.id).then(
                           (r) => setRuns((s) => ({ ...s, [p.id]: r })),
                           (err: unknown) =>
                             setRuns((s) => ({ ...s, [p.id]: err instanceof Error ? err.message : 'failed' })),
@@ -219,7 +219,7 @@ function VoicePanel({ api }: { api: ApiClient }) {
                       <button
                         type="button"
                         onClick={() =>
-                          api.voiceRun(p.id, run.execution_id).then(
+                          void api.voiceRun(p.id, run.execution_id).then(
                             (r) => setRuns((s) => ({ ...s, [p.id]: r })),
                             () => undefined,
                           )
@@ -245,15 +245,17 @@ function VoicePanel({ api }: { api: ApiClient }) {
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export function TestView({ api, token }: { api: ApiClient; token: string | null }) {
-  const [region, setRegion] = useState<Region | null>(null);
+  // The shell renders this only in the browser (after sign-in), so the query string is there on the first render.
+  const [region, setRegion] = useState<Region | null>(() => {
+    const r = new URLSearchParams(window.location.search).get('region');
+    return r === 'IN' || r === 'US' ? r : null;
+  });
   const [data, setData] = useState<TestRunResponse | null | undefined>(undefined);
   const [running, setRunning] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const wake = useRef<() => void>(() => undefined);
 
   useEffect(() => {
-    const r = new URLSearchParams(window.location.search).get('region');
-    if (r === 'IN' || r === 'US') setRegion(r);
     api
       .testRun('latest')
       .then(setData, (err: unknown) =>

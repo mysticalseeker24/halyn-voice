@@ -5,7 +5,7 @@ review fixes, set the secrets, re-seeded `halyn_dev` with the real number, made 
 redeployed the Day-0 probe for check 11. Chat #3 (Oct 28) built Steps 7 + 9, switched to speed mode (CLAUDE.md §5)
 and ran Day-0 (checks 1–5 pass; Bolna tool-param rules learned; probe deleted). Chat #4 (Oct 28–29) built Steps 8 + 10
 and put them live (Devanagari voice prompts, API + Aero Core deployed, Aero/Confirm/Assistant agents on Bolna, Pass +
-Assistant web flows; CI green `8b0733e`) with no subagents; its voice smoke (scenarios 1, 2, 3, 5, 6) moved to chat #5. Chat #5 (Oct 29, night) set DEMO_ACCESS_CODE and built + deployed Steps 11 + 12 (coaching layer 2, handoffs, browser calls, aero-en agent); pushed (CI green 6efbbf8); chat #6 does Steps 13, 15, 14 (complete product first; a UI refinement pass after all steps) and the voice smoke waits until Saksham asks. Everything a new chat needs is in the repo: `CLAUDE.md` (auto-loaded) →
+Assistant web flows; CI green `8b0733e`) with no subagents; its voice smoke (scenarios 1, 2, 3, 5, 6) moved to chat #5. Chat #5 (Oct 29, night) set DEMO_ACCESS_CODE and built + deployed Steps 11 + 12 (coaching layer 2, handoffs, browser calls, aero-en agent); pushed (CI green 6efbbf8); Chat #6 (Oct 29) built Steps 13, 15 and a slim 14 (all Console pages, Halyn Test: suite runs, scorecard, permission map, voice personas as files); chat #7 does Step 16, the full testing + hardening pass; the voice smoke waits until Saksham asks. Everything a new chat needs is in the repo: `CLAUDE.md` (auto-loaded) →
 `docs/STATE.md` (auto-loaded via CLAUDE.md) → this file → the docs they point to. Nothing lives only in chat history.
 
 ## Open the new chat in `E:\Code and Shit\DevLabs\Bolna Buildathon\Build 2\halyn-voice`
@@ -85,65 +85,33 @@ non-protective prompt wording and misspellings of Saksham's name).
     `pnpm test:e2e` when the web app changed** — e2e is not part of verify (chat #4's first CI run failed on it).
 
 
-## Prompt to paste into the new chat (chat #6 → Steps 13, 15, 14)
-```text
-Halyn chat #6 (Bolna Symphony Buildathon). Goal: a COMPLETE product — every function working end to end — before the
-submission; a separate UI refinement pass (professional, not AI-looking) comes after all steps, so build screens
-plain and consistent with docs/UI.md now: no visual polish, no animation work.
+## Prompt to paste into the new chat (chat #7 → Step 16, the full testing + hardening pass)
 
-CLAUDE.md + docs/STATE.md are loaded; read only docs/HANDOFF.md lines 19–86 (conventions), nothing else whole.
-Speed mode (CLAUDE.md §5): build yourself, no subagents (.claude/agents/*.md = checklists only), narrow reads (grep +
-offset/limit), quiet commands, multi-line scripts in files (Write tool, not heredocs), small local commits.
-Context budget ~50 % (get_usage after each step). Status ≤ 5 lines. Bolna / deploy / DB / secret actions need my
-go-ahead; no calls unless I ask (09:00–21:00 IST). Avoid big MCP outputs (get_agent prints the tool secret — use
-`agent.ts get <id> --out=…`; list_tts_providers / doc pages only when unavoidable).
+```
+Halyn chat #7 (Bolna Symphony Buildathon). Steps 0–15 are built (Console, Halyn Test and the slim Step 14 audit landed
+in chat #6). Goal now: Step 16 in PROMPTS.md — the FULL testing + hardening pass (its SPEED-MODE EXTENSION: no stone
+unturned), so the complete product is solid before the demo environment (Step 17) and the UI refinement pass (last).
 
-This chat: Step 13, then Step 15, then a slim Step 14 (it audits 13 + 15 too). ONE verify + e2e + handoff + push at
-the end (ask me), ONE API deploy (ask me). If the budget runs out: stop after a finished step, verify, push, and write
-the next prompt into HANDOFF.md.
+CLAUDE.md + docs/STATE.md are loaded; read only docs/HANDOFF.md lines 19–86 (conventions) and PROMPTS.md "Step 16".
+Speed-mode working rules still hold for HOW you work (no subagents, narrow reads, quiet commands, multi-line scripts
+in files via Write, small local commits, status ≤ 5 lines, context budget ~50 % — get_usage after each part), but the
+testing itself is now complete, not light. Bolna / deploy / DB / secret actions need my go-ahead; no calls unless I
+ask (09:00–21:00 IST). Avoid big MCP outputs (agent.ts get --out instead of get_agent).
 
-STEP 13 — Console, all pages of docs/UI.md (inside ConsoleShell, apps/web/src/components/console; add each to
-CONSOLE_PAGES; console routes check session.kind like apps/api/src/web/handoffs.ts and read the Hub, not TiDB):
-- Live (/console): Hub WS stream for role 'console' (decisions with tier, signals, cues and the outcome word, handoffs,
-  call transcripts); reuse the Stage panels; add 'console' to any WS message it needs that only goes to 'stage'.
-- Calls (/console/calls + [id]): GET /web/calls; GET /web/calls/:id → requests, decisions, cues, handoff, transcript
-  (Bolna getExecution, numbers masked) and recording link (keep recording_url on the Hub call state, not only TiDB).
-- Policies (/console/policies): GET /web/policies — compiled packs from KV, read-only ("test this pack" in Step 15).
-- Passes (/console/passes): tenant-wide list + revoke (console variants of /web/passes; ledger records it).
-- Signals (/console/signals): GET /web/signals — counts per signal/reason code + latest requests with signals or
-  coaching cues (ids only, never the caller's words).
-- Ledger (/console/ledger): list + verify (routes exist) + export (GET /web/ledger/export → JSON download of the chain).
-- Integrations (/console/integrations): each agent id in env (Aero IN, aero-en, Confirm, Assistant) via the Worker's
-  Bolna client — name, status, restricted; webhook host only (no ?key=, no headers, no secret); booleans for the IP
-  guard + tool secret + Sarvam key; Aero Core /health; Hub mirror backlog.
-- Tests: one table-driven component test over the views (loading/empty/error + data); e2e Ledger verify + Pass revoke.
+Do, in order, committing as each part works:
+1. Invariant re-map: every CLAUDE.md §2 invariant and every docs/TESTING.md security case → a proving test (the tables
+   in TESTING.md are the starting point); write the missing ones.
+2. Adversarial + failure paths for every Steps 8–15 feature (webhooks, Pass + Assistant, layer 2 + handoffs, web
+   calls, Console routes, Halyn Test suite/voice routes): bad input, wrong session kind, other tenant, Bolna/Sarvam/
+   Aero Core down, replay. Mutation checks on the key guards (grant check, bolnaGuard, session kind checks, Gate tier
+   floor): flip each guard locally, confirm a test fails, restore.
+3. Fuzz/property tests where input is untrusted (tool bodies, webhook payloads, WebSocket tickets, pack JSON).
+4. Performance: propose_action p95 < 300 ms (warm path) and Worker CPU < 10 ms; fail-closed drill (API stopped
+   mid-call, in tests); log-masking audit; secrets scan; `pnpm audit` (fix or record).
+5. Fix EVERYTHING found. Docs: a line in the doc whose behaviour changed; ADR only for a real trade-off.
 
-STEP 15 — Halyn Test (/console/test):
-- Run: call the existing POST /web/stage/run/:scenario once per scenario (one request each = its own 30 s); results
-  via test_progress (add 'console'); 3b reports "skipped in live mode". Policies' "test this pack" = the same flow
-  for that region's scenarios.
-- Scorecard: actions without a grant (must be 0), attacks stopped, tasks completed, median propose_action ms,
-  per-scenario pass/fail/skip. Store each run in the Hub; GET /web/tests/runs/:id + latest; show changes vs the
-  previous run. (TiDB test_runs/test_results mirror only if it needs no migration.)
-- Permission map: pure function over the bundled agents/aero.graph.json + aero-en.graph.json — every path to the
-  propose_action node; GREEN if every edge into working/awaiting_confirmation/protect/confirmed/refused is an event
-  edge, else RED with the path. Unit tests: both real graphs GREEN; an LLM edge into `working` RED; cycles end.
-  GET /web/tests/permission-map + a page section (GREEN/RED words, not colour alone).
-- Voice mode: write agents/test-*.json for the three benign personas in prompts/personas/README.md (B → A,
-  call_terminate 120, guardrails 9–21; offline compliance gate) and the voice-run path (place the persona call, read
-  the execution back, score it); creating the agents and every call = my go-ahead, so the button stays disabled until
-  their ids are in .env. Attacker personas only if docs/STATE.md says Bolna approved (it does not).
-- Tests: scorecard + comparison component test; e2e: run the suite on the mocked API and see the scorecard.
-
-STEP 14 — slim (13/13 already pass; `pnpm verify` already enforces the coverage thresholds):
-- Confirm runner rules() covers all five SCENARIOS.md rules; add only what's missing (likely "the event matches the
-  decision" on every step) with a runner unit test that makes it fail on purpose.
-- docs/TESTING.md security list: map each case to its existing test in the invariant map; add tests only where none
-  exists, plus: demo code required, console routes refuse customer sessions, a screening request refuses answers.
-- Report counts from the final verify log (tests per package, scenarios, coverage per threshold group, security
-  cases) — no separate coverage runs.
-
-End: /handoff (STATE short, WORKLOG ≤ 8 lines, API.md "Web" rows for the new routes), Prettier, verify + e2e, ask →
-push.sh → CI both jobs, ask → deploy API. Write the next prompt into HANDOFF.md (Step 16 next; voice smoke still
-waits for me — list in STATE.md).
+End: /handoff (STATE short, WORKLOG ≤ 8 lines), Prettier, ONE `pnpm verify` + `pnpm test:e2e` (rebuilds web), ask →
+bash scripts/push.sh → CI both jobs (HANDOFF convention 13), ask → deploy API if the Worker changed. Write the chat #8
+prompt here (Step 17: demo environment — Vercel, WEB_ORIGIN/RP_ID, passkey on the phone; the voice smoke list in
+STATE.md still waits for me).
 ```
