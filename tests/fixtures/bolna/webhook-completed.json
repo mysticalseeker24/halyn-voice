@@ -1,0 +1,29 @@
+{
+  "_source": "synthetic-from-docs",
+  "_note": "Shape from Bolna docs and agents/day0 tool params (docs/BOLNA.md). Replace with a real recording from /pull-call.",
+  "id": "b1f6c8e2-7d3a-4c1e-9f00-123456789abc",
+  "agent_id": "c03d110b-9d59-453b-a899-5cd3eca4f3a9",
+  "status": "completed",
+  "termination_reason": "user_hangup",
+  "conversation_duration": 41,
+  "created_at": "2026-10-28T03:40:07.408883+00:00",
+  "transcript": "assistant: Namaste, Aero Bank ka AI assistant.\nuser: Mera card kho gaya hai.\n",
+  "telephony_data": {
+    "duration": 41,
+    "from_number": "••••0003",
+    "to_number": "+918065356344",
+    "recording_url": "https://api.bolna.ai/recordings/call/b1f6c8e2-7d3a-4c1e-9f00-123456789abc",
+    "call_type": "inbound",
+    "provider": "vobiz",
+    "provider_call_id": "CAday0example0001",
+    "hangup_by": "Caller"
+  },
+  "context_details": {
+    "recipient_phone_number": "+918065356344",
+    "recipient_data": {
+      "timezone": "Asia/Kolkata"
+    }
+  },
+  "total_cost": 3,
+  "tool_call_logs": []
+}

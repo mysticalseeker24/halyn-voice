@@ -1,0 +1,12 @@
+{
+  "_source": "synthetic-from-docs",
+  "_note": "The Day-0 Aero test agent maps each param to its own key; every value is a %(name)s string.",
+  "run_id": "b1f6c8e2-7d3a-4c1e-9f00-123456789abc",
+  "call_sid": "CAday0example0001",
+  "from_number": "••••0003",
+  "to_number": "+918065356344",
+  "action": "card.freeze",
+  "card_last4": "8812",
+  "readback_confirmed": "true",
+  "caller_quotes": "Mera card kho gaya hai, please freeze kar dijiye."
+}

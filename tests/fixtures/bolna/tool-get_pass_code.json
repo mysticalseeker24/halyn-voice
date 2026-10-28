@@ -1,0 +1,7 @@
+{
+  "_source": "synthetic-from-docs",
+  "_note": "Shape from Bolna docs and agents/day0 tool params (docs/BOLNA.md). Replace with a real recording from /pull-call.",
+  "run_id": "0c1d2e3f-4a5b-4c6d-8e7f-8091a2b3c4d5",
+  "pass_token": "eyJhbGciOiJFZERTQSJ9.eyJ2IjoiaGFseW4tcGFzcy8wLjEifQ.c2lnbmF0dXJl",
+  "from_number": "+918065356379"
+}

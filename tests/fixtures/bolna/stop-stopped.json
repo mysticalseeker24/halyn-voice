@@ -1,0 +1,8 @@
+{
+  "_source": "synthetic-from-docs",
+  "_note": "Shape from Bolna docs and agents/day0 tool params (docs/BOLNA.md). Replace with a real recording from /pull-call.",
+  "_http": 200,
+  "message": "done",
+  "status": "stopped",
+  "execution_id": "d4c3b2a1-0f9e-4d8c-8b7a-6f5e4d3c2b1a"
+}

@@ -1,0 +1,20 @@
+{
+  "_source": "synthetic-from-docs",
+  "_note": "A tool pre-call webhook: the execution record (status in-progress) plus the tool pre_call_webhook_param.",
+  "id": "b1f6c8e2-7d3a-4c1e-9f00-123456789abc",
+  "agent_id": "c03d110b-9d59-453b-a899-5cd3eca4f3a9",
+  "status": "in-progress",
+  "conversation_duration": 0,
+  "user_number": "••••0003",
+  "agent_number": "+918065356344",
+  "telephony_data": {
+    "from_number": "••••0003",
+    "to_number": "+918065356344",
+    "recording_url": null,
+    "call_type": "inbound",
+    "provider": "vobiz",
+    "provider_call_id": "CAday0example0001"
+  },
+  "context_details": null,
+  "tool": "propose_action"
+}

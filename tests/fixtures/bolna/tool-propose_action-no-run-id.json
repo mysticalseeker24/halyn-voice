@@ -1,0 +1,11 @@
+{
+  "_source": "synthetic-from-docs",
+  "_note": "Day-0 check 2 fallback: execution_id did not substitute; the API keys the call by call_sid.",
+  "run_id": "%(execution_id)s",
+  "call_sid": "CAday0example0003",
+  "from_number": "••••0003",
+  "action": "card.freeze",
+  "card_last4": "8812",
+  "readback_confirmed": "yes",
+  "caller_quotes": ""
+}

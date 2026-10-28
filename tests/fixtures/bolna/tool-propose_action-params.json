@@ -1,0 +1,17 @@
+{
+  "_source": "synthetic-from-docs",
+  "_note": "Shape from Bolna docs and agents/day0 tool params (docs/BOLNA.md). Replace with a real recording from /pull-call.",
+  "run_id": "b1f6c8e2-7d3a-4c1e-9f00-123456789abc",
+  "from_number": "••••0003",
+  "channel": "phone",
+  "action": "transfer.new_payee",
+  "params": {
+    "amount_minor": "4500000",
+    "currency": "INR",
+    "payee_account_last4": "4471",
+    "payee_ifsc": "AERO0000001",
+    "payee_name": "%(payee_name)s"
+  },
+  "readback_confirmed": "True",
+  "caller_quotes": "[\"Haan, bhej do\"]"
+}
