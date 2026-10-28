@@ -4,7 +4,8 @@ import { RequestIdSchema } from './ids';
 import { ReasonCodeSchema } from './reason-codes';
 
 // Outcome events Halyn injects into a live call: POST https://api.bolna.ai/v1/call/{run_id}/events
-// with { event, properties }. The Aero graph agent only reaches outcome nodes through these (docs/BOLNA.md).
+// with { event, properties }. The Aero graph agent only reaches outcome nodes through these (docs/BOLNA.md);
+// `recorded` goes to the Confirm call once its answer is stored, so the Confirm graph says goodbye and hangs up.
 
 export const OUTCOME_EVENT_NAMES = [
   'allow',
@@ -15,6 +16,7 @@ export const OUTCOME_EVENT_NAMES = [
   'timeout',
   'hold',
   'deny',
+  'recorded',
 ] as const;
 export type OutcomeEventName = (typeof OUTCOME_EVENT_NAMES)[number];
 
@@ -45,6 +47,7 @@ export const OutcomeEventSchema = z.discriminatedUnion('event', [
   event('timeout', z.strictObject(refusal)),
   event('hold', z.strictObject(refusal)),
   event('deny', z.strictObject(refusal)),
+  event('recorded', z.strictObject(request)),
 ]);
 export type OutcomeEvent = z.infer<typeof OutcomeEventSchema>;
 

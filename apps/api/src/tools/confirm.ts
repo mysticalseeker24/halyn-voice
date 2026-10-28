@@ -20,6 +20,12 @@ export function confirmResult(deps: AppDeps) {
       run_id: body.run_id,
     });
     if (settled) c.executionCtx.waitUntil(afterAnswer(ctx.flow, settled, 'callback'));
+    // The answer is stored: move the Confirm call to its goodbye node, which hangs up (Day-0: it lingered otherwise).
+    const bolna = ctx.flow.bolna;
+    if (bolna)
+      c.executionCtx.waitUntil(
+        bolna.sendEvent(body.run_id, { event: 'recorded', properties: { request_id: body.request_id } }),
+      );
     return c.json(OkResponseSchema.parse({ ok: true }));
   };
 }

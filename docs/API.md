@@ -92,6 +92,7 @@ How the tools behave (Step 7, `apps/api/src/tools`; ADR-016):
 | `denied` / `timeout` | `{request_id, reason}` | `refused` |
 | `hold` | `{request_id, reason}` | `protect` → `transfer` |
 | `deny` | `{request_id, reason}` | `refused` |
+| `recorded` | `{request_id}` | (Confirm call) `bye`: sent after `confirm_result` stores the answer; the Confirm graph hangs up |
 
 `reason` is the code that decided it (`C_DECLINED`, `C_TIMEOUT`, `S_COACHING`, `T_DISTRESS`, `I_NO_PROOF`, …). Two
 outcomes arrive where the graph did not expect them before Step 7 (docs/BOLNA.md adds the edges): `deny` after `allow`

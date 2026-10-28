@@ -324,6 +324,8 @@ describe('confirm_result (the Confirm callback)', () => {
     expect(await res.json()).toEqual({ ok: true });
     await h.settle();
     expect(h.bolna.events.get(RUN)?.map((e) => e.event)).toEqual(['step_up', 'approved', 'done']);
+    // The Confirm call itself hears `recorded`, so its graph says goodbye and hangs up.
+    expect(h.bolna.events.get(call.execution_id)).toEqual([{ event: 'recorded', properties: { request_id } }]);
     expect(await h.hub.requestState(request_id)).toMatchObject({
       final_outcome: 'allow',
       status: 'executed',

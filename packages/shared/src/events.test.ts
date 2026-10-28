@@ -13,6 +13,7 @@ describe('outcome events sent into calls', () => {
     { event: 'timeout', properties: { request_id: REQ, reason: 'C_TIMEOUT' } },
     { event: 'hold', properties: { request_id: REQ, reason: 'S_COACHING' } },
     { event: 'deny', properties: { request_id: REQ, reason: 'I_NO_PROOF' } },
+    { event: 'recorded', properties: { request_id: REQ } },
   ])('accepts $event', (body) => {
     expect(OutcomeEventSchema.parse(body)).toEqual(body);
   });
@@ -27,6 +28,7 @@ describe('outcome events sent into calls', () => {
       'timeout',
       'hold',
       'deny',
+      'recorded',
     ]);
   });
 
