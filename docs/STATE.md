@@ -1,6 +1,6 @@
 # STATE — read at the start of every chat, update at the end (`/handoff`). Keep it short (speed mode).
 
-_Last updated: 2026-10-29 05:30 IST, end of chat #6 (Steps 13, 15 and a slim 14 built and committed locally; not pushed or deployed yet). Next: chat #7 → Step 16, the full testing + hardening pass (voice smoke only when Saksham asks)._
+_Last updated: 2026-10-29 05:30 IST, end of chat #6 (Steps 13, 15 and a slim 14 built, pushed `5e88fb1`, CI green; API deployed `e2eec772`). Next: chat #7 → Step 16, the full testing + hardening pass (voice smoke only when Saksham asks)._
 
 ## Where we are
 - **Done on `main`:** Steps 0–3, 5, 6, 7, 9, Day-0, **Steps 8 + 10 live** (voice smoke pending), **Step 11 built**
@@ -30,7 +30,7 @@ _Last updated: 2026-10-29 05:30 IST, end of chat #6 (Steps 13, 15 and a slim 14 
   `/web/assistant/tasks` (Assistant calls A from B, bound to the Pass: `get_pass_code` sends only `call_sid`), Aero
   "Assistant" tab, Assistant app (Pass card, task box, live log: Pass-code line, decisions, transcript at call end).
 - `DEMO_ACCESS_CODE` set on the deployed API (2026-10-29). Chat #6: `pnpm verify` ✓ 05:45 IST (scenarios 13/13, api 916 +
-  44 int, web 125), e2e 15 ✓; committed locally (push + API deploy on Saksham's go-ahead). Last pushed: `6efbbf8`.
+  44 int, web 125), e2e 15 ✓; pushed `5e88fb1`, CI green (verify + e2e); API deployed `e2eec772` (health 200).
 
 ## Bolna facts (binding; details in docs/BOLNA.md)
 - Tool params: never a run id (`%(execution_id)s` isn't a tool variable; a param `run_id` crashes the call); send
@@ -62,7 +62,7 @@ gate) and `inspect-agent.mjs` (snapshot summary). Workflow: HANDOFF.md conventio
 ## Deployed / cloud
 | Thing | Status |
 |---|---|
-| API Worker | `https://halyn-api.halyn-api.workers.dev` (18 secrets via `scripts/cf-secrets.ts api --yes`; Steps 11 + 12 deployed `dee65a7f`) |
+| API Worker | `https://halyn-api.halyn-api.workers.dev` (18 secrets via `scripts/cf-secrets.ts api --yes`; Steps 13–15 deployed `e2eec772`, 2026-10-29) |
 | Aero Core Worker | `https://halyn-aero-core.halyn-api.workers.dev`; D1 `aero-core` `bfc0e8a5…` seeded |
 | KV `CONFIG` | `0944d7d7…`; `pack:ten_aero:IN` / `:US` uploaded. **Files go here too** (ADR-023; R2 refused, no card; S3 if final round) |
 | TiDB `halyn_dev` | migrated (0001) + seeded (real number, `pass_demo` → number B, 30 days) — the Worker's DB |
@@ -77,8 +77,6 @@ Voice: none yet. Smoke plan: 1, 2, 3 (Saksham calls A; 3 from a second phone, st
 ## Next steps (in order) — only after Saksham's go-ahead (full detail: the chat #7 prompt in docs/HANDOFF.md)
 **Priority (Saksham, 2026-10-29): a complete product — every function working end to end — for the submission; the
 build freeze is gone. Screens stay plain until a UI refinement pass (professional, not AI-looking) after all steps.**
-0. If chat #6 ended before it: push chat #6's commits (`bash scripts/push.sh`, CI both jobs) and deploy the API
-   (`pnpm deploy:api`) — each on Saksham's go-ahead.
 1. Chat #7: Step 16 — the full testing + hardening pass (PROMPTS.md Step 16 + its speed-mode extension).
 2. Waiting for Saksham (09:00–21:00 IST, go-ahead per call or agent): voice smoke 1, 2, 3, 5, 6, 4 and the browser
    call (scenario 10) — inbound calls can't carry `user_data`, so 3/4's `security_demo` tag lives in our notes; create
