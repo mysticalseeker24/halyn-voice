@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import type { ReactNode } from 'react';
+import { MotionRoot } from '@/components/motion-root';
 import { cn } from '@/lib/utils';
 import './globals.css';
 
@@ -16,7 +17,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en" className={cn('font-sans', sans.variable, mono.variable)}>
-      <body className="min-h-screen antialiased">{children}</body>
+      <body className="min-h-screen antialiased">
+        <MotionRoot>{children}</MotionRoot>
+      </body>
     </html>
   );
 }
