@@ -1,4 +1,7 @@
 import {
+  HandoffListResponseSchema,
+  HandoffResolveRequestSchema,
+  HandoffResolveResponseSchema,
   AeroHomeSchema,
   AssistantTaskRequestSchema,
   AssistantTaskResponseSchema,
@@ -165,6 +168,15 @@ export function createApiClient(options: ApiClientOptions = {}) {
       ),
     stageRegion: (region: Region) =>
       request(OkResponseSchema, 'POST', '/web/stage/region', StageRegionRequestSchema.parse({ region })),
+
+    handoffs: () => request(HandoffListResponseSchema, 'GET', '/web/handoffs'),
+    resolveHandoff: (handoffId: string, action: 'release' | 'block', note?: string) =>
+      request(
+        HandoffResolveResponseSchema,
+        'POST',
+        `/web/handoffs/${id(handoffId)}/resolve`,
+        HandoffResolveRequestSchema.parse(note ? { action, note } : { action }),
+      ),
 
     ledger: (limit = 50) => request(LedgerListResponseSchema, 'GET', `/web/ledger?limit=${limit}`),
     ledgerVerify: () => request(LedgerVerifyResponseSchema, 'GET', '/web/ledger/verify'),

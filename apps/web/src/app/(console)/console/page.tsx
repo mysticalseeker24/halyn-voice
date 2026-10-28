@@ -1,8 +1,21 @@
+'use client';
+
+import Link from 'next/link';
+import { ConsoleShell } from '@/components/console/console-shell';
+
 export default function ConsolePage() {
   return (
-    <main className="p-10">
-      <h1 className="text-3xl font-semibold">Halyn Console</h1>
-      <p className="text-muted-foreground mt-2">For bank teams. Placeholder until PROMPTS.md Step 13.</p>
-    </main>
+    <ConsoleShell title="Overview">
+      {() => (
+        <p className="text-slate-600">
+          Live, Calls, Policies, Passes, Signals, Ledger and Integrations arrive in Step 13. Holds waiting for
+          a specialist are in{' '}
+          <Link href="/console/handoffs" className="text-indigo-700 underline">
+            Handoffs
+          </Link>
+          .
+        </p>
+      )}
+    </ConsoleShell>
   );
 }
