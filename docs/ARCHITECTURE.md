@@ -12,7 +12,7 @@
 | Hub | Durable Object (one per tenant, SQLite) | WebSocket fan-out (Hibernation API), confirmation timers (alarms), ordered ledger appends, idempotency cache, sweep of requests whose Worker died after the decision or mid-execution (ADR-020), one-time WebSocket tickets (ADR-021) | Halyn API, web apps, Aero Core and Bolna (sweep and timeouts only) |
 | TiDB Starter | TiDB Cloud (MySQL) | System of record (`docs/DATA_MODEL.md`) | Halyn API via HTTP serverless driver |
 | Aero Core | Separate Worker + D1 | Mock bank; every route (reads too) requires a valid single-use grant (`@halyn/sdk.verifyGrant`; jti recorded in the same D1 batch as the effect) | Called only by Halyn API |
-| R2 / KV | Cloudflare | Clone clips, ledger exports, test reports / compiled policy packs, agent ids | Halyn API, scripts |
+| KV | Cloudflare | Compiled policy packs, agent ids, and (ADR-023) files: clone clips, ledger exports, test reports (`file:<tenant>:<kind>:<id>`); AWS S3 if we reach the final round | Halyn API, scripts |
 | Web | Vercel (Next.js) | `/stage`, `/console`, `/aero`, `/assistant` | Halyn API REST + Hub WebSocket |
 
 ## Main flow (`propose_action`) — Step 7, ADR-016

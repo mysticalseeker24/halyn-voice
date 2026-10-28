@@ -95,7 +95,7 @@ Callers ─► Bolna (Vobiz numbers A/B, Web Call SDK)
             ├─ Assistant agent (outbound)                         ├─ Confirm orch. ├─ Test runner
             └─ Test callers (normal personas)                     └─ Hub Durable Object: WebSockets, alarms, ledger order
 Halyn API ─► TiDB Starter (system of record, MySQL)   ─► Aero Core Worker + D1 (mock bank, grant check)
-          ─► R2 (clips, exports) · KV (compiled policy packs) · Sarvam (coaching LLM)
+          ─► KV (compiled policy packs; clips + exports, ADR-023) · Sarvam (coaching LLM)
 Web (Vercel, Next.js): /stage /console /aero /assistant  ◄── REST + WebSocket (hub)
 ```
 

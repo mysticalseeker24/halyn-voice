@@ -14,7 +14,7 @@ Cloud Starter cluster, a Vercel account, the Bolna API key, the Sarvam API key. 
    connection from these. Databases (ADR-013): `halyn_dev` for wrangler dev, `halyn_test` for the DB test suite,
    `halyn` for the demo. `pnpm db:migrate` creates them on first use.
 4. `pnpm --filter @halyn/aero-core exec wrangler d1 create aero-core`, `pnpm --filter @halyn/api exec wrangler kv namespace create halyn-config`,
-   `pnpm --filter @halyn/api exec wrangler r2 bucket create halyn-files` — put the ids in each `wrangler.toml` (go-ahead
+   (no R2: the account has no payment method, so files live in KV, ADR-023) — put the ids in each `wrangler.toml` (go-ahead
    first: these create Cloudflare resources). Local development and tests need none of them.
 5. Signing keys: `pnpm keys:generate halyn-YYYY-MM` writes `scripts/out/keys/<kid>.private.jwk.json` and
    `<kid>.jwks.json` (git-ignored) and prints the `wrangler secret put` commands for `HALYN_SIGNING_KEY` and

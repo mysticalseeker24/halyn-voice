@@ -230,3 +230,12 @@ never pass the `x-halyn-secret` check, and the call-sid → run-id map (ADR-016)
 `/webhooks/*` also takes the secret as `?key=`; the Bolna IP allowlist still applies; `/tools/*` stays header-only.
 **Consequences.** The secret sits in the agents' webhook URLs on Bolna (it is in their tool headers already); our
 request log records the path only. Rotating the secret means re-pushing every agent.
+
+## ADR-023 · Files in Cloudflare KV for now, AWS S3 for the final round — Accepted (2026-10-29)
+**Context.** R2 needs a payment method on the Cloudflare account and the card was refused, so the `halyn-files` bucket
+cannot be created. Files (clone clips, ledger exports, test reports) are first needed in Steps 13/19.
+**Decision.** Keep them in the existing KV namespace `CONFIG` under `file:<tenant>:<kind>:<id>` (values ≤ 25 MiB, free
+tier). If Halyn reaches the final round, move to AWS S3: one bucket and an IAM user whose keys reach only that bucket
+(never the root account), keys as Worker secrets, SigV4 via `aws4fetch` (WebCrypto, tiny).
+**Consequences.** No new credentials now. KV is eventually consistent (fine for write-once files) and has a 1,000
+writes/day free cap, so clips and exports stay few. The R2 binding stays commented out in `apps/api/wrangler.toml`.

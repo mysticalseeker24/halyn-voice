@@ -15,10 +15,9 @@ describe('halyn-api worker', () => {
     await res.body?.cancel();
   });
 
-  it('has the CONFIG KV binding; FILES (R2) is off until R2 is enabled on the account', async () => {
+  it('has the CONFIG KV binding; no FILES R2 binding (files live in KV, ADR-023)', async () => {
     await env.CONFIG.put('probe', 'ok');
     expect(await env.CONFIG.get('probe')).toBe('ok');
-    // wrangler.toml: re-enable the halyn-files bucket (Steps 13/19), then assert FILES works here again.
     expect((env as unknown as Record<string, unknown>).FILES).toBeUndefined();
   });
 });

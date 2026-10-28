@@ -27,8 +27,8 @@ service = "halyn-aero-core"
 binding = "CONFIG"
 id = "0944d7d7f5c9451e813fc1e7cbe2e87e"
 
-# Clone clips, ledger exports, test reports. Off until R2 is enabled on the account (dashboard; nothing uses it yet —
-# Steps 13/19 need it): then `wrangler r2 bucket create halyn-files` and uncomment.
+# Clone clips, ledger exports, test reports: in KV CONFIG (`file:<tenant>:<kind>:<id>`) for now, AWS S3 if we reach the
+# final round (ADR-023). R2 needs a payment method on the account (refused), so this binding stays off.
 # [[r2_buckets]]
 # binding = "FILES"
 # bucket_name = "halyn-files"
