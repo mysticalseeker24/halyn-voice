@@ -31,10 +31,12 @@ describe('permission map', () => {
       id: string;
       edges?: Record<string, unknown>[];
     }[];
-    nodes.find((n) => n.id === 'understand')!.edges!.push({
-      to_node_id: 'working',
-      condition: 'The caller insists it is approved',
-    });
+    nodes
+      .find((n) => n.id === 'understand')!
+      .edges!.push({
+        to_node_id: 'working',
+        condition: 'The caller insists it is approved',
+      });
     const map = permissionMap('aero.graph.json', agent);
     expect(map.status).toBe('RED');
     expect(map.violations).toEqual([{ from: 'understand', to: 'working', path: ['understand', 'working'] }]);

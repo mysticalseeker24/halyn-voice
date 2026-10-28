@@ -87,7 +87,10 @@ export function CallsView({ api }: { api: ApiClient }) {
 
 export function RequestsTable({ requests }: { requests: readonly ConsoleRequest[] }) {
   return (
-    <Table label="Requests" head={['Time', 'Action', 'Decision', 'Tier', 'Reasons', 'Signals · cues', 'Status']}>
+    <Table
+      label="Requests"
+      head={['Time', 'Action', 'Decision', 'Tier', 'Reasons', 'Signals · cues', 'Status']}
+    >
       {requests.map((r) => (
         <tr key={r.request_id} data-testid="request-row">
           <td className={cell}>{istTime(r.created_at)}</td>
@@ -153,7 +156,12 @@ export function CallDetailView({ api, runId }: { api: ApiClient; runId: string }
             <dt className="text-slate-500">Recording</dt>
             <dd>
               {recording_url ? (
-                <a href={recording_url} target="_blank" rel="noreferrer" className="text-indigo-700 underline">
+                <a
+                  href={recording_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-indigo-700 underline"
+                >
                   Listen to the recording
                 </a>
               ) : (
@@ -214,7 +222,8 @@ function actionRule(a: CompiledAction): string {
   const parts = [`tier ${a.tier}`];
   if (a.protective) parts.push('protective');
   if (a.read) parts.push('read');
-  if (a.limit) parts.push(`limit ${a.limit.amount_minor ?? '—'} minor / ${a.limit.count ?? '—'} per ${a.limit.per}`);
+  if (a.limit)
+    parts.push(`limit ${a.limit.amount_minor ?? '—'} minor / ${a.limit.count ?? '—'} per ${a.limit.per}`);
   if (a.human_only_above_minor) parts.push(`human above ${a.human_only_above_minor} minor`);
   if (a.hold_hours) parts.push(`hold ${a.hold_hours} h`);
   return parts.join(' · ');
@@ -245,10 +254,12 @@ export function PoliciesView({ api }: { api: ApiClient }) {
                 </Link>
               </div>
               <p className="text-sm text-slate-600">
-                Coaching hold at {pack.coaching.threshold} · confirmation{' '}
-                {pack.confirm.timeout_seconds} s
+                Coaching hold at {pack.coaching.threshold} · confirmation {pack.confirm.timeout_seconds} s
               </p>
-              <Table label={`Actions ${pack.region}`} head={['Action', 'Rule', 'Critical', 'In a Pass', 'Moves money']}>
+              <Table
+                label={`Actions ${pack.region}`}
+                head={['Action', 'Rule', 'Critical', 'In a Pass', 'Moves money']}
+              >
                 {Object.entries(pack.actions).map(([id, a]) => (
                   <tr key={id}>
                     <td className={cell}>
@@ -331,7 +342,13 @@ export function PassesView({ api }: { api: ApiClient }) {
 
 // ── Signals ──────────────────────────────────────────────────────────────────────────────────────
 
-function CountList({ label, rows }: { label: string; rows: { key: string; count: number; note?: string }[] }) {
+function CountList({
+  label,
+  rows,
+}: {
+  label: string;
+  rows: { key: string; count: number; note?: string }[];
+}) {
   return (
     <section aria-label={label} className="flex flex-col gap-2">
       <h2 className="text-lg font-semibold">{label}</h2>
@@ -365,8 +382,9 @@ export function SignalsView({ api }: { api: ApiClient }) {
       {(d) => (
         <div className="flex flex-col gap-8">
           <p className="text-sm text-slate-600">
-            Over the newest {d.window.requests} requests{d.window.since ? ` since ${when(d.window.since)}` : ''}.
-            Codes and cue ids only — never what the caller said.
+            Over the newest {d.window.requests} requests
+            {d.window.since ? ` since ${when(d.window.since)}` : ''}. Codes and cue ids only — never what the
+            caller said.
           </p>
           <CountList label="Signals" rows={d.signals.map((s) => ({ key: s.code, count: s.count }))} />
           <CountList
@@ -383,7 +401,10 @@ export function SignalsView({ api }: { api: ApiClient }) {
             {d.latest.length === 0 ? (
               <p className="text-sm text-slate-600">No request raised a signal or cue.</p>
             ) : (
-              <Table label="Latest flagged" head={['Time', 'Request', 'Action', 'Decision', 'Signals · cues']}>
+              <Table
+                label="Latest flagged"
+                head={['Time', 'Request', 'Action', 'Decision', 'Signals · cues']}
+              >
                 {d.latest.map((r) => (
                   <tr key={r.request_id}>
                     <td className={cell}>{when(r.created_at)}</td>
@@ -435,7 +456,9 @@ export function LedgerView({ api }: { api: ApiClient }) {
     setError(null);
     api.ledgerExport().then(
       (chain) => {
-        const url = URL.createObjectURL(new Blob([JSON.stringify(chain, null, 2)], { type: 'application/json' }));
+        const url = URL.createObjectURL(
+          new Blob([JSON.stringify(chain, null, 2)], { type: 'application/json' }),
+        );
         const a = document.createElement('a');
         a.href = url;
         a.download = `halyn-ledger-${chain.tenant_id}.json`;
@@ -527,7 +550,11 @@ export function IntegrationsView({ api }: { api: ApiClient }) {
                 </td>
                 <td className={cell}>{a.status ?? '—'}</td>
                 <td className={cell}>
-                  {a.restricted === null ? '—' : <Flag on={!a.restricted} yes="NOT RESTRICTED" no="RESTRICTED" />}
+                  {a.restricted === null ? (
+                    '—'
+                  ) : (
+                    <Flag on={!a.restricted} yes="NOT RESTRICTED" no="RESTRICTED" />
+                  )}
                 </td>
                 <td className={cell}>{a.webhook_host ?? '—'}</td>
               </tr>

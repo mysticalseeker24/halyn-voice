@@ -75,7 +75,8 @@ describe('Console API', () => {
     vi.spyOn(console, 'log').mockImplementation(() => undefined);
     h = await appHarness();
     const customer = await h.customerToken();
-    for (const path of CONSOLE_ROUTES) expect((await h.web(path, undefined, customer)).status, path).toBe(401);
+    for (const path of CONSOLE_ROUTES)
+      expect((await h.web(path, undefined, customer)).status, path).toBe(401);
     expect((await h.web('/web/console/passes/pass_demo', undefined, customer, 'DELETE')).status).toBe(401);
   });
 
@@ -96,7 +97,10 @@ describe('Console API', () => {
     expect(detail.requests[0]).toMatchObject({ request_id, reasons: expect.arrayContaining(['S_COACHING']) });
     expect(detail.requests[0]?.cues.length).toBeGreaterThan(0);
     expect(detail.handoffs).toHaveLength(1);
-    expect(detail).toMatchObject({ transcript_status: 'ok', recording_url: 'https://recordings.example/r.mp3' });
+    expect(detail).toMatchObject({
+      transcript_status: 'ok',
+      recording_url: 'https://recordings.example/r.mp3',
+    });
     expect(detail.transcript).not.toContain('9000000077');
     expect(JSON.stringify(detail)).not.toContain('officer');
     expect((await h.web('/web/calls/no-such-run', undefined, token)).status).toBe(404);
@@ -120,7 +124,9 @@ describe('Console API', () => {
     const list = (await (await h.web('/web/console/passes', undefined, token)).json()) as {
       passes: { id: string; customer_id: string; status: string }[];
     };
-    expect(list.passes).toContainEqual(expect.objectContaining({ id: 'pass_demo', customer_id: 'cus_saksham' }));
+    expect(list.passes).toContainEqual(
+      expect.objectContaining({ id: 'pass_demo', customer_id: 'cus_saksham' }),
+    );
     const res = await h.web('/web/console/passes/pass_demo', undefined, token, 'DELETE');
     expect(await res.json()).toMatchObject({ pass: { id: 'pass_demo', status: 'revoked' } });
     await h.settle();

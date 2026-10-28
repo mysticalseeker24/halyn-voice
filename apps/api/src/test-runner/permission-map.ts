@@ -100,7 +100,11 @@ export function permissionMap(file: string, agent: unknown): PermissionGraph {
   const violations = guarded.flatMap((g) =>
     g.inbound
       .filter((edge) => edge.kind === 'llm')
-      .map((edge) => ({ from: edge.from, to: g.node, path: [...(reach.get(edge.from) ?? [edge.from]), g.node] })),
+      .map((edge) => ({
+        from: edge.from,
+        to: g.node,
+        path: [...(reach.get(edge.from) ?? [edge.from]), g.node],
+      })),
   );
   return {
     agent: parsed.agent_config.agent_name,

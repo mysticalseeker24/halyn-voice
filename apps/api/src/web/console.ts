@@ -161,12 +161,22 @@ export function signalsRoute(deps: AppDeps) {
     const flagged = requests.filter((r) => r.gate.signals.length > 0 || r.coaching.cues.length > 0);
     return c.json(
       SignalsResponseSchema.parse({
-        window: { requests: requests.length, since: requests.length ? iso(requests.at(-1)!.created_at) : null },
-        signals: counts(requests.flatMap((r) => r.gate.signals)).map(({ key, count }) => ({ code: key, count })),
-        reasons: counts(requests.flatMap((r) => r.decision.reasons)).map(({ key, count }) => ({ code: key, count })),
+        window: {
+          requests: requests.length,
+          since: requests.length ? iso(requests.at(-1)!.created_at) : null,
+        },
+        signals: counts(requests.flatMap((r) => r.gate.signals)).map(({ key, count }) => ({
+          code: key,
+          count,
+        })),
+        reasons: counts(requests.flatMap((r) => r.decision.reasons)).map(({ key, count }) => ({
+          code: key,
+          count,
+        })),
         cues: counts(requests.flatMap((r) => r.coaching.cues)).map(({ key, count }) => ({ cue: key, count })),
         latest: flagged.slice(0, 20).map((r) => {
-          const { request_id, run_id, action, outcome, signals, cues, coaching_score, created_at } = consoleRequest(r);
+          const { request_id, run_id, action, outcome, signals, cues, coaching_score, created_at } =
+            consoleRequest(r);
           return { request_id, run_id, action, outcome, signals, cues, coaching_score, created_at };
         }),
       }),
@@ -188,7 +198,13 @@ export function ledgerExport(deps: AppDeps) {
     const verify = await verifyLedgerChain(entries, head ? { anchor: head } : {});
     c.header('content-disposition', `attachment; filename="halyn-ledger-${tenant}.json"`);
     return c.json(
-      LedgerExportSchema.parse({ tenant_id: tenant, exported_at: iso(deps.clock.nowMs()), head, verify, entries }),
+      LedgerExportSchema.parse({
+        tenant_id: tenant,
+        exported_at: iso(deps.clock.nowMs()),
+        head,
+        verify,
+        entries,
+      }),
     );
   };
 }
@@ -231,7 +247,9 @@ export function integrations(deps: AppDeps) {
     let coreOk = false;
     if (flow.core)
       try {
-        const res = await flow.core(new Request(`${CORE_ORIGIN}/health`, { signal: AbortSignal.timeout(3000) }));
+        const res = await flow.core(
+          new Request(`${CORE_ORIGIN}/health`, { signal: AbortSignal.timeout(3000) }),
+        );
         coreOk = res.ok;
         await res.body?.cancel();
       } catch {

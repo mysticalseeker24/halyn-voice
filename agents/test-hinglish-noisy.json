@@ -18,13 +18,7 @@
         "task_type": "conversation",
         "toolchain": {
           "execution": "parallel",
-          "pipelines": [
-            [
-              "transcriber",
-              "llm",
-              "synthesizer"
-            ]
-          ]
+          "pipelines": [["transcriber", "llm", "synthesizer"]]
         },
         "task_config": {
           "optimize_latency": true,

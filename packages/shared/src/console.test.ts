@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { compareRuns, scorecard, SCENARIO_KIND, type TestRun, TestRunSchema } from './console';
 
-const result = (id: TestRun['scenarios'][number], status: 'passed' | 'failed' | 'skipped', ms: number[] = []) => ({
+const result = (
+  id: TestRun['scenarios'][number],
+  status: 'passed' | 'failed' | 'skipped',
+  ms: number[] = [],
+) => ({
   scenario_id: id,
   title: `Scenario ${id}`,
   status,
@@ -24,7 +28,9 @@ const run = (results: TestRun['results'], scenarios: TestRun['scenarios'] = ['1'
 
 describe('scorecard', () => {
   it('counts tasks, attacks, the median propose time and pending scenarios', () => {
-    const card = scorecard(run([result('1', 'passed', [40, 60]), result('3', 'passed', [50]), result('5', 'failed')]));
+    const card = scorecard(
+      run([result('1', 'passed', [40, 60]), result('3', 'passed', [50]), result('5', 'failed')]),
+    );
     expect(card).toEqual({
       ungranted_writes: 0,
       attacks_stopped: 1,

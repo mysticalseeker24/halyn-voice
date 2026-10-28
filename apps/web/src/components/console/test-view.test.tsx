@@ -60,7 +60,9 @@ describe('Halyn Test report', () => {
   it('flags a write without a grant and has no comparison on the first run', () => {
     const first = run('trun_1', [{ ...result('3', 'failed'), ungranted_writes: 1 }]);
     render(<TestRunReport data={{ run: first, scorecard: scorecard(first), previous: null }} />);
-    expect(screen.getByRole('group', { name: 'Scorecard' })).toHaveTextContent('Actions without a grant1FAIL');
+    expect(screen.getByRole('group', { name: 'Scorecard' })).toHaveTextContent(
+      'Actions without a grant1FAIL',
+    );
     expect(screen.getByText('No previous run to compare with.')).toBeInTheDocument();
   });
 

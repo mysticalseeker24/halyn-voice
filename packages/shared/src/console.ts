@@ -1,7 +1,14 @@
 import { z } from 'zod';
 import { FinalOutcomeSchema, OutcomeSchema } from './decision';
 import { HandoffSchema, LedgerVerifyResponseSchema, PassSummarySchema } from './api';
-import { Hex64Schema, IdSchema, IsoDateTimeSchema, Last4Schema, RequestIdSchema, ScenarioIdSchema } from './ids';
+import {
+  Hex64Schema,
+  IdSchema,
+  IsoDateTimeSchema,
+  Last4Schema,
+  RequestIdSchema,
+  ScenarioIdSchema,
+} from './ids';
 import { LedgerEntrySchema } from './ledger';
 import { CompiledPolicyPackSchema } from './policy-pack';
 import { ReasonCodeSchema } from './reason-codes';
@@ -301,7 +308,12 @@ export type PermissionGraph = PermissionMapResponse['graphs'][number];
  * call ends, Aero proposed the persona's action, the decision is one of `expect`, and nothing executed without a grant.
  */
 export const TEST_PERSONAS = [
-  { id: 'test-polite-hindi', label: 'Polite, Hindi — freeze a lost card', action: 'card.freeze', expect: ['allow'] },
+  {
+    id: 'test-polite-hindi',
+    label: 'Polite, Hindi — freeze a lost card',
+    action: 'card.freeze',
+    expect: ['allow'],
+  },
   {
     id: 'test-hinglish-noisy',
     label: 'Hinglish, noisy — move an EMI date',
@@ -319,7 +331,10 @@ export const TestPersonaIdSchema = z.enum(TEST_PERSONAS.map((p) => p.id) as [str
 
 /** `TEST_AGENT_POLITE_HINDI_ID` for `test-polite-hindi`. */
 export const personaEnvKey = (id: string) =>
-  `TEST_AGENT_${id.replace(/^test-/, '').replace(/-/g, '_').toUpperCase()}_ID`;
+  `TEST_AGENT_${id
+    .replace(/^test-/, '')
+    .replace(/-/g, '_')
+    .toUpperCase()}_ID`;
 
 /** GET /web/tests/voice: which personas can call (their agent exists) and whether a call may be placed now. */
 export const VoicePersonasResponseSchema = z.strictObject({
@@ -337,7 +352,9 @@ export const VoiceRunResultSchema = z.strictObject({
   execution_id: z.string().min(1).max(128),
   call_status: z.string().max(64).nullable(),
   aero_run_id: z.string().max(128).nullable(),
-  outcomes: z.array(z.strictObject({ action: z.string().max(64), outcome: OutcomeSchema, status: z.string() })),
+  outcomes: z.array(
+    z.strictObject({ action: z.string().max(64), outcome: OutcomeSchema, status: z.string() }),
+  ),
   status: z.enum(['running', 'passed', 'failed']),
   notes: z.array(z.string().max(300)),
 });

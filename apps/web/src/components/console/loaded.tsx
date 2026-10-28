@@ -31,7 +31,10 @@ export function Loaded<T>({
       (data) => alive.current && setState({ status: 'ready', data }),
       (err: unknown) =>
         alive.current &&
-        setState({ status: 'error', message: err instanceof Error ? err.message : `Could not load ${what}.` }),
+        setState({
+          status: 'error',
+          message: err instanceof Error ? err.message : `Could not load ${what}.`,
+        }),
     );
   }, [what]);
 

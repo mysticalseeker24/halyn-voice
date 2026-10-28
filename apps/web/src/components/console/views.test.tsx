@@ -278,7 +278,10 @@ describe('Console actions', () => {
     serve('/web/ledger', { entries: [entry], head_hash: HASH_A });
     render(<LedgerView api={api()} />);
     await screen.findByText('proposed');
-    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ ok: false, entries: 3, first_bad_seq: 2 })));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => jsonResponse({ ok: false, entries: 3, first_bad_seq: 2 })),
+    );
     await userEvent.click(screen.getByRole('button', { name: 'Verify chain' }));
     expect(await screen.findByText(/Chain BROKEN at #2/)).toBeInTheDocument();
   });

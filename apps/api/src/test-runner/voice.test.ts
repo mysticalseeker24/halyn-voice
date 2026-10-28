@@ -39,13 +39,24 @@ describe('voice runs', () => {
 
   it('passes when the persona’s action was decided as expected, and says why otherwise', () => {
     const aero = call('aero', 0);
-    const base = { persona: 'test-polite-hindi', execution_id: 'ex', call_status: 'completed', aero } as const;
+    const base = {
+      persona: 'test-polite-hindi',
+      execution_id: 'ex',
+      call_status: 'completed',
+      aero,
+    } as const;
     expect(scoreVoiceRun({ ...base, ended: false, requests: [] }).status).toBe('running');
-    expect(scoreVoiceRun({ ...base, ended: true, requests: [request('aero', 'card.freeze', 'allow')] })).toMatchObject({
+    expect(
+      scoreVoiceRun({ ...base, ended: true, requests: [request('aero', 'card.freeze', 'allow')] }),
+    ).toMatchObject({
       status: 'passed',
       outcomes: [{ action: 'card.freeze', outcome: 'allow' }],
     });
-    const wrong = scoreVoiceRun({ ...base, ended: true, requests: [request('aero', 'card.freeze', 'deny', 'refused')] });
+    const wrong = scoreVoiceRun({
+      ...base,
+      ended: true,
+      requests: [request('aero', 'card.freeze', 'deny', 'refused')],
+    });
     expect(wrong).toMatchObject({ status: 'failed', notes: [expect.stringMatching(/decided deny/)] });
     const ungranted = scoreVoiceRun({
       ...base,
@@ -54,7 +65,10 @@ describe('voice runs', () => {
     });
     expect(ungranted.notes).toContainEqual(expect.stringMatching(/without a recorded grant/));
     const missing = scoreVoiceRun({ ...base, aero: null, ended: true, requests: [] });
-    expect(missing.notes).toEqual([expect.stringMatching(/no Aero call/), expect.stringMatching(/did not propose/)]);
+    expect(missing.notes).toEqual([
+      expect.stringMatching(/no Aero call/),
+      expect.stringMatching(/did not propose/),
+    ]);
   });
 
   it('keeps the voice button off until a persona agent exists, and places no call', async () => {

@@ -16,7 +16,9 @@ export function aeroCallFor(
   return (
     calls
       .filter((c) => c.channel === 'phone' && c.from_last4 === numberBLast4)
-      .filter((c) => c.started_at >= startedAtMs - MATCH_WINDOW_MS && c.started_at <= startedAtMs + MATCH_WINDOW_MS)
+      .filter(
+        (c) => c.started_at >= startedAtMs - MATCH_WINDOW_MS && c.started_at <= startedAtMs + MATCH_WINDOW_MS,
+      )
       .sort((a, b) => a.started_at - b.started_at)[0] ?? null
   );
 }
@@ -51,6 +53,7 @@ export function scoreVoiceRun(input: {
       notes.push(`${r.action} decided ${r.decision.outcome}, expected ${persona.expect.join(' or ')}`);
   // Invariant 1: an executed request always carries the grant it was executed with.
   for (const r of mine)
-    if (r.status === 'executed' && !r.execution) notes.push(`${r.request_id} executed without a recorded grant`);
+    if (r.status === 'executed' && !r.execution)
+      notes.push(`${r.request_id} executed without a recorded grant`);
   return { ...base, status: notes.length === 0 ? 'passed' : 'failed', notes };
 }

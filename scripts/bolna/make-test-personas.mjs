@@ -19,7 +19,8 @@ const PERSONAS = [
     speak: 'Hindi (Devanagari script)',
     behaviour: 'Calm and clear; answers each question once, politely.',
     task: 'Your debit card is lost. Ask Aero to freeze it.',
-    welcome: 'नमस्ते, मैं एक AI टेस्ट कॉलर हूँ, Aero Bank की टीम के लिए जाँच कर रहा हूँ। यह call record हो रही है।',
+    welcome:
+      'नमस्ते, मैं एक AI टेस्ट कॉलर हूँ, Aero Bank की टीम के लिए जाँच कर रहा हूँ। यह call record हो रही है।',
   },
   {
     id: 'test-hinglish-noisy',
@@ -67,7 +68,8 @@ for (const p of PERSONAS) {
     'End the call once the goal is done, or the assistant says it cannot help, and you have said thank you.';
   tools.api_tools = null;
   tools.transcriber.language = p.language;
-  tools.transcriber.context = "A test caller speaks with Aero Bank's AI assistant about a card, an EMI or a fee.";
+  tools.transcriber.context =
+    "A test caller speaks with Aero Bank's AI assistant about a card, an EMI or a fee.";
   tools.transcriber.keywords = 'Aero Bank, card, freeze, EMI, fee, waiver';
   tools.synthesizer.provider_config.language = p.language;
   agent.agent_prompts = { task_1: { system_prompt: prompt(p) } };
