@@ -32,6 +32,7 @@ import { BolnaEnvSchema } from '../env';
 import { defaultCoreTransport, signerFor } from '../flow/context';
 import { coreUpdate } from '../flow/execute';
 import { type LedgerHead, nextLedgerEntry } from '../ledger';
+import type { PassRow } from '../pass';
 import { cryptoRng } from '../platform/crypto-rng';
 import {
   attachCallback,
@@ -51,6 +52,7 @@ import {
   verifyPass,
 } from './flows';
 import { type LedgerSink, tidbLedgerSink } from './ledger-sink';
+import { revokeCustomerPass, savePass } from './passes';
 import { type DirectorySource, type MirrorSink, tidbDirectorySource, tidbMirrorSink } from './ports';
 import { type PresentAgain, presentGrant, SWEEP_DELAY_MS, sweepExecutions } from './reconcile';
 import { type HubResult, toFailure } from './result';
@@ -582,7 +584,7 @@ export class HubDO extends DurableObject<Env> {
     tenant_id: string,
     input: {
       challenge: string;
-      kind: 'register' | 'approve';
+      kind: 'register' | 'approve' | 'pass';
       customer_id: string;
       request_id: string | null;
       expires_at: number;
@@ -599,7 +601,7 @@ export class HubDO extends DurableObject<Env> {
     tenant_id: string,
     input: {
       challenge: string;
-      kind: 'register' | 'approve';
+      kind: 'register' | 'approve' | 'pass';
       customer_id: string;
       request_id: string | null;
     },
@@ -645,6 +647,59 @@ export class HubDO extends DurableObject<Env> {
         return true as const;
       }),
     );
+  }
+
+  // ── Passes (docs/PASS.md) ─────────────────────────────────────────────────────────────────────
+
+  async customerPasses(tenant_id: string, customer_id: string): Promise<HubResult<PassRow[]>> {
+    return this.guard(() =>
+      this.serial(async () => {
+        const tenant = this.bindTenant(tenant_id);
+        await this.ensureDirectory(tenant);
+        return this.store.passesOf(customer_id);
+      }),
+    );
+  }
+
+  /** A Pass the Worker signed after verifying the customer's passkey consent. */
+  async issuePass(tenant_id: string, row: PassRow): Promise<HubResult<PassRow>> {
+    return this.guard(() =>
+      this.serial(async () => {
+        const tenant = this.bindTenant(tenant_id);
+        await this.ensureDirectory(tenant);
+        const pass = await savePass(this.core(tenant), row);
+        await this.scheduleAlarm();
+        return pass;
+      }),
+    );
+  }
+
+  async revokePass(tenant_id: string, customer_id: string, pass_id: string): Promise<HubResult<PassRow | null>> {
+    return this.guard(() =>
+      this.serial(async () => {
+        const tenant = this.bindTenant(tenant_id);
+        await this.ensureDirectory(tenant);
+        const pass = await revokeCustomerPass(this.core(tenant), customer_id, pass_id);
+        await this.scheduleAlarm();
+        return pass;
+      }),
+    );
+  }
+
+  /** The Assistant call Halyn placed for a Pass: its get_pass_code needs only the call (no token from the LLM). */
+  async attachAssistantCall(tenant_id: string, run_id: string, pass_id: string): Promise<HubResult<true>> {
+    return this.guard(() => {
+      this.bindTenant(tenant_id);
+      this.setMeta(`assistant_call:${run_id}`, pass_id);
+      return true as const;
+    });
+  }
+
+  async assistantCallPass(tenant_id: string, run_id: string): Promise<HubResult<string | null>> {
+    return this.guard(() => {
+      this.bindTenant(tenant_id);
+      return this.meta(`assistant_call:${run_id}`);
+    });
   }
 
   // ── Stage ───────────────────────────────────────────────────────────────────────────────────

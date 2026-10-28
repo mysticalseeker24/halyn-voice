@@ -153,6 +153,13 @@ export class HubStore {
       .filter((p) => p.assistant_numbers.includes(number));
   }
 
+  /** The customer's Passes, oldest first (the Aero app's list). */
+  passesOf(customer_id: string): PassRow[] {
+    return this.rows('SELECT row FROM passes WHERE customer_id = ? ORDER BY id', customer_id).map((r) =>
+      parse(PassRowSchema, r, 'Pass'),
+    );
+  }
+
   putCode(code: PassCodeRow): void {
     this.sql.exec(
       'INSERT OR REPLACE INTO pass_codes (id, pass_id, row) VALUES (?, ?, ?)',
@@ -197,7 +204,7 @@ export class HubStore {
 
   putChallenge(c: {
     challenge: string;
-    kind: 'register' | 'approve';
+    kind: 'register' | 'approve' | 'pass';
     customer_id: string;
     request_id: string | null;
     expires_at: number;
@@ -215,7 +222,7 @@ export class HubStore {
   /** Remove the challenge and say whether it was issued for exactly this purpose and is still fresh. */
   takeChallenge(c: {
     challenge: string;
-    kind: 'register' | 'approve';
+    kind: 'register' | 'approve' | 'pass';
     customer_id: string;
     request_id: string | null;
     now: number;

@@ -60,6 +60,8 @@ export default defineConfig(async () => {
             CUSTOMER_PHONE: '+919000000003',
             NUMBER_B: '+918065356379',
             BOLNA_CONFIRM_AGENT_ID: '00000000-0000-4000-8000-00000000c0f1',
+            BOLNA_ASSISTANT_AGENT_ID: '00000000-0000-4000-8000-0000000a5517',
+            NUMBER_A: '+918065356344',
             AERO_CORE_URL: 'https://aero-core.test.invalid',
             TEST_AERO_MIGRATIONS: aeroMigrations,
           },

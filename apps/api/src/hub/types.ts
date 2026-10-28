@@ -168,6 +168,7 @@ export const MIRROR_KINDS = [
   'confirmation',
   'handoff',
   'pass',
+  'pass_row',
   'pass_code',
   'credentials',
 ] as const;

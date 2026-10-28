@@ -18,6 +18,7 @@ import {
   registerOptions,
   registerVerify,
 } from './web/passkeys';
+import { assistantTask, issuePassRoute, listPasses, passOptions, revokePassRoute } from './web/passes';
 import { createSession } from './web/session-route';
 import { stageRegion, stageRun } from './web/stage';
 import { connectWebSocket, wsTicket } from './web/ws-route';
@@ -81,6 +82,11 @@ export function createApp(deps: AppDeps = defaultDeps) {
   app.post('/web/approvals/:id/options', approvalOptions(deps));
   app.post('/web/approvals/:id/verify', approvalVerify(deps));
   app.post('/web/approvals/:id/decline', approvalDecline(deps));
+  app.post('/web/passes/options', passOptions(deps));
+  app.post('/web/passes', issuePassRoute(deps));
+  app.get('/web/passes', listPasses(deps));
+  app.delete('/web/passes/:id', revokePassRoute(deps));
+  app.post('/web/assistant/tasks', assistantTask(deps));
   app.get('/web/ledger', ledgerList);
   app.get('/web/ledger/verify', ledgerVerify);
   app.post('/web/stage/run/:scenario', stageRun(deps, createApp));

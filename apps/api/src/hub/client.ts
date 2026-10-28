@@ -1,5 +1,6 @@
 import type { HubRole, JsonValue, LedgerEntry, Region, WsMessage } from '@halyn/shared';
 import type { LedgerHead } from '../ledger';
+import type { PassRow } from '../pass';
 import type { ExecutionResult, IdentifyInput, ProposeInput, ProposeOutcome } from './flows';
 import type { ConfirmationOutcome, CustomerView, HubAppend, HubDO, StartConfirmation } from './hub-do';
 import { type HubResult, toFailure, unwrap } from './result';
@@ -38,6 +39,11 @@ export type HubRpc = Pick<
   | 'takeChallenge'
   | 'passkeys'
   | 'savePasskey'
+  | 'customerPasses'
+  | 'issuePass'
+  | 'revokePass'
+  | 'attachAssistantCall'
+  | 'assistantCallPass'
   | 'setStageRegion'
   | 'stageRegion'
   | 'issueWsTicket'
@@ -121,6 +127,15 @@ export function hubFor(env: Pick<Env, 'HUB'>, tenant_id: string) {
       unwrap(await stub.passkeys(tenant_id, customer_id)),
     savePasskey: async (credential: CredentialRecord): Promise<true> =>
       unwrap(await stub.savePasskey(tenant_id, credential)),
+    customerPasses: async (customer_id: string): Promise<PassRow[]> =>
+      unwrap(await stub.customerPasses(tenant_id, customer_id)),
+    issuePass: async (row: PassRow): Promise<PassRow> => unwrap(await stub.issuePass(tenant_id, row)),
+    revokePass: async (customer_id: string, pass_id: string): Promise<PassRow | null> =>
+      unwrap(await stub.revokePass(tenant_id, customer_id, pass_id)),
+    attachAssistantCall: async (run_id: string, pass_id: string): Promise<true> =>
+      unwrap(await stub.attachAssistantCall(tenant_id, run_id, pass_id)),
+    assistantCallPass: async (run_id: string): Promise<string | null> =>
+      unwrap(await stub.assistantCallPass(tenant_id, run_id)),
     setStageRegion: async (region: Region): Promise<Region> =>
       unwrap(await stub.setStageRegion(tenant_id, region)),
     stageRegion: async (): Promise<Region> => unwrap(await stub.stageRegion(tenant_id)),

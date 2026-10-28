@@ -3,6 +3,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import type { TiDBServerlessDatabase } from 'drizzle-orm/tidb-serverless';
 import { z } from 'zod';
 import type { MirrorItem } from '../hub/types';
+import { PassRowSchema } from '../pass';
 import type * as schema from './schema';
 import {
   actionRequests,
@@ -252,6 +253,29 @@ export function mirrorStatement(db: AnyDb, tenant_id: string, item: MirrorItem) 
         .update(passes)
         .set({ failures: r.failures, status: r.status })
         .where(and(eq(passes.tenant_id, t), eq(passes.id, r.id)));
+    }
+    case 'pass_row': {
+      // A Pass issued or revoked in the Hub: the whole row, idempotent.
+      const r = read(PassRowSchema, item);
+      const revoked_at = r.revoked_at === null ? null : new Date(r.revoked_at);
+      return db
+        .insert(passes)
+        .values({
+          id: r.id,
+          tenant_id: t,
+          customer_id: r.customer_id,
+          assistant_name: r.assistant_name,
+          assistant_numbers: r.assistant_numbers,
+          scopes: r.scopes,
+          issued_at: new Date(r.issued_at),
+          expires_at: new Date(r.expires_at),
+          status: r.status,
+          customer_sig: r.customer_sig,
+          issuer_sig: r.issuer_sig,
+          failures: r.failures,
+          revoked_at,
+        })
+        .onDuplicateKeyUpdate({ set: { status: r.status, failures: r.failures, revoked_at } });
     }
     case 'pass_code': {
       const r = read(PassCodeRow, item);

@@ -86,23 +86,36 @@ export function verifyPass(deps: AppDeps) {
   };
 }
 
-/** POST /tools/get_pass_code (the Assistant agent) → `{code}`: 6 digits, 5 minutes, single use, bound to its number. */
+/**
+ * POST /tools/get_pass_code (the Assistant agent) → `{code}`: 6 digits, 5 minutes, single use, bound to its number.
+ * With a Pass token, the token decides the Pass. Without one, only the Assistant call Halyn itself placed for a Pass
+ * (POST /web/assistant/tasks) gets a code for that Pass — the LLM never has to copy a token.
+ */
 export function getPassCode(deps: AppDeps) {
   return async (c: Context<AppEnv>) => {
     const ctx = toolContext(c, deps);
     const { body } = await readToolBody(c, 'get_pass_code', GetPassCodeRequestSchema, ctx);
-    const { HALYN_PUBLIC_JWKS } = requireEnv(c.env, JwksEnvSchema);
-    const token = await verifyPassToken(
-      body.pass_token,
-      await verifyKeys(HALYN_PUBLIC_JWKS),
-      ctx.flow.clock.nowMs(),
-    );
     const refused = () => new HalynError('E_BAD_REQUEST', 'This Pass cannot be used now');
-    if (!token.ok || token.claims.tenant !== ctx.tenant) throw refused();
-    const numbers = token.claims.assistant.numbers;
-    const calling = body.from_number ?? (numbers.length === 1 ? numbers[0] : undefined);
+    let pass_id: string;
+    let numbers: readonly string[] | null = null;
+    if (body.pass_token) {
+      const { HALYN_PUBLIC_JWKS } = requireEnv(c.env, JwksEnvSchema);
+      const token = await verifyPassToken(
+        body.pass_token,
+        await verifyKeys(HALYN_PUBLIC_JWKS),
+        ctx.flow.clock.nowMs(),
+      );
+      if (!token.ok || token.claims.tenant !== ctx.tenant) throw refused();
+      pass_id = token.claims.pid;
+      numbers = token.claims.assistant.numbers;
+    } else {
+      const bound = await ctx.flow.hub.assistantCallPass(body.run_id);
+      if (!bound) throw refused();
+      pass_id = bound;
+    }
+    const calling = body.from_number ?? (numbers?.length === 1 ? numbers[0] : undefined);
     if (!calling) throw refused();
-    const minted = await ctx.flow.hub.mintPassCode({ pass_id: token.claims.pid, calling_number: calling });
+    const minted = await ctx.flow.hub.mintPassCode({ pass_id, calling_number: calling });
     if (!minted.ok) throw refused();
     return c.json(GetPassCodeResponseSchema.parse({ code: minted.code }));
   };

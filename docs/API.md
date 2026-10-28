@@ -39,7 +39,7 @@ Details (Step 5, `apps/api/src/auth`):
 | `POST /tools/lookup_customer` | `{run_id, from_number, claimed_name?}` | `{customer_found, customer_name?, region?, registered: boolean, language?}` |
 | `POST /tools/verify_pass` | `{run_id, from_number, code}` | `{valid, assistant_name?, scopes_summary?}` (never echoes the code) |
 | `POST /tools/propose_action` | `{run_id, from_number?, channel, action, params, readback_confirmed, caller_quotes[]}` | `{request_id, status: "pending"}`; outcome arrives as an event |
-| `POST /tools/get_pass_code` | `{run_id, pass_token}` (assistant only) | `{code}` (6 digits, 5 min, single use, bound to calling number) |
+| `POST /tools/get_pass_code` | `{run_id, pass_token?}` (assistant only; no token = the Pass bound to the Assistant call Halyn placed) | `{code}` (6 digits, 5 min, single use, bound to calling number) |
 | `POST /tools/confirm_result` | `{run_id, request_id, answer: "approve"\|"decline", method: "speech"\|"keypad"}` | `{ok}` |
 | `POST /tools/check_decision` | `{run_id, request_id}` | fallback polling if event injection fails Day-0 |
 | `POST /webhooks/bolna` | Bolna execution payload | `{ok}` |
@@ -109,8 +109,8 @@ by the Hub's own alarm.
 | `GET /web/aero/home` | Balance, activity, card, loan, alerts, pending approvals for the customer (`AeroHomeSchema`) |
 | `POST /web/approvals/:id/options` · `POST /web/approvals/:id/verify` · `POST /web/approvals/:id/decline` | Passkey challenge / verify `{response}` → `{ok, status:"approved"}` / decline `{}` → `{ok, status:"declined"}` |
 | `POST /web/passkeys/register/options` · `/verify` | One-time passkey registration: `{options}` / `{response}` → `{ok:true}` |
-| `POST /web/passes` · `DELETE /web/passes/:id` · `GET /web/passes` | Issue / revoke / list Passes |
-| `POST /web/assistant/tasks` | Start the Assistant's outbound call to Aero |
+| `POST /web/passes/options` · `POST /web/passes` · `DELETE /web/passes/:id` · `GET /web/passes` | Pass consent options (challenge binds the draft) / issue `{assistant, scopes, expires_in_days, response}` → `{pass, token}` / revoke → `{pass}` / list → `{passes}` (Step 10) |
+| `POST /web/assistant/tasks` | `{task, pass_id}` → `{ok, execution_id}`: the Assistant agent calls A from B (09:00–21:00 IST), bound to that Pass, so its `get_pass_code` sends only `call_sid` |
 | `POST /web/stage/run/:scenario` · `POST /web/stage/region` | Stage controls |
 | `GET /web/calls` · `/web/calls/:id` · `/web/policies` · `/web/handoffs` · `POST /web/handoffs/:id/resolve` | Console |
 | `GET /web/ledger` · `GET /web/ledger/verify` · `GET /web/ledger/export` | Ledger |

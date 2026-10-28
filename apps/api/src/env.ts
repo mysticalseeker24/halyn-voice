@@ -83,6 +83,16 @@ export const ConfirmEnvSchema = z.object({
   CUSTOMER_PHONE: E164Schema,
 });
 
+/**
+ * Saksham's Assistant (src/web/assistant.ts): Bolna's Assistant agent calls Aero's number A from number B — both
+ * our own numbers (docs/COMPLIANCE.md). Missing → POST /web/assistant/tasks fails closed.
+ */
+export const AssistantEnvSchema = z.object({
+  BOLNA_ASSISTANT_AGENT_ID: Uuid,
+  NUMBER_A: E164Schema,
+  NUMBER_B: E164Schema,
+});
+
 /** Aero Core: the AERO_CORE service binding when present, else this URL (src/core-client). */
 export const CoreEnvSchema = z.object({ AERO_CORE_URL: z.url().optional() });
 

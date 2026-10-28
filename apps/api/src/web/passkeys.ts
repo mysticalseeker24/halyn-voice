@@ -37,20 +37,20 @@ const REGISTER_TTL_MS = 5 * 60 * 1000;
  */
 const LATE_ANSWER_WINDOW_MS = 30 * 1000;
 
-function customer(c: Context<AppEnv>): { tenant: string; customer_id: string } {
+export function customer(c: Context<AppEnv>): { tenant: string; customer_id: string } {
   const session = c.get('session');
   if (session.kind !== 'customer' || session.customer_id === null)
     throw new HalynError('E_UNAUTHORIZED', 'A customer session is required');
   return { tenant: session.tenant_id, customer_id: session.customer_id };
 }
 
-function expected(c: Context<AppEnv>, challenge: string): Expected {
+export function expected(c: Context<AppEnv>, challenge: string): Expected {
   const { WEB_ORIGIN, RP_ID } = requireEnv(c.env, WebEnvSchema);
   return { challenge, origins: WEB_ORIGIN, rpId: RP_ID };
 }
 
 /** The challenge a WebAuthn response answers (taken from its client data, then checked against the Hub's copy). */
-function challengeOf(clientDataJSON: string): string {
+export function challengeOf(clientDataJSON: string): string {
   const bytes = base64urlDecode(clientDataJSON);
   try {
     const data = z

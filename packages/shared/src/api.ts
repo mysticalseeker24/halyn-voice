@@ -107,7 +107,8 @@ export const ProposeActionResponseSchema = z.strictObject({
 export const GetPassCodeRequestSchema = z.object({
   run_id: RunIdSchema,
   call_sid: CallSidSchema,
-  pass_token: CompactJwsSchema,
+  /** Optional on the Assistant call Halyn placed for a Pass (bound to that call; the LLM never copies a token). */
+  pass_token: CompactJwsSchema.optional(),
   /** The assistant's calling number; when absent, the Pass must list exactly one number. */
   from_number: E164Schema.optional(),
 });
@@ -186,14 +187,16 @@ export const WsTicketResponseSchema = z.strictObject({
   expires_at: IsoDateTimeSchema,
 });
 
-/** The customer issues a Pass in the Aero app and approves it with their passkey (docs/PASS.md). */
-export const IssuePassRequestSchema = z.strictObject({
+/** What the customer authorises in the Aero app (docs/PASS.md "Issue"); the passkey challenge binds exactly this. */
+export const PassDraftSchema = z.strictObject({
   assistant: AssistantSchema,
   scopes: PassScopesSchema,
   expires_in_days: z.int().min(1).max(30),
-  /** WebAuthn assertion JSON; verified server-side with @simplewebauthn (Step 10). */
-  webauthn: z.record(z.string(), z.unknown()),
 });
+/** POST /web/passes/options → request options whose challenge binds the draft (`ApprovalOptionsResponseSchema`). */
+export const PassOptionsRequestSchema = PassDraftSchema;
+/** POST /web/passes: the same draft and the passkey assertion over its challenge. */
+export const IssuePassRequestSchema = PassDraftSchema.extend({ response: AuthenticationCredentialJsonSchema });
 export const PassSummarySchema = z.strictObject({
   id: PassIdSchema,
   assistant_name: z.string().min(1).max(80),
@@ -205,6 +208,14 @@ export const PassSummarySchema = z.strictObject({
 });
 export const IssuePassResponseSchema = z.strictObject({ pass: PassSummarySchema, token: CompactJwsSchema });
 export const ListPassesResponseSchema = z.strictObject({ passes: z.array(PassSummarySchema) });
+export const RevokePassResponseSchema = z.strictObject({ pass: PassSummarySchema });
+
+/** POST /web/assistant/tasks: the Assistant calls Aero (number B → A) on this Pass, for this task. */
+export const AssistantTaskRequestSchema = z.strictObject({
+  task: z.string().trim().min(3).max(300),
+  pass_id: PassIdSchema,
+});
+export const AssistantTaskResponseSchema = z.strictObject({ ok: z.literal(true), execution_id: z.string().min(1) });
 
 export const StageRunRequestSchema = z.strictObject({ mode: z.enum(['text', 'voice']).default('text') });
 export const StageRunResponseSchema = z.strictObject({

@@ -7,7 +7,8 @@
    actions (policy `pass_eligible: true` only), sets limits and expiry (≤ 30 days) and approves with his passkey.
    Halyn signs. Critical actions can never be included.
 2. **Hold** — the assistant stores the Pass token (compact JWS, EdDSA).
-3. **Present** — on the call, the assistant calls `get_pass_code` with its token and says the 6 digits.
+3. **Present** — on the call, the assistant calls `get_pass_code` with its token and says the 6 digits. (Our Assistant
+   agent: `/web/assistant/tasks` binds its call to the Pass, so it sends only `call_sid` — Step 10.)
 4. **Verify** — the bank agent calls `verify_pass(code)`; Halyn checks hash, expiry (5 min), unused, calling number
    ∈ `assistant.numbers`, Pass active and unexpired. Five failures lock the Pass.
 5. **Use** — the Gate treats proof as `pass` for in-scope actions (decrementing `max_uses`); out of scope = no proof.
@@ -27,7 +28,7 @@
     { "action": "emi.move_date", "max_uses": 1 }
   ],
   "iat": 1761400000, "exp": 1762004800,
-  "cnf": { "customer_passkey_sig": "<base64url WebAuthn assertion over SHA-256(canonical claims)>" }
+  "cnf": { "customer_passkey_sig": "<base64url WebAuthn signature; its challenge binds SHA-256(canonical draft)>" }
 }
 ```
 Signed by Halyn (Ed25519; header `{alg: "EdDSA", kid, typ: "halyn-pass+jwt"}`). Verified with Halyn's JWKS.

@@ -126,6 +126,7 @@ describe('Bolna tools: get_pass_code, confirm_result, check_decision', () => {
   it('get_pass_code takes a compact JWS and returns 6 digits', () => {
     expect(ok(GetPassCodeRequestSchema, { run_id: RUN, pass_token: TOKEN })).toBe(true);
     expect(ok(GetPassCodeRequestSchema, { run_id: RUN, pass_token: 'not-a-jws' })).toBe(false);
+    expect(ok(GetPassCodeRequestSchema, { run_id: RUN })).toBe(true);
     expect(ok(GetPassCodeResponseSchema, { code: '472915' })).toBe(true);
     expect(ok(GetPassCodeResponseSchema, { code: '4729' })).toBe(false);
   });
@@ -210,7 +211,12 @@ describe('web', () => {
     assistant: { name: "Saksham's Assistant", numbers: ['+918065356379'] },
     scopes: [{ action: 'statement.view' }, { action: 'emi.move_date', max_uses: 1 }],
     expires_in_days: 7,
-    webauthn: { id: 'cred', response: {} },
+    response: {
+      id: 'Y3JlZA',
+      rawId: 'Y3JlZA',
+      type: 'public-key',
+      response: { clientDataJSON: 'e30', authenticatorData: 'AAAA', signature: 'AAAA' },
+    },
   };
   const summary = {
     id: 'pass_demo',
