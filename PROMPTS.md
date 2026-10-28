@@ -175,6 +175,10 @@ Voice mode: benign personas from prompts/personas/README.md only (with my go-ahe
 Run /review on the whole codebase (not just the diff), then the test-engineer for every finding. Then: performance check (propose_action
 p95 < 300 ms, Worker CPU < 10 ms), fail-closed drill (API stopped mid-call), log masking audit, secrets scan, dependency audit.
 Fix blockers only. Update docs for anything that changed.
+SPEED-MODE EXTENSION (Saksham, 2026-10-28) — this is the FULL testing + hardening pass, after all feature steps (8, 10–15), in its own
+fresh chat: also do everything speed mode skipped — re-map every invariant (CLAUDE.md §2) to a proving test, attack/adversarial tests,
+mutation checks on the key guards, fuzz/property tests where inputs are untrusted, failure-path tests for every Steps 8–15 feature.
+Fix EVERYTHING found (not only blockers). No stone unturned.
 ```
 
 ### Step 17 — 📞 Demo environment (Wed)
