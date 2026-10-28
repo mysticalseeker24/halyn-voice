@@ -97,7 +97,7 @@ export function getPassCode(deps: AppDeps) {
     const { body } = await readToolBody(c, 'get_pass_code', GetPassCodeRequestSchema, ctx);
     const refused = () => new HalynError('E_BAD_REQUEST', 'This Pass cannot be used now');
     let pass_id: string;
-    let numbers: readonly string[] | null = null;
+    let calling: string | undefined;
     if (body.pass_token) {
       const { HALYN_PUBLIC_JWKS } = requireEnv(c.env, JwksEnvSchema);
       const token = await verifyPassToken(
@@ -107,17 +107,15 @@ export function getPassCode(deps: AppDeps) {
       );
       if (!token.ok || token.claims.tenant !== ctx.tenant) throw refused();
       pass_id = token.claims.pid;
-      numbers = token.claims.assistant.numbers;
+      const numbers = token.claims.assistant.numbers;
+      calling = body.from_number ?? (numbers.length === 1 ? numbers[0] : undefined);
     } else {
       const bound = await ctx.flow.hub.assistantCallPass(body.run_id);
       if (!bound) throw refused();
       pass_id = bound;
       // Halyn placed this call from number B itself: that is the calling number Aero will see.
-      numbers = [requireEnv(c.env, AssistantEnvSchema).NUMBER_B];
+      calling = requireEnv(c.env, AssistantEnvSchema).NUMBER_B;
     }
-    const calling = body.pass_token
-      ? (body.from_number ?? (numbers?.length === 1 ? numbers[0] : undefined))
-      : numbers?.[0];
     if (!calling) throw refused();
     const minted = await ctx.flow.hub.mintPassCode({ pass_id, calling_number: calling });
     if (!minted.ok) throw refused();
