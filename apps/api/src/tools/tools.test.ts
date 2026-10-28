@@ -151,8 +151,16 @@ describe('get_pass_code and verify_pass (docs/PASS.md)', () => {
 
 describe('propose_action (docs/ARCHITECTURE.md "Main flow")', () => {
   it('answers pending within 300 ms with no TiDB on the hot path; TiDB writes come later from the outbox', async () => {
+    // Bolna's budget is for a warm Worker: warm this isolate's code path and pack parse on another call first.
+    const warm = '0b5c7a4e-9999-4222-8333-444455556666';
+    await h.tool('lookup_customer', { run_id: warm, from_number: REGISTERED });
+    await propose({ ...freeze(warm), action: 'statement.view', params: { account: 'savings' } });
+    await h.settle();
+    await h.fireAlarm();
     await h.tool('lookup_customer', { run_id: RUN, from_number: REGISTERED });
     const loads = h.source.loads;
+    const batches = h.ledgerSink.batches.length;
+    const mirrorCalls = h.mirror.calls;
     const started = Date.now();
     const { res, json } = await propose(freeze());
     const ms = Date.now() - started;
@@ -161,8 +169,8 @@ describe('propose_action (docs/ARCHITECTURE.md "Main flow")', () => {
     expect(ms).toBeLessThan(300);
     // Nothing went to TiDB while answering: no directory load, no ledger flush, no mirror write.
     expect(h.source.loads).toBe(loads);
-    expect(h.ledgerSink.batches).toEqual([]);
-    expect(h.mirror.calls).toBe(0);
+    expect(h.ledgerSink.batches).toHaveLength(batches);
+    expect(h.mirror.calls).toBe(mirrorCalls);
     await h.settle();
     await h.fireAlarm();
     expect(h.mirror.items.map((i) => i.kind)).toEqual(expect.arrayContaining(['call', 'request', 'grant']));
