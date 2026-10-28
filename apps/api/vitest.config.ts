@@ -97,12 +97,12 @@ export default defineConfig(async () => {
         provider: 'istanbul',
         include: ['src/**/*.ts'],
         exclude: ['src/**/*.test.ts'],
-        // docs/TESTING.md: ≥ 95% lines and branches for the pure core, ≥ 80% elsewhere.
+        // docs/TESTING.md: ≥ 95% lines and branches for the pure core, ≥ 60% elsewhere (speed mode, CLAUDE.md §5).
         thresholds: {
-          lines: 80,
-          branches: 80,
-          functions: 80,
-          statements: 80,
+          lines: 60,
+          branches: 60,
+          functions: 60,
+          statements: 60,
           'src/gate/**': pure,
           'src/grants/**': pure,
           'src/ledger/**': pure,

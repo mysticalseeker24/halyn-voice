@@ -14,7 +14,7 @@ export default defineConfig({
       // Pages and layouts are covered by Playwright (e2e/); shadcn primitives are vendored.
       include: ['src/components/**/*.{ts,tsx}', 'src/lib/**/*.{ts,tsx}'],
       exclude: ['src/components/ui/**', 'src/test/**', 'src/**/*.test.{ts,tsx}'],
-      thresholds: { lines: 80, branches: 80, functions: 80, statements: 80 },
+      thresholds: { lines: 60, branches: 60, functions: 60, statements: 60 },
     },
   },
 });

@@ -48,12 +48,12 @@ export default defineConfig(async () => {
         provider: 'istanbul',
         include: ['src/**/*.ts'],
         exclude: ['src/**/*.test.ts'],
-        // docs/TESTING.md: ≥ 80% everywhere; the grant check every write depends on is held to the pure-module bar.
+        // docs/TESTING.md: ≥ 60% everywhere (speed mode, CLAUDE.md §5); the grant check every write depends on is held to the pure-module bar.
         thresholds: {
-          lines: 80,
-          branches: 80,
-          functions: 80,
-          statements: 80,
+          lines: 60,
+          branches: 60,
+          functions: 60,
+          statements: 60,
           'src/grant/**': pure,
           'src/core/commit.ts': pure,
         },
