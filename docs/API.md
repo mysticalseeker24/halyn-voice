@@ -7,7 +7,7 @@ optional, flat — at most 16 string/number/boolean/null values — and so far o
 ## Auth
 | Surface | Auth |
 |---|---|
-| `/tools/*`, `/webhooks/*` (Bolna) | Source IP ∈ Bolna list (`CF-Connecting-IP`) **and** `x-halyn-secret` header. Both or 401 |
+| `/tools/*`, `/webhooks/*` (Bolna) | Source IP ∈ Bolna list (`CF-Connecting-IP`) **and** `x-halyn-secret` header (on `/webhooks/*` also `?key=`, ADR-022: Bolna webhooks send no headers). Both or 401 |
 | `/web/*` (apps) | Bearer session token (demo login), tenant from token |
 | `/core/*` (Aero Core Worker) | Valid Halyn grant in `x-halyn-grant`; else 401 `E_GRANT_MISSING` / `E_GRANT_INVALID` / `E_GRANT_EXPIRED` / `E_GRANT_REUSED` / `E_PARAMS_MISMATCH` |
 | `/ws` (Hub) | One-time ticket from `POST /web/ws-ticket` (Bearer session) as query param, role tag; never the session token (ADR-021) |

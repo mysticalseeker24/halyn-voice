@@ -223,3 +223,10 @@ customer, `customer:<id>`. Any `?token=` is refused (401), never silently accept
 in a header proxies also log, and still a long-lived credential).
 **Consequences.** One extra round trip per (re)connect; the web app (`apps/web` `use-hub.ts`) must ask for a fresh ticket
 each time. A leaked ticket is worth at most one socket for 30 s, for one role, and only if nobody used it first.
+
+## ADR-022 · Webhook secret as `?key=` — Accepted (2026-10-28)
+**Context.** Bolna's agent `webhook_url` and a tool's `pre_call_webhook_url` cannot send headers, so `/webhooks/*` could
+never pass the `x-halyn-secret` check, and the call-sid → run-id map (ADR-016) would never fill. **Decision.**
+`/webhooks/*` also takes the secret as `?key=`; the Bolna IP allowlist still applies; `/tools/*` stays header-only.
+**Consequences.** The secret sits in the agents' webhook URLs on Bolna (it is in their tool headers already); our
+request log records the path only. Rotating the secret means re-pushing every agent.

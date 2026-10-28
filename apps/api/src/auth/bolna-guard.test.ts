@@ -52,3 +52,35 @@ describe('bolnaGuard', () => {
     expect(ErrorEnvelopeSchema.parse(await res.json()).error.code).toBe('E_FAIL_CLOSED');
   });
 });
+
+describe('bolnaGuard on webhooks (secret in ?key=, ADR-022)', () => {
+  const hooks = new Hono<AppEnv>();
+  hooks.onError(onError);
+  hooks.use('/webhooks/*', bolnaGuard({ querySecret: true }));
+  hooks.post('/webhooks/bolna', (c) => c.json({ ok: true }));
+  const post = (path: string, headers: Record<string, string>) =>
+    hooks.request(path, { method: 'POST', headers }, testEnv());
+
+  it('accepts the secret as ?key= from a Bolna IP', async () => {
+    const res = await post(`/webhooks/bolna?key=${TOOL_SECRET}`, { 'cf-connecting-ip': BOLNA_IP });
+    expect(res.status).toBe(200);
+  });
+
+  it('still needs the Bolna IP and the exact secret', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    expect((await post(`/webhooks/bolna?key=${TOOL_SECRET}`, { 'cf-connecting-ip': '203.0.113.7' })).status).toBe(401);
+    expect((await post(`/webhooks/bolna?key=${TOOL_SECRET.slice(0, 10)}`, { 'cf-connecting-ip': BOLNA_IP })).status).toBe(
+      401,
+    );
+    expect((await post('/webhooks/bolna', { 'cf-connecting-ip': BOLNA_IP })).status).toBe(401);
+  });
+
+  it('never takes ?key= on /tools/*', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const res = await app.request(`/tools/probe?key=${TOOL_SECRET}`, {
+      method: 'POST',
+      headers: { 'cf-connecting-ip': BOLNA_IP },
+    }, testEnv());
+    expect(res.status).toBe(401);
+  });
+});

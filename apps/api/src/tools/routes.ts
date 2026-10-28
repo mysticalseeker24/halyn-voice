@@ -11,7 +11,7 @@ import { bolnaWebhook } from './webhook';
 export function bolnaRoutes(deps: AppDeps) {
   const app = new Hono<AppEnv>();
   app.use('/tools/*', bolnaGuard());
-  app.use('/webhooks/*', bolnaGuard());
+  app.use('/webhooks/*', bolnaGuard({ querySecret: true }));
   app.post('/tools/lookup_customer', lookupCustomer(deps));
   app.post('/tools/verify_pass', verifyPass(deps));
   app.post('/tools/propose_action', proposeAction(deps));
