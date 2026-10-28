@@ -23,6 +23,7 @@ const API = [
   'BOLNA_CONFIRM_AGENT_ID',
   'BOLNA_ASSISTANT_AGENT_ID',
   'NUMBER_A',
+  'DEMO_ACCESS_CODE',
 ] as const;
 const CORE = ['HALYN_PUBLIC_JWKS'] as const;
 
