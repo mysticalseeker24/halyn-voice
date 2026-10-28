@@ -14,8 +14,8 @@ _Last updated: 2026-10-28 15:50 IST, end of chat #3. Next chat: **Step 8** (prom
   Stage v1 (1920×1080) on `@halyn/shared` schemas; `useHub` with tickets. Screens in `docs/screens/`.
 - **Day-0 (2026-10-28):** checks 1–5 ✅, 6 ✗ (DTMF kills speech on Vobiz → speech only), 7 skipped, 8–12 ✅. Full table
   and evidence: `docs/DAY0.md` → Results. Probe Worker + KV + D1 **deleted**.
-- **Local commits not pushed yet** (chat #3 tail): speed-mode rules, coverage 60%, Day-0 fixes, real Bolna fixtures,
-  docs. Push needs Saksham's OK.
+- **All pushed** (2026-10-28 16:00 IST, `0e05ec0`, CI green). Speed-mode overrides also in PROMPTS.md and the slash
+  commands (no subagents anywhere).
 
 ## Bolna facts learned on Day-0 (binding for Step 8; details in docs/BOLNA.md)
 - **Tool params:** never send a run id (`%(execution_id)s` is not a tool variable; a param named `run_id` crashes the
@@ -62,7 +62,7 @@ logs, or the phone on mobile data.
 Text mode (`pnpm test:scenarios`): 1–9, 3b, 11, 12 ✅; 10 pending Step 12. Voice: none yet (Step 8 smoke: 1, 2, 3).
 
 ## Next steps (in order) — only after Saksham's go-ahead
-1. Push the local commits (ask) and confirm CI.
+1. (Done: pushed, CI green.) Check `gh run list --limit 1` once.
 2. **Step 8** (PROMPTS.md): voice fixes first (above); `pnpm db:migrate` + `pnpm seed` on `halyn_dev`; deploy API +
    Aero Core (KV packs `pack:<tenant>:<region>`, secrets incl. `BOLNA_CONFIRM_AGENT_ID`, `NUMBER_B`,
    `CUSTOMER_PHONE`, `WEB_ORIGIN`, `AERO_CORE` binding; the Hub needs Aero Core + `HALYN_SIGNING_KEY`); create the Aero

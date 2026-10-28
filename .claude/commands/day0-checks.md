@@ -1,6 +1,8 @@
 ---
 description: Run the 12 Day-0 feasibility checks (some place real calls — needs Saksham's go-ahead and 09:00–21:00 IST)
 ---
+> **Speed mode (CLAUDE.md §5) overrides this file:** do the work yourself in the chat — never spawn a subagent. Where it names an agent (`code-reviewer`, `call-reviewer`, …), read that agent's `.claude/agents/<name>.md` only as a checklist.
+
 
 Use the `bolna-voice-engineer` subagent for Bolna steps. Before any real call: state the expected minutes and cost,
 check the wallet (`get_user_info`, cents) and get Saksham's go-ahead.

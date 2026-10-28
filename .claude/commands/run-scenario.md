@@ -2,6 +2,8 @@
 description: Run one scenario — text mode always; voice mode only with go-ahead
 argument-hint: <scenario id 1-12> [voice]
 ---
+> **Speed mode (CLAUDE.md §5) overrides this file:** do the work yourself in the chat — never spawn a subagent. Where it names an agent (`code-reviewer`, `call-reviewer`, …), read that agent's `.claude/agents/<name>.md` only as a checklist.
+
 
 Scenario: $ARGUMENTS.
 1. Text mode: run it through the scenario runner (`pnpm test:scenarios -- --id <n>`) and show the decision, reasons,

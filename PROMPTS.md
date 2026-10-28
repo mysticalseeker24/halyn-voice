@@ -1,8 +1,10 @@
 # Build prompts — paste into Claude Code, in order
 
+> **SPEED MODE (2026-10-28, CLAUDE.md §5) overrides every step below:** where a step says "Use the X subagent" (or "then the test-engineer"), the chat does that work itself — no subagents. Tests: one happy path per feature plus any invariant the code touches; no attack/mutation/fuzz passes. After each step: commit locally as pieces work → `pnpm verify` once → short `/handoff` → ask Saksham to push (no `/review`).
+
 **How to use**
 - One step per session where possible (`/clear` between steps keeps context clean; `docs/STATE.md` carries memory).
-- After every step: `/verify` → `/review` → `/handoff` → commit when you're happy (`git commit` yourself, or tell Claude to).
+- After every step (speed mode): local commits as pieces work → `pnpm verify` once → `/handoff` → Saksham OKs the push.
 - Steps marked 📞 place real calls or spend Bolna credit: run them 09:00–21:00 IST and say "go ahead" when Claude asks.
 - If a step goes wrong: "Stop. Write a failing test that reproduces the problem, then fix it."
 

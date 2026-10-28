@@ -132,7 +132,8 @@ Goal: **every function of the product working end to end, fast.** Not production
    tests or secrets. `pnpm verify` **once** before the push (no per-commit verify). **Ask Saksham only before pushing.**
 6. **Docs:** a line or two in the one doc whose behaviour changed; ADR only for a real trade-off (≤ 5 lines);
    WORKLOG ≤ 8 lines per step; keep STATE.md short.
-7. **Status to Saksham ≤ 5 lines.** Model: Sonnet by default (app model picker); Opus only for a hard bug, then back.
+7. **Status to Saksham ≤ 5 lines.** Model: Saksham's pick in the app (he runs Opus as the one worker); with no
+   subagents there is no second model. Keep each chat to one step so its context stays small.
 8. **Don't guess Bolna.** Bolna MCP `search_docs` / `get_doc`; REST helpers in `scripts/bolna/` for graph agents/events.
 9. **Ambiguity:** check `docs/SCENARIOS.md`; if still unclear, ask Saksham in one sentence and propose a default.
 
@@ -175,7 +176,7 @@ mode). A bug fix starts with a failing test that reproduces it.
 |---|---|
 | Repo | github.com/mysticalseeker24/halyn-voice |
 | Builder's name | **Saksham Mishra** — Devanagari **सक्षम मिश्रा** (short "Sa", as in "SAKSHAM"). Never a long "Saa" spelling; use exactly this in every Hindi prompt, script and TTS line (the file hook flags misspellings). **Any text a voice speaks — English too, incl. `{{customer_name}}` values — writes the name in Devanagari** (`Hi, I'm सक्षम मिश्रा`): Sarvam speaks Roman "Saksham" with a long "Saa" (STT-checked, docs/DAY0.md check 8) |
-| Number A (Aero line) | +91 80653 56344 · phone id `9a3b9852-ae7e-4b7c-bab9-f1f0bf4b24d2` · currently linked to the OLD Kavach listener `1ad15c7b-3483-4c9e-a336-e371ce112b98` (to relink in Day-0, with go-ahead) |
+| Number A (Aero line) | +91 80653 56344 · phone id `9a3b9852-ae7e-4b7c-bab9-f1f0bf4b24d2` · linked to the Day-0 Aero test agent (dead tools) until Step 8 relinks it to the real Aero agent (go-ahead) |
 | Number B (Confirm, Assistant, test callers) | +91 80653 56379 · phone id `b6875116-e8b9-4174-9c71-08a87cd1dc62` |
 | Bolna API | `https://api.bolna.ai` · event injection `POST /v1/call/{run_id}/events` · outbound `POST /call` |
 | Bolna LLM | `gpt-5.4-mini`, **temperature must be 1** for GPT-5 family |
