@@ -1,9 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 const apps = [
-  { path: '/stage', heading: 'Halyn Stage' },
   { path: '/console', heading: 'Halyn Console' },
-  { path: '/aero', heading: 'Aero Bank' },
   { path: '/assistant', heading: "Saksham's Assistant" },
 ];
 
@@ -20,3 +18,5 @@ for (const app of apps) {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(app.heading);
   });
 }
+
+// /stage and /aero have their own specs (they need the mocked API).
