@@ -49,6 +49,7 @@ function Shell({ children }: { children: ReactNode }) {
     { href: '/aero', label: copy.home },
     { href: '/aero/alerts', label: copy.alerts, badge: pending.length },
     { href: '/aero/passkey', label: copy.passkey },
+    { href: '/aero/assistant', label: copy.assistantTab },
   ];
   return (
     <div className="flex min-h-screen flex-col">

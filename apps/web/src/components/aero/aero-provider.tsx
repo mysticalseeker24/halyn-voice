@@ -17,7 +17,7 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
-import { ApiError } from '@/lib/api/client';
+import { ApiError, type ApiClient } from '@/lib/api/client';
 import type { AeroHome, PendingApproval } from '@halyn/shared';
 import { useHub } from '@/lib/hub/use-hub';
 import { COPY, type Copy } from '@/lib/i18n';
@@ -29,6 +29,8 @@ type HomeState =
   { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; data: AeroHome };
 
 interface AeroContextValue {
+  /** The signed-in customer's API client (the Assistant access screen uses it directly). */
+  api: ApiClient;
   lang: Language;
   setLang: (lang: Language) => void;
   copy: Copy;
@@ -263,6 +265,7 @@ export function AeroProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AeroContextValue>(
     () => ({
+      api,
       lang,
       setLang,
       copy,
@@ -284,6 +287,7 @@ export function AeroProvider({ children }: { children: ReactNode }) {
       demoCode: state.status === 'needs_code' ? { rejected: state.rejected, submit: submitCode } : null,
     }),
     [
+      api,
       lang,
       setLang,
       copy,

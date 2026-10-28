@@ -1,12 +1,19 @@
 import {
   AeroHomeSchema,
+  AssistantTaskRequestSchema,
+  AssistantTaskResponseSchema,
   ApprovalDeclineResponseSchema,
   ApprovalVerifyResponseSchema,
   ErrorEnvelopeSchema,
+  IssuePassResponseSchema,
+  ListPassesResponseSchema,
   LedgerListResponseSchema,
   LedgerVerifyResponseSchema,
   OkResponseSchema,
   PasskeyRegisterVerifyResponseSchema,
+  type PassDraft,
+  PassOptionsRequestSchema,
+  RevokePassResponseSchema,
   type ReasonCode,
   type Region,
   SessionResponseSchema,
@@ -127,6 +134,22 @@ export function createApiClient(options: ApiClientOptions = {}) {
       request(WebauthnOptionsResponseSchema, 'POST', '/web/passkeys/register/options', {}),
     passkeyRegisterVerify: (response: unknown) =>
       request(PasskeyRegisterVerifyResponseSchema, 'POST', '/web/passkeys/register/verify', { response }),
+
+    /** Halyn Pass (docs/PASS.md): consent options bound to the draft, then issue with the passkey assertion. */
+    passOptions: (draft: PassDraft) =>
+      request(WebauthnOptionsResponseSchema, 'POST', '/web/passes/options', PassOptionsRequestSchema.parse(draft)),
+    issuePass: (draft: PassDraft, response: unknown) =>
+      request(IssuePassResponseSchema, 'POST', '/web/passes', { ...draft, response }),
+    listPasses: () => request(ListPassesResponseSchema, 'GET', '/web/passes'),
+    revokePass: (passId: string) => request(RevokePassResponseSchema, 'DELETE', `/web/passes/${id(passId)}`),
+    /** The Assistant calls Aero (number B → A) on this Pass. */
+    assistantTask: (task: string, passId: string) =>
+      request(
+        AssistantTaskResponseSchema,
+        'POST',
+        '/web/assistant/tasks',
+        AssistantTaskRequestSchema.parse({ task, pass_id: passId }),
+      ),
 
     stageRun: (scenario: string, mode: 'text' | 'voice' = 'text') =>
       request(
