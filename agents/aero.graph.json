@@ -1,0 +1,318 @@
+{
+  "halyn": {
+    "outbound": false,
+    "note": "Aero voice agent (aero-hi), graph, inbound on number A. Prompts: prompts/aero-agent.md. Tools send call_sid (never a run id; never argument names run_id/method/url/headers/param); the API maps call_sid to the run id from the pre-call/agent webhooks (ADR-016, ADR-022). Outcome nodes have only event edges. {{API_URL}}, {{HALYN_TOOL_SECRET}}, {{SPECIALIST_NUMBER}} are filled at push time and never stored here."
+  },
+  "agent_config": {
+    "agent_name": "Aero Bank - voice assistant (Hindi)",
+    "agent_type": "other",
+    "agent_welcome_message": "नमस्ते! मैं Aero Bank की AI assistant हूँ, यह call record हो रही है। बताइए, आज मैं आपकी क्या मदद करूँ?",
+    "webhook_url": "{{API_URL}}/webhooks/bolna?key={{HALYN_TOOL_SECRET}}",
+    "tasks": [
+      {
+        "task_type": "conversation",
+        "toolchain": {
+          "execution": "parallel",
+          "pipelines": [["transcriber", "llm", "synthesizer"]]
+        },
+        "task_config": {
+          "optimize_latency": true,
+          "call_terminate": 600,
+          "hangup_after_LLMCall": false,
+          "hangup_after_silence": 30,
+          "number_of_words_for_interruption": 3,
+          "incremental_delay": 300,
+          "dtmf_enabled": false,
+          "voicemail": false
+        },
+        "tools_config": {
+          "input": { "format": "wav", "provider": "vobiz" },
+          "output": { "format": "wav", "provider": "vobiz" },
+          "api_tools": {
+            "tools": [
+              {
+                "key": "custom_task",
+                "name": "lookup_customer",
+                "description": "Find the Aero Bank customer for this call by the calling number, or by the name the caller gave. Call it once at the start, and again if the caller later says their name.",
+                "pre_call_message": "",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "claimed_name": {
+                      "type": "string",
+                      "description": "The full name the caller said, or an empty string if they have not said one."
+                    },
+                    "call_sid": { "type": "string", "description": "Telephony call id. Filled automatically." },
+                    "from_number": { "type": "string", "description": "Calling number. Filled automatically." }
+                  },
+                  "required": ["claimed_name"]
+                }
+              },
+              {
+                "key": "custom_task",
+                "name": "verify_pass",
+                "description": "Check the six-digit Halyn Pass code an AI assistant reads out when it calls for a customer.",
+                "pre_call_message": "",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "string", "description": "The six digits the assistant said, digits only." },
+                    "call_sid": { "type": "string", "description": "Telephony call id. Filled automatically." },
+                    "from_number": { "type": "string", "description": "Calling number. Filled automatically." }
+                  },
+                  "required": ["code"]
+                }
+              },
+              {
+                "key": "custom_task",
+                "name": "propose_action",
+                "description": "Submit the caller's request for a security decision. Use it only on the propose step. The decision arrives a moment later.",
+                "pre_call_message": "",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "action": {
+                      "type": "string",
+                      "description": "One of: card.freeze, card.reset_pin, fee.waive, transfer.saved, transfer.new_payee, emi.move_date, statement.view, balance.view, dispute.charge, upi.raise_limit, loan.new, profile.change_mobile, profile.change_email, account.add_owner, account.close, wire.international."
+                    },
+                    "params": {
+                      "type": "string",
+                      "description": "The details as a JSON object. Amounts are amount_minor = rupees x 100 (45000 rupees -> 4500000) with currency INR. Keys per action: card.freeze/card.reset_pin {card_last4}; fee.waive {amount_minor, currency, fee_id}; transfer.saved {amount_minor, currency, payee_id}; transfer.new_payee {amount_minor, currency, payee_account_last4, payee_ifsc, payee_name optional}; emi.move_date {loan_id, new_day 1-28}; statement.view/balance.view/account.close {account: savings or current}; dispute.charge {card_last4, amount_minor, currency, merchant}; upi.raise_limit {amount_minor, currency}; loan.new {amount_minor, currency, tenure_months}; profile.change_mobile {new_number with +91}; profile.change_email {new_email}; account.add_owner {account, owner_name}; wire.international {amount_minor, currency, payee_account_last4, swift_bic, payee_country}. Example: {\"card_last4\":\"8812\"}"
+                    },
+                    "readback_confirmed": {
+                      "type": "string",
+                      "description": "true only if the caller clearly said yes to the read-back, otherwise false."
+                    },
+                    "caller_quotes": {
+                      "type": "string",
+                      "description": "The caller's last one or two sentences, word for word."
+                    },
+                    "call_sid": { "type": "string", "description": "Telephony call id. Filled automatically." },
+                    "from_number": { "type": "string", "description": "Calling number. Filled automatically." }
+                  },
+                  "required": ["action", "params", "readback_confirmed", "caller_quotes"]
+                }
+              },
+              {
+                "key": "transfer_call",
+                "name": "transfer_call_specialist",
+                "description": "Transfer the call to a human Aero Bank specialist.",
+                "pre_call_message": "मैं आपको अभी हमारे specialist से जोड़ रही हूँ, कृपया line पर बने रहिए।",
+                "parameters": {
+                  "type": "object",
+                  "required": ["call_sid"],
+                  "properties": { "call_sid": { "type": "string", "description": "unique call id" } }
+                }
+              }
+            ],
+            "tools_params": {
+              "lookup_customer": {
+                "url": "{{API_URL}}/tools/lookup_customer",
+                "method": "POST",
+                "headers": { "x-halyn-secret": "{{HALYN_TOOL_SECRET}}" },
+                "param": {
+                  "call_sid": "%(call_sid)s",
+                  "from_number": "%(from_number)s",
+                  "claimed_name": "%(claimed_name)s"
+                },
+                "pre_call_webhook_url": "{{API_URL}}/webhooks/bolna?key={{HALYN_TOOL_SECRET}}",
+                "pre_call_webhook_param": { "tool": "lookup_customer" },
+                "scope": "node",
+                "nodes": ["understand"]
+              },
+              "verify_pass": {
+                "url": "{{API_URL}}/tools/verify_pass",
+                "method": "POST",
+                "headers": { "x-halyn-secret": "{{HALYN_TOOL_SECRET}}" },
+                "param": {
+                  "call_sid": "%(call_sid)s",
+                  "from_number": "%(from_number)s",
+                  "code": "%(code)s"
+                },
+                "pre_call_webhook_url": "{{API_URL}}/webhooks/bolna?key={{HALYN_TOOL_SECRET}}",
+                "pre_call_webhook_param": { "tool": "verify_pass" },
+                "scope": "node",
+                "nodes": ["understand"]
+              },
+              "propose_action": {
+                "url": "{{API_URL}}/tools/propose_action",
+                "method": "POST",
+                "headers": { "x-halyn-secret": "{{HALYN_TOOL_SECRET}}" },
+                "param": {
+                  "call_sid": "%(call_sid)s",
+                  "from_number": "%(from_number)s",
+                  "channel": "phone",
+                  "action": "%(action)s",
+                  "params": "%(params)s",
+                  "readback_confirmed": "%(readback_confirmed)s",
+                  "caller_quotes": "%(caller_quotes)s"
+                },
+                "pre_call_webhook_url": "{{API_URL}}/webhooks/bolna?key={{HALYN_TOOL_SECRET}}",
+                "pre_call_webhook_param": { "tool": "propose_action" },
+                "scope": "node",
+                "nodes": ["propose"]
+              },
+              "transfer_call_specialist": {
+                "url": null,
+                "method": "POST",
+                "headers": {},
+                "param": {
+                  "call_sid": "%(call_sid)s",
+                  "call_transfer_number": "{{SPECIALIST_NUMBER}}"
+                },
+                "scope": "node",
+                "nodes": ["transfer"]
+              }
+            }
+          },
+          "llm_agent": {
+            "agent_type": "graph_agent",
+            "agent_flow_type": "streaming",
+            "llm_config": {
+              "provider": "openai",
+              "family": "openai",
+              "model": "gpt-5.4-mini",
+              "temperature": 1,
+              "max_tokens": 250,
+              "reasoning_effort": "none",
+              "verbosity": "low",
+              "routing_provider": "openai",
+              "routing_model": "gpt-4.1-mini",
+              "routing_instructions": "You are the routing system for Aero Bank's voice assistant. Pick the transition whose condition matches the caller's latest words. If none matches, stay on the current node.",
+              "agent_information": "You are Aero Bank's AI voice assistant. You help customers with their accounts, cards and loans: warm, calm and brief, like a helpful branch colleague.\nHow you speak:\n- Reply in the caller's language: Hindi, English or Hinglish. One or two short sentences per turn.\n- Write every Hindi word in Devanagari script and every English word in Latin letters, for example: \"ठीक है, आपका card ending आठ आठ एक दो freeze करना है, सही है?\" Never write Hindi in Roman letters.\n- Say amounts and digits as words in the caller's language: \"पैंतालीस हज़ार रुपये\", \"चार चार सात एक\".\n- Say the customer's name exactly as the lookup returns it.\nRules:\n- You are an AI and the call is recorded; say so if asked.\n- You cannot complete any account action yourself. For every request that changes or reveals account information, you collect the details, read them back in digits, and submit the request for a security decision.\n- Never ask for or read out an OTP, PIN, password, CVV or a full card or account number. Use only the last four digits.\n- Never promise an outcome before the decision arrives. Never argue. If someone is upset, stay calm and kind.\n- If the caller mentions a death in the family, legal action or is in distress, be gentle; a human specialist will help.\nThis customer's records (ids for the request details, never say them aloud): the October late fee of 600 rupees is fee_late_oct; saved payees: Mom is payee_mom, Landlord is payee_landlord; the personal loan is loan_personal_1; accounts: savings, current.\nCall details for tools only, never say them aloud: call {call_sid}, caller {{from_number}}.",
+              "current_node_id": "understand",
+              "nodes": [
+                {
+                  "id": "understand",
+                  "prompt": "On the caller's first turn, call @lookup_customer once (claimed_name = the name they said, or an empty string). If a customer is found, greet them by name in one short line. If no customer is found by number, kindly ask their full name and call @lookup_customer again with it.\nIf the caller says they are an AI assistant calling for a customer, ask: \"कृपया अपना Halyn Pass code बताइए।\" (English: \"Please share your Halyn Pass code.\") and call @verify_pass with the digits. If it is not valid, say kindly that you can share only general information.\nFind out exactly what the caller wants and collect the details that request needs. For a new payee: the amount, the last four digits of the account and the IFSC code. Then read the details back in digits and ask for a clear yes, for example: \"ठीक है, पैंतालीस हज़ार रुपये, account ending चार चार सात एक पर भेजने हैं, सही है?\" Only a clear \"हाँ\" or \"yes\" counts. If the reply is unclear or someone else seems to be speaking, ask once more.",
+                  "edges": [
+                    {
+                      "to_node_id": "propose",
+                      "condition": "The caller clearly said yes to the read-back of a request, or the read-back was asked twice and the answer is still unclear"
+                    },
+                    {
+                      "to_node_id": "transfer",
+                      "condition": "The caller asks to speak to a human or a specialist"
+                    },
+                    {
+                      "to_node_id": "goodbye",
+                      "condition": "The caller has nothing more to ask or says goodbye"
+                    }
+                  ]
+                },
+                {
+                  "id": "propose",
+                  "prompt": "Call @propose_action now: the action id, the details as a JSON object in params, readback_confirmed (true only if the caller clearly said yes), and the caller's last one or two sentences as caller_quotes. Then say only: \"बस एक moment।\"",
+                  "function_call": "propose_action",
+                  "edges": [
+                    { "to_node_id": "working", "condition_type": "event", "event_name": "allow" },
+                    { "to_node_id": "awaiting_confirmation", "condition_type": "event", "event_name": "step_up" },
+                    { "to_node_id": "protect", "condition_type": "event", "event_name": "hold" },
+                    { "to_node_id": "refused", "condition_type": "event", "event_name": "deny" }
+                  ]
+                },
+                {
+                  "id": "working",
+                  "node_type": "static",
+                  "static_message": "धन्यवाद, बस एक moment, मैं इसे पूरा कर रही हूँ।",
+                  "edges": [
+                    { "to_node_id": "confirmed", "condition_type": "event", "event_name": "done" },
+                    { "to_node_id": "refused", "condition_type": "event", "event_name": "deny" }
+                  ]
+                },
+                {
+                  "id": "awaiting_confirmation",
+                  "node_type": "static",
+                  "static_message": "आपकी safety के लिए मैंने आपके registered phone पर एक confirmation भेजा है। कृपया line पर बने रहिए।",
+                  "repeat_after_silence_seconds": 8,
+                  "edges": [
+                    { "to_node_id": "working", "condition_type": "event", "event_name": "approved" },
+                    { "to_node_id": "refused", "condition_type": "event", "event_name": "denied" },
+                    { "to_node_id": "refused", "condition_type": "event", "event_name": "timeout" },
+                    { "to_node_id": "protect", "condition_type": "event", "event_name": "hold" }
+                  ]
+                },
+                {
+                  "id": "protect",
+                  "prompt": "The request is on hold for the customer's protection (reason {{reason}}). In two or three short sentences in the caller's language, without blaming them:\n- If the reason is S_COACHING, or the request was to move money to a \"safe\" or \"verification\" account: explain kindly that Aero Bank never asks customers to move money to such an account and no genuine official asks for this on a call, for example: \"Aero Bank कभी भी पैसे किसी safe account में भेजने को नहीं कहता। आपकी सुरक्षा के लिए यह request अभी hold पर है।\"\n- If the reason is T_DISTRESS or the caller is grieving or upset: say you are sorry and that a specialist will help them personally.\n- Otherwise: say this request needs a specialist.\nThen offer to connect a specialist now: \"क्या मैं आपको अभी एक specialist से जोड़ दूँ?\"",
+                  "edges": [
+                    {
+                      "to_node_id": "transfer",
+                      "condition": "The caller agrees to speak to a specialist, or asks for a human"
+                    },
+                    {
+                      "to_node_id": "goodbye",
+                      "condition": "The caller does not want a specialist now, or says goodbye"
+                    }
+                  ]
+                },
+                {
+                  "id": "confirmed",
+                  "prompt": "Say in the caller's language that the request is done and give the reference {{reference}}: say \"AERO\", then each of the six characters after it one by one. Then ask if there is anything else. Example: \"हो गया! आपका reference है AERO, सात, K, दो, नौ, एक, पाँच। और कुछ मदद करूँ?\"",
+                  "edges": [
+                    { "to_node_id": "understand", "condition": "The caller has another request" },
+                    { "to_node_id": "goodbye", "condition": "The caller has nothing else or says goodbye" }
+                  ]
+                },
+                {
+                  "id": "refused",
+                  "node_type": "static",
+                  "static_message": "माफ़ कीजिए, यह request मैं इस call पर पूरी नहीं कर सकती। क्या मैं किसी और चीज़ में मदद करूँ?",
+                  "edges": [
+                    { "to_node_id": "understand", "condition": "The caller has another request" },
+                    { "to_node_id": "goodbye", "condition": "The caller has nothing else or says goodbye" }
+                  ]
+                },
+                {
+                  "id": "goodbye",
+                  "node_type": "static",
+                  "static_message": "Aero Bank को call करने के लिए धन्यवाद। आपका दिन शुभ हो!",
+                  "function_call": "end_call",
+                  "edges": []
+                },
+                {
+                  "id": "transfer",
+                  "prompt": "Tell the caller kindly, in their language, that you are connecting them to a specialist now.",
+                  "function_call": "transfer_call_specialist",
+                  "edges": []
+                }
+              ]
+            }
+          },
+          "transcriber": {
+            "provider": "sarvam",
+            "model": "saaras:v4",
+            "language": "hi",
+            "stream": true,
+            "encoding": "linear16",
+            "sampling_rate": 16000,
+            "endpointing": 300,
+            "task": "transcribe",
+            "context": "A customer is calling Aero Bank's AI assistant about a card, account, payee, fee or loan, in Hindi, English or Hinglish. An AI assistant may call for a customer and read a Halyn Pass code.",
+            "keywords": "Aero Bank, card, freeze, EMI, fee, payee, IFSC, account ending, Halyn Pass, statement"
+          },
+          "synthesizer": {
+            "provider": "sarvam",
+            "stream": true,
+            "caching": true,
+            "buffer_size": 200,
+            "audio_format": "wav",
+            "provider_config": {
+              "model": "bulbul:v3",
+              "voice": "Simran",
+              "voice_id": "simran",
+              "language": "hi",
+              "speed": 1.15,
+              "loudness": 1
+            }
+          }
+        }
+      }
+    ]
+  },
+  "agent_prompts": {
+    "task_1": {
+      "system_prompt": "You are Aero Bank's AI voice assistant. You never complete an action yourself; you submit it for a security decision. Never ask for or read out an OTP, PIN, password, CVV or full card or account number. Write Hindi in Devanagari and English in Latin letters."
+    }
+  }
+}

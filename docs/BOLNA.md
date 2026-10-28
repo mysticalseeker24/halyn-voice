@@ -6,9 +6,9 @@ and the docs disagree, the docs win — then update this file.
 ## Agents
 | Agent | Kind | Number | STT · TTS · LLM | Key settings | Tools |
 |---|---|---|---|---|---|
-| `aero-hi` Aero voice agent | Graph agent, inbound + web | A | Sarvam `saaras:v4` (hi, Hinglish) · Sarvam `bulbul:v3` · `gpt-5.4-mini` temp 1 | `call_terminate` 600, interruption words 3, endpointing ~500 ms, recording on | `lookup_customer`, `verify_pass`, `propose_action`, `check_decision` (fallback), transfer |
+| `aero-hi` Aero voice agent | Graph agent, inbound + web | A | Sarvam `saaras:v4` (hi, Hinglish) · Sarvam `bulbul:v3` · `gpt-5.4-mini` temp 1 | `call_terminate` 600, interruption words 3, endpointing 300 ms, recording on | `lookup_customer`, `verify_pass`, `propose_action`, `check_decision` (fallback), transfer |
 | `aero-en` Aero voice agent (US) | Same graph | Web only | Sarvam English · English voice | Same | Same |
-| `halyn-confirm` | Simple, outbound | B | Sarvam hi/en | keypad input on, `call_terminate` 120, guardrails 9–21 | `confirm_result` |
+| `halyn-confirm` | **Graph**, outbound | B | Sarvam hi/en | speech only (DTMF off), `call_terminate` 120, guardrails 9–21; `ask` → `record` → `bye` (static, `end_call`) on the `recorded` event | `confirm_result` |
 | `assistant` Saksham's Assistant | Simple, outbound | B | English | `call_terminate` 180, guardrails 9–21 | `get_pass_code` |
 | `test-*` normal personas | Simple, outbound | B | Varies | `call_terminate` 120, guardrails 9–21 | none |
 
@@ -19,13 +19,12 @@ Attacker personas: **not until Bolna approves** (see `docs/COMPLIANCE.md`).
 
 | Node | Type | Job | Edges |
 |---|---|---|---|
-| `greet` | static | "Aero Bank's AI assistant. This call is recorded and protected." | unconditional → `identify` |
-| `identify` | llm | `lookup_customer`; if caller says it's an assistant → ask for Pass code → `verify_pass` | LLM edge → `understand` |
-| `understand` | llm | Collect request + details; read back in digits; distress / bereavement / legal phrases → `transfer` | LLM edges → `propose`, `transfer` |
+| (welcome) | `agent_welcome_message` | Devanagari: AI + recording disclosed | starts at `understand` |
+| `understand` | llm (start) | `lookup_customer` (+ `claimed_name`); assistant → Pass code → `verify_pass`; collect + read back in digits (one node: fewer routing hops) | LLM edges → `propose`, `transfer` (asks for a human), `goodbye` |
 | `propose` | **llm** with `function_call: propose_action` (a router node can't call tools or hold event edges) | Send action, params, `readback_confirmed`, last caller sentences; then "One moment, please." | event edges: `allow`→`working`, `step_up`→`awaiting_confirmation`, `hold`→`protect`, `deny`→`refused` |
 | `working` | static | "Done in a moment." | events `done` → `confirmed`, `deny` → `refused` (Aero Core refused, or its outcome is unknown) |
 | `awaiting_confirmation` | static, `repeat_after_silence_seconds: 8` | "I've sent a confirmation to your registered phone." | events `approved`→`working`, `denied`/`timeout`→`refused`, `hold`→`protect` (an approval a specialist must complete) |
-| `protect` | llm | Gentle: Aero never asks to move money to a safe account; offer a specialist | → `transfer` |
+| `protect` | llm | By `{{reason}}`: coaching → Aero never asks to move money to a safe account; distress → empathy; offer a specialist | LLM → `transfer`, `goodbye` |
 | `confirmed` | **llm** (static audio is pre-generated at save, so it can't hold `{{reference}}`) | "Done. Reference {{reference}}." | → `understand` |
 | `refused` | static | "I can't do that on this call. A confirmation went to the registered number." | → `understand` |
 | `transfer` | `function_call: transfer` | Warm transfer to `SPECIALIST_NUMBER` | end |
@@ -65,7 +64,7 @@ synthetic `sid:` run ids are never sent) and, for `timeout`, by the Hub's alarm.
 `{reference: "AERO-XXXXXX", summary}` — the summary is English with no names or full numbers (the LLM node speaks it in
 the caller's language).
 
-## Keypad
+## Keypad (superseded: DTMF off on every agent, Day-0 check 6)
 `task_config.dtmf_enabled: true`; digits reach the agent as `dtmf_number: <digits>` after `#`. Bolna's docs list DTMF
 as **not supported on Vobiz**, which both our numbers use, so the Confirm agent is speech-first (Day-0 check 6).
 
