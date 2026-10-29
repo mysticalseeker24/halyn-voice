@@ -63,7 +63,15 @@ describe('describeAction', () => {
     ).toContain('named "Verification account"');
     expect(describeAction(proposed('card.freeze'))).toBe('Freeze the card ending 8812');
     expect(describeAction(proposed('transfer.saved'))).toBe('Send ₹4,900 to the saved payee "landlord"');
-    expect(describeAction(proposed('fee.waive'))).toBe('Waive the ₹600 fee (late oct)');
+    expect(describeAction(proposed('fee.waive'))).toBe('Waive the ₹600 late fee for October');
+    expect(
+      describeAction(
+        proposed('fee.waive', { amount_minor: 3500, currency: 'USD', fee_id: 'fee_us_late_oct' }),
+      ),
+    ).toBe('Waive the $35 late fee for October');
+    expect(describeAction(proposed('fee.waive', { ...SAMPLE['fee.waive'], fee_id: 'fee_annual_card' }))).toBe(
+      'Waive the ₹600 fee (annual card)',
+    );
     expect(describeAction(proposed('emi.move_date'))).toBe(
       'Move the EMI of loan personal 1 to day 10 of each month',
     );

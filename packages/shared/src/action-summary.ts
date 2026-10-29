@@ -14,6 +14,28 @@ function idWords(id: string, prefix: string): string {
   return id.replace(new RegExp(`^${prefix}_`), '').replaceAll('_', ' ');
 }
 
+const MONTHS: Record<string, string> = {
+  jan: 'January',
+  feb: 'February',
+  mar: 'March',
+  apr: 'April',
+  may: 'May',
+  jun: 'June',
+  jul: 'July',
+  aug: 'August',
+  sep: 'September',
+  oct: 'October',
+  nov: 'November',
+  dec: 'December',
+};
+
+/** fee_late_oct / fee_us_late_oct → "late fee for October"; any other id → "fee (annual card)". */
+function feeWords(feeId: string): string {
+  const month = /^fee_(?:[a-z]{2}_)?late_([a-z]{3})$/.exec(feeId)?.[1];
+  const name = month ? MONTHS[month] : undefined;
+  return name ? `late fee for ${name}` : `fee (${idWords(feeId, 'fee')})`;
+}
+
 function describe(p: ProposedAction): string {
   switch (p.action) {
     case 'account.add_owner':
@@ -31,7 +53,7 @@ function describe(p: ProposedAction): string {
     case 'emi.move_date':
       return `Move the EMI of loan ${idWords(p.params.loan_id, 'loan')} to day ${p.params.new_day} of each month`;
     case 'fee.waive':
-      return `Waive the ${money(p.params)} fee (${idWords(p.params.fee_id, 'fee')})`;
+      return `Waive the ${money(p.params)} ${feeWords(p.params.fee_id)}`;
     case 'loan.new':
       return `Open a new ${money(p.params)} loan over ${p.params.tenure_months} months`;
     case 'profile.change_email':
