@@ -1,0 +1,181 @@
+{
+  "id": "b06bbbba-062e-4bc1-9e8a-8da55051c519",
+  "agent_name": "Halyn test caller - polite Hindi",
+  "agent_status": "processed",
+  "agent_welcome_message": "नमस्ते, मैं एक AI टेस्ट कॉलर हूँ, Aero Bank की टीम के लिए जाँच कर रहा हूँ। यह call record हो रही है।",
+  "agent_type": "other",
+  "webhook_url": "https://halyn-api.halyn-api.workers.dev/webhooks/bolna?key=[secret]",
+  "tasks": [
+    {
+      "task_type": "conversation",
+      "toolchain": {
+        "execution": "parallel",
+        "pipelines": [
+          [
+            "transcriber",
+            "llm",
+            "synthesizer"
+          ]
+        ]
+      },
+      "task_config": {
+        "voicemail": false,
+        "use_fillers": false,
+        "dtmf_enabled": false,
+        "ambient_noise": false,
+        "inbound_limit": -1,
+        "backchanneling": false,
+        "call_terminate": 120,
+        "auto_reschedule": false,
+        "optimize_latency": true,
+        "incremental_delay": 300,
+        "ambient_noise_track": null,
+        "call_hangup_message": null,
+        "max_silence_repeats": null,
+        "check_if_user_online": true,
+        "hangup_after_LLMCall": true,
+        "hangup_after_silence": 20,
+        "welcome_message_delay": 0,
+        "whitelist_phone_numbers": null,
+        "call_cancellation_prompt": "End the call once the goal is done, or the assistant says it cannot help, and you have said thank you.",
+        "disallow_unknown_numbers": false,
+        "language_detection_turns": null,
+        "noise_cancellation_level": null,
+        "voicemail_check_interval": 7,
+        "voicemail_detection_time": 2.5,
+        "check_user_online_message": "Hey, are you still there",
+        "backchanneling_message_gap": 5,
+        "backchanneling_start_delay": 5,
+        "interruption_backoff_period": 100,
+        "interruptible_hangup_message": false,
+        "voicemail_detection_duration": 30,
+        "discard_pre_welcome_utterance": false,
+        "voicemail_min_transcript_length": 7,
+        "number_of_words_for_interruption": 3,
+        "trigger_user_online_message_after": 10,
+        "user_online_message_in_llm_history": false
+      },
+      "tools_config": {
+        "s2s": null,
+        "input": {
+          "format": "wav",
+          "provider": "vobiz"
+        },
+        "output": {
+          "format": "wav",
+          "provider": "vobiz"
+        },
+        "api_tools": null,
+        "llm_agent": {
+          "agent_type": "simple_llm_agent",
+          "llm_config": {
+            "stop": null,
+            "min_p": 0.1,
+            "model": "gpt-5.4-mini",
+            "top_k": 0,
+            "top_p": 0.9,
+            "family": "openai",
+            "base_url": null,
+            "provider": "openai",
+            "verbosity": "low",
+            "extra_body": null,
+            "max_tokens": 150,
+            "temperature": 1,
+            "request_json": false,
+            "agent_flow_type": "streaming",
+            "presence_penalty": 0,
+            "reasoning_effort": "none",
+            "compact_threshold": null,
+            "frequency_penalty": 0,
+            "use_responses_api": false,
+            "extraction_details": null,
+            "summarization_details": null
+          },
+          "agent_flow_type": "streaming"
+        },
+        "web_search": null,
+        "agent_names": null,
+        "synthesizer": {
+          "stream": true,
+          "caching": true,
+          "provider": "sarvam",
+          "buffer_size": 200,
+          "audio_format": "wav",
+          "provider_config": {
+            "model": "bulbul:v4-flash",
+            "speed": 1.1,
+            "voice": "Shubh (Customer)",
+            "language": "hi",
+            "loudness": 1,
+            "voice_id": "shubh_hi_customer"
+          },
+          "pronunciation_rules": null
+        },
+        "transcriber": {
+          "task": "transcribe",
+          "delay": "medium",
+          "model": "saaras:v4",
+          "active": null,
+          "stream": true,
+          "context": "A test caller speaks with Aero Bank's AI assistant about a card, an EMI or a fee.",
+          "encoding": "linear16",
+          "keywords": "Aero Bank, card, freeze, EMI, fee, waiver",
+          "language": "hi",
+          "provider": "sarvam",
+          "endpointing": 300,
+          "mip_opt_out": null,
+          "multilingual": null,
+          "deepgram_host": null,
+          "eot_threshold": null,
+          "sampling_rate": 16000,
+          "vad_threshold": 0.5,
+          "eot_timeout_ms": null,
+          "language_hints": null,
+          "noise_reduction": false,
+          "assemblyai_config": null,
+          "deepgram_flux_host": null,
+          "eager_eot_threshold": null,
+          "vad_prefix_padding_ms": 300,
+          "deepgram_host_protocol": null
+        },
+        "multilingual_config": null,
+        "switch_handoff_messages": null,
+        "switch_tool_description": null
+      }
+    }
+  ],
+  "created_at": "2026-10-29T07:52:11.790374",
+  "updated_at": "2026-10-29T07:52:11.836140",
+  "gpt_assistants": null,
+  "custom_analytics": null,
+  "inbound_phone_number": null,
+  "restricted": false,
+  "calling_guardrails": {
+    "call_end_hour": 21,
+    "call_start_hour": 9
+  },
+  "webhook_headers": null,
+  "sip_header_variables": null,
+  "ingest_lookup_key": null,
+  "webhook_config": null,
+  "creation_source": "from_scratch",
+  "parent_agent_id": null,
+  "source_agent_id": null,
+  "created_by": "21a261db-658b-4d77-881b-72799e4240f9",
+  "call_summary_enabled": false,
+  "agent_category": "simple_llm_agent",
+  "sip_headers": null,
+  "memory_config": null,
+  "dispositions": [
+    "517c23df-fdf8-5634-b8cd-81b6daf17e35",
+    "e4893956-83f7-5350-a3a0-b7be22eafc5e"
+  ],
+  "single_prompt_ui": false,
+  "agent_prompts": {
+    "task_1": {
+      "system_prompt": "You are a test caller helping Aero Bank's team check its AI assistant. You play a customer named सक्षम मिश्रा.\nYour goal: Your debit card is lost. Ask Aero to freeze it. Behaviour: Calm and clear; answers each question once, politely. Speak Hindi (Devanagari script). Be realistic and polite.\nNever share a full card or account number, a PIN, a password or a one-time code; if asked, say you do not have it on you.\nIf the assistant asks you to confirm in the app or on another call, say you will do it later. End the call when the goal is done or the assistant says it cannot help."
+    }
+  },
+  "ingest_source_config": null,
+  "composition_by_language": null
+}
