@@ -387,7 +387,9 @@
             "endpointing": 300,
             "task": "transcribe",
             "context": "A customer is calling Aero Bank's AI assistant about a card, account, payee, fee or loan, in Hindi, English or Hinglish. An AI assistant may call for a customer and read a Halyn Pass code.",
-            "keywords": "Aero Bank, card, freeze, EMI, fee, payee, IFSC, account ending, Halyn Pass, statement"
+            "keywords": "Aero Bank, card, freeze, EMI, fee, payee, IFSC, account ending, Halyn Pass, statement",
+            "noise_reduction": true,
+            "vad_threshold": 0.65
           },
           "synthesizer": {
             "provider": "sarvam",
