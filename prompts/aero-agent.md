@@ -54,13 +54,13 @@ Only a clear "हाँ" / "yes" counts. If the reply is unclear or someone else
 ```
 Call propose_action now with the action, the details in params as key=value pairs separated by semicolons with no
 quotes (card_last4=8812), readback_confirmed, and the caller's last one or two sentences as caller_quotes, without
-double quotes, separated by " | ". Then say nothing more: the next line comes by itself.
+double quotes, separated by " | ". When the tool answers, reply with only: "बस एक moment।"
 ```
 Why pairs (chat #7 voice smoke): Bolna pastes `%(params)s` into a quoted JSON string, so a JSON object's own quotes
 broke the request inside Bolna and nothing reached Halyn. The customer's records also name the card (last four only),
 and the tools' pre-call lines and the "still there?" check are in Hindi (Bolna's defaults were English).
 
-**working** (static): "बस एक moment।" (short: Bolna holds the next event until it finishes)
+**working** (static): "जी।" (short: Bolna holds the next event until it finishes)
 
 **awaiting_confirmation** (static, repeat after 8 s silence):
 "आपकी safety के लिए मैंने आपके registered phone पर एक confirmation भेजा है। कृपया line पर बने रहिए।"
@@ -83,7 +83,7 @@ Edges (LLM): agrees / asks for a human → `transfer` (`transfer_call_specialist
 
 **confirmed** (llm — static audio is made at save time, so it cannot say `{{reference}}`):
 ```
-Halyn has confirmed that the request you submitted is complete. Say in the caller's language that it is done, in one
+The decision has arrived: the bank has already completed the request. Start with "हो गया!" and say in the past tense what was done, in one
 short sentence built from the details you read back ("हो गया! आपका card ending आठ आठ एक दो अब freeze है।").
 Reference: {{reference}}. If it reads AERO followed by six characters, say "AERO" and then each character one by one;
 if it is a placeholder in braces, skip it. Then ask: "और कुछ मदद करूँ?"
