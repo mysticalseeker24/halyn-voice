@@ -31,7 +31,7 @@ console.log('✓ agents/aero.graph.json');
 
 const enPath = 'scripts/bolna/make-aero-en.mjs';
 let en = readFileSync(enPath, 'utf8');
-const enConfirmed = /  confirmed:\n    '[^\n]*',\n/;
+const enConfirmed = / {2}confirmed:\n {4}'[^\n]*',\n/;
 if (!enConfirmed.test(en)) throw new Error('en confirmed anchor missing');
 en = en.replace(
   enConfirmed,

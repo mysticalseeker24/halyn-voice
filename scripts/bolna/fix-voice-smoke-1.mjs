@@ -72,7 +72,7 @@ console.log('✓ agents/aero.graph.json');
 // ── scripts/bolna/make-aero-en.mjs (the US web agent is generated from the Hindi graph) ─────────────────────────────
 const enPath = 'scripts/bolna/make-aero-en.mjs';
 let en = readFileSync(enPath, 'utf8');
-const enParamsOld = /propose\.parameters\.properties\.params\.description =\n  '[^\n]*';/;
+const enParamsOld = /propose\.parameters\.properties\.params\.description =\n {2}'[^\n]*';/;
 must(enParamsOld.test(en) || en.includes('key=value pairs separated by semicolons. No quotes'), 'en params');
 en = en.replace(
   enParamsOld,
