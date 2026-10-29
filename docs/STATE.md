@@ -98,6 +98,17 @@ build freeze is gone. Screens stay plain until a UI refinement pass (professiona
 - Step 19: clone lines in voice C then `atempo=1.25`; `scripts/clone-clips.ts` refuses Roman "Saksham".
 - Names: spoken text uses सक्षम / सक्षम मिश्रा (`customer_name`, `user_data`); screens show "Saksham".
 
+## Chat #8 findings (Step 16 review, not blocking; chat #8 refines)
+1. `verify_pass` matches a Pass's assistant numbers against the tool body's `from_number`; use the telephony number
+   the webhook now records on the call (as `identify` does) — medium.
+2. The trusted calling number needs Bolna to send the full `telephony_data.from_number` (not PII-masked): check on
+   the first real call (`/pull-call`); if masked, the tool body is the fallback.
+3. Try removing `from_number`/`call_sid` from the LLM-visible tool `properties` (keep `%(from_number)s` in `param`)
+   if Bolna still substitutes them — an agent change, test on one call.
+4. `pnpm audit --prod`: one low (deepmerge via the shadcn CLI, no patch; dev-time only). `pnpm install` warns about peers.
+5. Demo auth by design: anyone with `DEMO_ACCESS_CODE` can mint a console or any customer's session.
+6. One API unit test failed once in a full parallel run and did not reproduce (likely a timing test under load).
+
 ## Known issues / notes
 - pnpm 12.15.0 global. IST time: `node -e "console.log(new Date().toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}))"`.
 - Wrangler auth: `set -a; . ./.env; set +a` (CLOUDFLARE_API_TOKEN), then `pnpm deploy:api|deploy:core`.

@@ -80,7 +80,9 @@ How the tools behave (Step 7, `apps/api/src/tools`; ADR-016):
 - **`check_decision`** answers the event the call is in now (`{status:"decided", event}`); 404 for another call's request.
 - **`POST /webhooks/bolna`** takes Bolna's execution record (agent webhook or a tool's pre-call webhook), maps its call
   sid (`telephony_data.call_sid` or `provider_call_id`) to its run id and records the end of the call and its
-  recording. Unreadable records get `{ok:false}` (no retry); decisions never depend on it.
+  recording. Unreadable records get `{ok:false}` (no retry). For inbound calls it also records the hash of
+  `telephony_data.from_number`: that number beats a tool body's `from_number` for the registered-number proof, and a
+  record contradicting an earlier lookup withdraws it (Step 16; the LLM can see the tool's `from_number`).
 
 ## Events Halyn sends into calls (`POST https://api.bolna.ai/v1/call/{run_id}/events`)
 | Event | Properties | Aero graph goes to |
