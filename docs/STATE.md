@@ -54,7 +54,7 @@ Snapshots: `agent.ts get --out` (MCP `get_agent` shows the tool secret). Offline
 ## Deployed / cloud
 | Thing | Status |
 |---|---|
-| API Worker | `https://halyn-api.halyn-api.workers.dev`, version `581b9b6e` (2026-10-30 02:18; English, demo reset, finding-1 fix = main `5e2be1d`) |
+| API Worker | `https://halyn-api.halyn-api.workers.dev`, version `22c6c07a` (2026-10-30 03:15; = main `b9f75ff`: English, demo reset, findings, live Run-all Pass skip). Aero Core state dirty from the 02:30 live run: `seed:core` before calls |
 | Aero Core Worker | `https://halyn-aero-core.halyn-api.workers.dev`; D1 `aero-core` (`pnpm seed:core --remote --yes` = demo reset) |
 | KV `CONFIG` | packs `pack:ten_aero:IN|US`; clips `file:ten_aero:clip:<id>` (8, English en-IN, 2026-10-30) |
 | TiDB `halyn_dev` | migrated + seeded (`pass_demo` → number B, 30 days from 2026-10-28) |
