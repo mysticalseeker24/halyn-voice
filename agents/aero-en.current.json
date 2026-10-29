@@ -248,7 +248,7 @@
                     "function_description": null
                   }
                 ],
-                "prompt": "On the caller's first turn, call @lookup_customer once (claimed_name = the name they said, or an empty string). If a customer is found, say you have found their account in one short line. If not, kindly ask their full name and call @lookup_customer again with it.\nFind out exactly what the caller wants and collect the details that request needs. For a wire: the amount, the last four digits of the account and the last four digits of the routing number. For a new payee: the amount and the last four digits of the account. Then read the details back in digits and ask for a clear yes, for example: \"Okay, a wire of eight thousand dollars to the account ending three three one zero, routing ending zero zero two one. Is that right?\" Only a clear \"yes\" counts. If the reply is unclear or someone else seems to be speaking, ask once more.",
+                "prompt": "On the caller's first turn, call @lookup_customer once (claimed_name = the name they said, or an empty string). If a customer is found, say you have found their account in one short line. If not, kindly ask their full name and call @lookup_customer again with it.\nFind out exactly what the caller wants and collect the details that request needs. For a card request, use the card on record and confirm it instead of asking for digits. For a wire: the amount, the last four digits of the account and the last four digits of the routing number. For a new payee: the amount and the last four digits of the account. Then read the details back in digits and ask for a clear yes, for example: \"Okay, a wire of eight thousand dollars to the account ending three three one zero, routing ending zero zero two one. Is that right?\" Only a clear \"yes\" counts. If the reply is unclear or someone else seems to be speaking, ask once more.",
                 "examples": null,
                 "node_type": "llm",
                 "llm_config": null,
@@ -314,7 +314,7 @@
                     "function_description": null
                   }
                 ],
-                "prompt": "Call @propose_action now: the action id, the details in params as key=value pairs separated by semicolons with no quotes (for example card_last4=2207), readback_confirmed (true only if the caller clearly said yes), and the caller's last one or two sentences as caller_quotes, without double quotes, separated by ' | '. Then say only: \"One moment, please.\"",
+                "prompt": "Call @propose_action now: the action id, the details in params as key=value pairs separated by semicolons with no quotes (for example card_last4=2207), readback_confirmed (true only if the caller clearly said yes), and the caller's last one or two sentences as caller_quotes, without double quotes, separated by ' | '. When the tool answers, reply with only: \"One moment, please.\"",
                 "examples": null,
                 "node_type": "llm",
                 "llm_config": null,
@@ -364,7 +364,7 @@
                 "description": null,
                 "function_call": null,
                 "routing_model": null,
-                "static_message": "Thank you, one moment while I complete this.",
+                "static_message": "Okay.",
                 "completion_check": null,
                 "routing_reasoning_effort": null,
                 "repeat_after_silence_seconds": null,
@@ -464,7 +464,7 @@
                     "function_description": null
                   }
                 ],
-                "prompt": "The request is on hold for the customer's protection (reason {{reason}}). If the reason above is a placeholder in braces, decide from the conversation which case fits. In two or three short sentences, without blaming them:\n- If the reason is S_COACHING, or the request was to move money to a \"safe\" or \"verification\" account: explain kindly that Aero Bank never asks customers to move money to such an account and no genuine official asks for this on a call.\n- If the reason is T_DISTRESS or the caller is grieving or upset: say you are sorry and that a specialist will help them personally.\n- If the reason is P_HUMAN_ONLY_ABOVE_LIMIT or P_HUMAN_ONLY: say a request of this size or kind is handled by a specialist.\nThen say a specialist from Aero will call them back, and ask if there is anything else.",
+                "prompt": "The request is on hold for the customer's protection. Decide from the conversation which case fits and answer in two or three short sentences, without blaming them:\n- If the request was to move money to a \"safe\", \"verification\" or \"secure\" account, or someone told the caller to make it or to keep it secret: explain kindly that Aero Bank never asks customers to move money to such an account and no genuine official asks for this on a call, for example: \"Aero Bank will never ask you to move money to a safe account. For your protection, this request is on hold.\"\n- If the caller is grieving or upset: say you are sorry and that a specialist will help them personally.\n- Otherwise: say a request of this size or kind is handled by a specialist.\nThen say a specialist from Aero will call them back, and ask if there is anything else.",
                 "examples": null,
                 "node_type": "llm",
                 "llm_config": null,
@@ -506,7 +506,7 @@
                     "function_description": null
                   }
                 ],
-                "prompt": "Halyn has confirmed that the request you submitted is complete. Say that it is done, in one short sentence built from the details you read back, for example: \"Done! The wire of eight thousand dollars is on its way.\" Reference: {{reference}}. If that reference reads AERO followed by six characters, say \"AERO\" and then each character one by one; if it is a placeholder in braces, skip the reference. Then ask if there is anything else.",
+                "prompt": "The decision has arrived: the bank has already completed the request you submitted. Start with \"Done!\" and say in the past tense what was done, built from the details you read back; never say it was only submitted or that a decision is pending. For example: \"Done! The wire of eight thousand dollars is on its way.\" Then ask: \"Is there anything else I can help with?\"",
                 "examples": null,
                 "node_type": "llm",
                 "llm_config": null,
@@ -642,10 +642,10 @@
           "deepgram_host": null,
           "eot_threshold": null,
           "sampling_rate": 16000,
-          "vad_threshold": 0.5,
+          "vad_threshold": 0.65,
           "eot_timeout_ms": null,
           "language_hints": null,
-          "noise_reduction": false,
+          "noise_reduction": true,
           "assemblyai_config": null,
           "deepgram_flux_host": null,
           "eager_eot_threshold": null,
@@ -659,7 +659,7 @@
     }
   ],
   "created_at": "2026-10-28T22:34:55.056181",
-  "updated_at": "2026-10-29T09:04:45.476923",
+  "updated_at": "2026-10-29T20:20:13.148260",
   "gpt_assistants": null,
   "custom_analytics": null,
   "inbound_phone_number": null,

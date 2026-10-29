@@ -2,7 +2,7 @@
   "id": "96a6c2a2-9695-4876-8a34-41112d812077",
   "agent_name": "Halyn Confirm - security confirmation",
   "agent_status": "processed",
-  "agent_welcome_message": "नमस्ते {{customer_name}}, मैं Aero Bank की AI security assistant हूँ, यह call record हो रही है। अभी एक request आई है: {{action_summary}}। क्या आप इसे approve करते हैं? कृपया हाँ या ना बोलिए।",
+  "agent_welcome_message": "Hello {{customer_name}}, this is Aero Bank's AI security assistant, and this call is recorded. A request just came in: {{action_summary}}. Do you approve it? Please say yes or no.",
   "agent_type": "other",
   "webhook_url": "https://halyn-api.halyn-api.workers.dev/webhooks/bolna?key=[secret]",
   "tasks": [
@@ -83,7 +83,7 @@
                 }
               },
               "description": "Record the customer's answer to the security confirmation: approve or decline.",
-              "pre_call_message": ""
+              "pre_call_message": "Thank you."
             }
           ],
           "tools_params": {
@@ -128,7 +128,7 @@
                     "parameters": {
                       "answer": {
                         "type": "string",
-                        "description": "approve for a clear yes (हाँ, हाँ जी, जी हाँ, yes, approve). decline for a clear no (नहीं, ना, no, decline, मैंने नहीं किया), and also when the answer is still unclear after asking again.",
+                        "description": "approve for a clear yes (yes, yes please, approve, हाँ). decline for a clear no (no, decline, that was not me, नहीं), and also when the answer is still unclear after asking again.",
                         "allowed_values": ["approve", "decline"]
                       }
                     },
@@ -138,7 +138,7 @@
                     "function_description": null
                   }
                 ],
-                "prompt": "Wait for the customer's yes or no. If the reply is unclear, ask once: \"माफ़ कीजिए, क्या आप इस request को approve करते हैं? हाँ या ना?\"",
+                "prompt": "Wait for the customer's yes or no. If the reply is unclear, ask once: \"Sorry, do you approve this request? Yes or no?\"",
                 "examples": null,
                 "node_type": "llm",
                 "llm_config": null,
@@ -180,7 +180,7 @@
                     "function_description": null
                   }
                 ],
-                "prompt": "Call @confirm_result now with answer {{answer}} and request_id {{request_id}}. Then say only: \"ठीक है।\"",
+                "prompt": "Call @confirm_result now with answer {{answer}} and request_id {{request_id}}. Then say only: \"Okay.\"",
                 "examples": null,
                 "node_type": "llm",
                 "llm_config": null,
@@ -205,7 +205,7 @@
                 "description": null,
                 "function_call": "end_call",
                 "routing_model": null,
-                "static_message": "धन्यवाद, आपका जवाब record हो गया है।",
+                "static_message": "Thank you, your answer has been recorded. Goodbye.",
                 "completion_check": null,
                 "routing_reasoning_effort": null,
                 "repeat_after_silence_seconds": null,
@@ -230,7 +230,7 @@
             "presence_penalty": 0,
             "reasoning_effort": "none",
             "routing_provider": "openai",
-            "agent_information": "You are Aero Bank's automated security confirmation assistant, an AI. You called the customer on their registered phone to confirm one request made a moment ago: \"{{action_summary}}\". Your greeting already asked whether they approve it.\nWrite Hindi words in Devanagari and English words in Latin letters. Reply in {{language}}, one short sentence.\nNever ask for an OTP, PIN, password or any account details. Never transfer the call. Do not add details beyond the request summary.\nCall details for tools only, never say them aloud: request {{request_id}}, call {call_sid}.",
+            "agent_information": "You are Aero Bank's automated security confirmation assistant, an AI. You called the customer on their registered phone to confirm one request made a moment ago: \"{{action_summary}}\". Your greeting already asked whether they approve it.\nReply in English, one short sentence.\nNever ask for an OTP, PIN, password or any account details. Never transfer the call. Do not add details beyond the request summary.\nCall details for tools only, never say them aloud: request {{request_id}}, call {call_sid}.",
             "compact_threshold": null,
             "frequency_penalty": 0,
             "use_responses_api": false,
@@ -252,7 +252,7 @@
             "model": "bulbul:v4-flash",
             "speed": 1.1,
             "voice": "Simran (Banking Expressive)",
-            "language": "hi",
+            "language": "en",
             "loudness": 1,
             "voice_id": "simran_enhi_banking_expressive"
           },
@@ -264,10 +264,10 @@
           "model": "saaras:v4",
           "active": null,
           "stream": true,
-          "context": "Aero Bank's AI calls a customer to confirm a request; the customer answers yes or no in Hindi or English.",
+          "context": "Aero Bank's AI calls a customer to confirm a request; the customer answers yes or no in English.",
           "encoding": "linear16",
           "keywords": "Aero Bank, approve, decline, request",
-          "language": "hi",
+          "language": "en",
           "provider": "sarvam",
           "endpointing": 300,
           "mip_opt_out": null,
@@ -292,7 +292,7 @@
     }
   ],
   "created_at": "2026-10-28T18:26:37.371667",
-  "updated_at": "2026-10-28T18:26:38.444938",
+  "updated_at": "2026-10-29T20:20:17.168072",
   "gpt_assistants": null,
   "custom_analytics": null,
   "inbound_phone_number": null,

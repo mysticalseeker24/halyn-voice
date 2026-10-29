@@ -75,7 +75,7 @@
                 }
               },
               "description": "Get a fresh six-digit Halyn Pass code for this call, when the bank asks for it.",
-              "pre_call_message": ""
+              "pre_call_message": "One moment."
             }
           ],
           "tools_params": {
@@ -138,7 +138,7 @@
             "model": "bulbul:v4-flash",
             "speed": 1.1,
             "voice": "Shubh (Customer)",
-            "language": "hi",
+            "language": "en",
             "loudness": 1,
             "voice_id": "shubh_hi_customer"
           },
@@ -150,10 +150,10 @@
           "model": "saaras:v4",
           "active": null,
           "stream": true,
-          "context": "An AI assistant calls Aero Bank's AI agent for its customer; the bank speaks Hindi or English and asks for a Halyn Pass code.",
+          "context": "An AI assistant calls Aero Bank's AI agent for its customer; the bank speaks English and asks for a Halyn Pass code.",
           "encoding": "linear16",
           "keywords": "Aero Bank, Halyn Pass, statement, EMI, payee, IFSC",
-          "language": "hi",
+          "language": "en",
           "provider": "sarvam",
           "endpointing": 300,
           "mip_opt_out": null,
@@ -178,7 +178,7 @@
     }
   ],
   "created_at": "2026-10-28T19:04:56.526836",
-  "updated_at": "2026-10-28T19:04:56.560053",
+  "updated_at": "2026-10-29T20:20:18.588764",
   "gpt_assistants": null,
   "custom_analytics": null,
   "inbound_phone_number": null,
@@ -199,7 +199,7 @@
   "agent_category": "simple_llm_agent",
   "sip_headers": null,
   "memory_config": null,
-  "dispositions": ["ddd9efe1-30c8-54c7-b54b-5d7af8cf54b5"],
+  "dispositions": ["7cacf79f-6ffc-59a2-826c-243c0604f7fa", "ddd9efe1-30c8-54c7-b54b-5d7af8cf54b5"],
   "single_prompt_ui": false,
   "agent_prompts": {
     "task_1": {
