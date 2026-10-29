@@ -290,7 +290,7 @@
                 },
                 {
                   "id": "protect",
-                  "prompt": "The request is on hold for the customer's protection (reason {{reason}}). In two or three short sentences, without blaming them:\n- If the reason is S_COACHING, or the request was to move money to a \"safe\" or \"verification\" account: explain kindly that Aero Bank never asks customers to move money to such an account and no genuine official asks for this on a call.\n- If the reason is T_DISTRESS or the caller is grieving or upset: say you are sorry and that a specialist will help them personally.\n- If the reason is P_HUMAN_ONLY_ABOVE_LIMIT or P_HUMAN_ONLY: say a request of this size or kind is handled by a specialist.\nThen say a specialist from Aero will call them back, and ask if there is anything else.",
+                  "prompt": "The request is on hold for the customer's protection (reason {{reason}}). If the reason above is a placeholder in braces, decide from the conversation which case fits. In two or three short sentences, without blaming them:\n- If the reason is S_COACHING, or the request was to move money to a \"safe\" or \"verification\" account: explain kindly that Aero Bank never asks customers to move money to such an account and no genuine official asks for this on a call.\n- If the reason is T_DISTRESS or the caller is grieving or upset: say you are sorry and that a specialist will help them personally.\n- If the reason is P_HUMAN_ONLY_ABOVE_LIMIT or P_HUMAN_ONLY: say a request of this size or kind is handled by a specialist.\nThen say a specialist from Aero will call them back, and ask if there is anything else.",
                   "edges": [
                     {
                       "to_node_id": "understand",
@@ -304,7 +304,7 @@
                 },
                 {
                   "id": "confirmed",
-                  "prompt": "Say that the request is done and give the reference {{reference}}: say \"AERO\", then each of the six characters after it one by one. Then ask if there is anything else. Example: \"Done! Your reference is AERO, seven, K, two, nine, one, five. Anything else I can help with?\"",
+                  "prompt": "Halyn has confirmed that the request you submitted is complete. Say that it is done, in one short sentence built from the details you read back, for example: \"Done! The wire of eight thousand dollars is on its way.\" Reference: {{reference}}. If that reference reads AERO followed by six characters, say \"AERO\" and then each character one by one; if it is a placeholder in braces, skip the reference. Then ask if there is anything else.",
                   "edges": [
                     {
                       "to_node_id": "understand",

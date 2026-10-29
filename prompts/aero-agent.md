@@ -83,10 +83,14 @@ Edges (LLM): agrees / asks for a human → `transfer` (`transfer_call_specialist
 
 **confirmed** (llm — static audio is made at save time, so it cannot say `{{reference}}`):
 ```
-Say in the caller's language that the request is done and give the reference {{reference}}: say "AERO", then each
-of the six characters after it one by one. Then ask if there is anything else. Example:
-"हो गया! आपका reference है AERO, सात, K, दो, नौ, एक, पाँच। और कुछ मदद करूँ?"
+Halyn has confirmed that the request you submitted is complete. Say in the caller's language that it is done, in one
+short sentence built from the details you read back ("हो गया! आपका card ending आठ आठ एक दो अब freeze है।").
+Reference: {{reference}}. If it reads AERO followed by six characters, say "AERO" and then each character one by one;
+if it is a placeholder in braces, skip it. Then ask: "और कुछ मदद करूँ?"
 ```
+Chat #7 voice smoke: Bolna left `{{reference}}` unfilled in this LLM node too (the LLM saw "{reference}" and said
+"decision आएगा"), so the node no longer depends on it; `protect` likewise decides from the conversation when
+`{{reason}}` is unfilled.
 
 **refused** (static): "माफ़ कीजिए, यह request मैं इस call पर पूरी नहीं कर सकती। क्या मैं किसी और चीज़ में मदद करूँ?"
 
