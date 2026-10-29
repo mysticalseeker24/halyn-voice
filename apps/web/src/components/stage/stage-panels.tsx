@@ -23,12 +23,12 @@ export function Panel({
     <section
       aria-label={title}
       className={cn(
-        'flex min-h-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/5',
+        'flex min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card',
         className,
       )}
     >
-      <header className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-3">
-        <h2 className="text-base font-semibold tracking-[0.08em] text-slate-300 uppercase">{title}</h2>
+      <header className="flex items-center justify-between gap-3 border-b border-border px-5 py-3">
+        <h2 className="text-base font-semibold tracking-[0.08em] text-muted-foreground uppercase">{title}</h2>
         {aside}
       </header>
       <div className="min-h-0 flex-1 overflow-hidden p-4">{children}</div>
@@ -41,20 +41,23 @@ export function AeroPanel({ state }: { state: StageState }) {
   const prompt = state.confirmRequest && !state.confirmResolved ? state.confirmRequest : null;
   return (
     <Panel title="Aero app">
-      <div className="mx-auto flex h-full w-[340px] flex-col gap-3 overflow-hidden rounded-3xl bg-sky-50 p-4 text-slate-900">
-        <p className="text-base font-bold text-sky-700">Aero Bank</p>
-        <div className="rounded-2xl bg-white p-3">
-          <p className="text-sm font-semibold text-sky-800">Balance</p>
+      <div className="aero mx-auto flex h-full w-[340px] flex-col gap-3 overflow-hidden rounded-3xl bg-background p-4 text-foreground ring-1 ring-border">
+        <p className="text-base font-bold text-primary">Aero Bank</p>
+        <div className="rounded-2xl bg-card p-3">
+          <p className="text-sm font-semibold text-primary">Balance</p>
           {state.balance ? (
             <p data-testid="stage-balance" className="text-3xl font-bold">
               {money(state.balance)}
             </p>
           ) : (
-            <p className="text-sm text-slate-700">Waiting for the first Aero update.</p>
+            <p className="text-sm text-muted-foreground">Waiting for the first Aero update.</p>
           )}
         </div>
         {prompt ? (
-          <div data-testid="aero-prompt" className="rounded-2xl border-2 border-[#ff7a5c] bg-orange-50 p-3">
+          <div
+            data-testid="aero-prompt"
+            className="rounded-2xl border-2 border-coral bg-orange-50 dark:bg-orange-950/40 p-3"
+          >
             <p className="text-sm font-bold">Approve this request?</p>
             <p className="mt-1 text-sm">{prompt.summary}</p>
             {prompt.amount ? <p className="text-xl font-bold">{money(prompt.amount)}</p> : null}
@@ -63,10 +66,10 @@ export function AeroPanel({ state }: { state: StageState }) {
             </p>
           </div>
         ) : null}
-        <div className="min-h-0 flex-1 overflow-hidden rounded-2xl bg-white p-3">
-          <p className="text-sm font-semibold text-sky-800">Activity</p>
+        <div className="min-h-0 flex-1 overflow-hidden rounded-2xl bg-card p-3">
+          <p className="text-sm font-semibold text-primary">Activity</p>
           {state.activity.length === 0 ? (
-            <p className="mt-1 text-sm text-slate-700">No activity yet.</p>
+            <p className="mt-1 text-sm text-muted-foreground">No activity yet.</p>
           ) : (
             <ul className="mt-1 space-y-1">
               {state.activity.slice(-4).map((a) => (
@@ -98,10 +101,10 @@ export function TranscriptPanel({ state }: { state: StageState }) {
               className={cn(
                 'max-w-[85%] rounded-xl px-4 py-2 text-lg',
                 line.speaker === 'caller'
-                  ? 'self-start bg-white/10'
+                  ? 'self-start bg-muted'
                   : line.speaker === 'agent'
-                    ? 'self-end bg-slate-800 text-slate-50 ring-1 ring-indigo-400/40'
-                    : 'self-center bg-white/5 text-sm italic',
+                    ? 'self-end bg-muted text-foreground ring-1 ring-signal/50'
+                    : 'self-center bg-card text-sm italic',
               )}
             >
               <span className="mr-2 text-xs font-semibold tracking-wide uppercase opacity-80">
@@ -132,7 +135,7 @@ export function ConfirmPanel({ state }: { state: StageState }) {
           <p className="text-base">
             Sent to the customer via{' '}
             {req.channels.map((c) => (
-              <span key={c} className="mr-2 rounded bg-white/10 px-2 py-0.5 font-mono text-sm">
+              <span key={c} className="mr-2 rounded bg-muted px-2 py-0.5 font-mono text-sm">
                 {c}
               </span>
             ))}
@@ -184,7 +187,7 @@ export function DecisionPanel({ state }: { state: StageState }) {
           <ul aria-label="Reasons" className="space-y-1">
             {reasons.map((r) => (
               <li key={r} className="text-base">
-                <span className="mr-2 rounded bg-white/10 px-2 py-0.5 font-mono text-sm">{r}</span>
+                <span className="mr-2 rounded bg-muted px-2 py-0.5 font-mono text-sm">{r}</span>
                 {REASON_CODE_INFO[r].description}
               </li>
             ))}
@@ -194,7 +197,7 @@ export function DecisionPanel({ state }: { state: StageState }) {
             {signals.length ? signals.join(', ') : 'none raised'}
           </p>
           {state.handoff ? (
-            <p className="text-base font-semibold text-violet-300">
+            <p className="text-base font-semibold text-violet-600 dark:text-violet-300">
               Specialist handoff: {state.handoff.status}
             </p>
           ) : null}

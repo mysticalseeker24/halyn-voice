@@ -100,6 +100,9 @@ test('Stage runs scenario 3 with a mocked API: step-up, declined, denied, chain 
 
   await expectNoScroll(page);
   await page.screenshot({ path: screenshotPath('stage-v1') });
+  await page.evaluate(() => document.documentElement.classList.add('dark'));
+  await page.screenshot({ path: screenshotPath('stage-v1-dark') });
+  await page.evaluate(() => document.documentElement.classList.remove('dark'));
 });
 
 test('Stage shows HELD for the coached customer (scenario 4) without scrolling', async ({ page }) => {

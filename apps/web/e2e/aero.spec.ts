@@ -24,6 +24,9 @@ test('Aero home: balance, card, loan, activity, Hindi toggle, no horizontal scro
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   expect(overflow).toBe(false);
   await page.screenshot({ path: screenshotPath('aero-home'), fullPage: true });
+  await page.evaluate(() => document.documentElement.classList.add('dark'));
+  await page.screenshot({ path: screenshotPath('aero-home-dark'), fullPage: true });
+  await page.evaluate(() => document.documentElement.classList.remove('dark'));
 
   await page.getByRole('button', { name: 'हिन्दी' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('नमस्ते');

@@ -65,11 +65,14 @@ export function DemoCodePrompt({
         aria-invalid={rejected}
         className={cn(
           'min-h-11 rounded-lg border-2 px-3 font-mono text-base',
-          stage ? 'border-slate-400 bg-slate-900 text-slate-50' : 'border-slate-500 bg-white text-slate-900',
+          stage ? 'border-input bg-card text-foreground' : 'border-input bg-card text-foreground',
         )}
       />
       {rejected ? (
-        <p role="alert" className={cn('text-sm font-semibold', stage ? 'text-red-300' : 'text-red-700')}>
+        <p
+          role="alert"
+          className={cn('text-sm font-semibold', stage ? 'text-red-600 dark:text-red-300' : 'text-red-700')}
+        >
           {copy.bad}
         </p>
       ) : null}
@@ -78,7 +81,7 @@ export function DemoCodePrompt({
         disabled={!code.trim()}
         className={cn(
           'min-h-11 self-start rounded-xl px-5 text-base font-semibold disabled:opacity-60',
-          stage ? 'bg-indigo-600 text-white' : 'bg-sky-700 text-white',
+          'bg-primary text-primary-foreground',
         )}
       >
         {copy.cta}

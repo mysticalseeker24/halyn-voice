@@ -30,11 +30,11 @@ function line(m: WsMessage) {
         <>
           <OutcomeBadge outcome={m.decision.outcome} />
           <span className="font-medium">{ACTION_LABELS[m.action]}</span>
-          <span className="text-slate-600">
+          <span className="text-muted-foreground">
             tier {m.decision.tier ?? 'n/a'} (base {m.decision.base_tier ?? 'n/a'})
           </span>
           <span className="font-mono text-xs">{m.decision.reasons.join(' · ')}</span>
-          <span className="text-slate-600">
+          <span className="text-muted-foreground">
             signals: {signals.length ? signals.join(', ') : 'none'}
             {m.cues?.length ? ` · cues: ${m.cues.join(', ')}` : ''}
           </span>
@@ -53,14 +53,14 @@ function line(m: WsMessage) {
         <>
           <span className="font-bold">CONFIRMATION SENT</span>
           <span>{m.summary}</span>
-          <span className="text-slate-600">via {m.channels.join(' + ')}</span>
+          <span className="text-muted-foreground">via {m.channels.join(' + ')}</span>
         </>
       );
     case 'confirm_resolved':
       return (
         <>
           <span className="font-bold">CONFIRMATION {m.status.toUpperCase()}</span>
-          {m.channel ? <span className="text-slate-600">via {m.channel}</span> : null}
+          {m.channel ? <span className="text-muted-foreground">via {m.channel}</span> : null}
         </>
       );
     case 'call_update':
@@ -93,9 +93,9 @@ export function LiveFeed({ messages }: { messages: readonly WsMessage[] }) {
         <li
           key={`${m.at}-${i}`}
           data-type={m.type}
-          className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm"
+          className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm"
         >
-          <span className="font-mono text-xs text-slate-500">{istTime(m.at)}</span>
+          <span className="font-mono text-xs text-muted-foreground">{istTime(m.at)}</span>
           {line(m)}
         </li>
       ))}
@@ -123,8 +123,8 @@ export function LiveView({ api, token }: { api: ApiClient; token: string | null 
         Hub: <span className="font-semibold">{status === 'open' ? 'LIVE' : status.toUpperCase()}</span>
       </p>
       {d ? (
-        <section aria-label="Latest decision" className="rounded-lg border border-slate-200 bg-white p-4">
-          <h2 className="mb-2 text-sm font-semibold text-slate-600 uppercase">Latest decision</h2>
+        <section aria-label="Latest decision" className="rounded-lg border border-border bg-card p-4">
+          <h2 className="mb-2 text-sm font-semibold text-muted-foreground uppercase">Latest decision</h2>
           <div className="flex flex-wrap items-center gap-3">
             <OutcomeBadge outcome={d.decision.outcome} />
             <span className="font-medium">{ACTION_LABELS[d.action]}</span>

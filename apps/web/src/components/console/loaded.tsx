@@ -64,24 +64,24 @@ export function Loaded<T>({
 
 export function Table({ head, children, label }: { head: string[]; children: ReactNode; label: string }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+    <div className="overflow-x-auto rounded-lg border border-border bg-card">
       <table aria-label={label} className="w-full text-left text-sm">
-        <thead className="border-b border-slate-200 bg-slate-100 text-xs tracking-wide text-slate-600 uppercase">
+        <thead className="border-b border-border bg-muted/60 font-mono text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
           <tr>
             {head.map((h) => (
-              <th key={h} scope="col" className="px-3 py-2 font-semibold">
+              <th key={h} scope="col" className="px-4 py-2.5 font-medium">
                 {h}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">{children}</tbody>
+        <tbody className="divide-y divide-border">{children}</tbody>
       </table>
     </div>
   );
 }
 
-export const cell = 'px-3 py-2 align-top';
+export const cell = 'px-4 py-3 align-top';
 
 /** A yes/no fact as a word (colour is never the only signal, docs/UI.md). */
 export function Flag({ on, yes = 'ON', no = 'OFF' }: { on: boolean; yes?: string; no?: string }) {
@@ -90,8 +90,8 @@ export function Flag({ on, yes = 'ON', no = 'OFF' }: { on: boolean; yes?: string
       data-on={on}
       className={
         on
-          ? 'rounded bg-emerald-700 px-2 py-0.5 text-xs font-bold text-white'
-          : 'rounded bg-red-700 px-2 py-0.5 text-xs font-bold text-white'
+          ? 'rounded bg-foreground px-2 py-0.5 font-mono text-[11px] font-semibold tracking-[0.08em] text-background'
+          : 'rounded border border-border px-2 py-0.5 font-mono text-[11px] tracking-[0.08em] text-muted-foreground'
       }
     >
       {on ? yes : no}

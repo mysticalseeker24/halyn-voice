@@ -53,10 +53,10 @@ export function PassCard({ pass }: { pass: PassSummary }) {
       aria-label="Halyn Pass"
       className="relative overflow-hidden rounded-3xl bg-slate-900 text-white shadow-lg"
     >
-      <div className="flex items-center justify-between bg-indigo-600 px-5 py-3">
+      <div className="flex items-center justify-between bg-signal text-signal-foreground px-5 py-3">
         <p className="font-mono text-sm font-bold tracking-widest">HALYN PASS</p>
         <span
-          className={`rounded-full px-2 py-0.5 text-xs font-bold ${active ? 'bg-white text-indigo-700' : 'bg-slate-300 text-slate-900'}`}
+          className={`rounded-full px-2 py-0.5 text-xs font-bold ${active ? 'bg-white text-slate-900' : 'bg-slate-300 text-slate-900'}`}
         >
           {pass.status.toUpperCase()}
         </span>
@@ -251,7 +251,7 @@ export function AssistantApp() {
           type="button"
           onClick={() => void start()}
           disabled={!pass || calling || task.trim().length < 3}
-          className="min-h-12 rounded-2xl bg-indigo-600 px-5 font-semibold text-white disabled:opacity-60"
+          className="min-h-12 rounded-2xl bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-60"
         >
           {calling ? 'Calling…' : 'Call Aero for me'}
         </button>
@@ -278,7 +278,7 @@ export function AssistantApp() {
                   <span className="text-muted-foreground text-sm">{l.decision.reasons.join(', ')}</span>
                 </li>
               ) : l.kind === 'system' ? (
-                <li key={i} className="rounded-xl bg-indigo-50 p-3 text-sm text-indigo-950">
+                <li key={i} className="rounded-xl bg-card p-3 text-sm text-foreground ring-1 ring-border">
                   {l.text}
                 </li>
               ) : null,
@@ -290,7 +290,7 @@ export function AssistantApp() {
                 l.kind === 'speech' ? (
                   <li
                     key={i}
-                    className={`max-w-[85%] rounded-2xl p-3 ${l.who === 'Assistant' ? 'self-end bg-indigo-600 text-white' : 'self-start bg-slate-100 text-slate-900'}`}
+                    className={`max-w-[85%] rounded-2xl p-3 ${l.who === 'Assistant' ? 'self-end bg-primary text-primary-foreground' : 'self-start bg-muted text-foreground'}`}
                   >
                     <span className="block text-xs font-semibold opacity-80">{l.who}</span>
                     {l.text}

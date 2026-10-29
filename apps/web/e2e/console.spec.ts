@@ -158,4 +158,7 @@ test('Halyn Test: running the US pack fills the scorecard', async ({ page }) => 
   await expect(scorecard).toContainText('0PASS');
   await expect(scorecard).toContainText('38 ms');
   await page.screenshot({ path: screenshotPath('console-test'), fullPage: true });
+  await page.evaluate(() => document.documentElement.classList.add('dark'));
+  await page.screenshot({ path: screenshotPath('console-test-dark'), fullPage: true });
+  await page.evaluate(() => document.documentElement.classList.remove('dark'));
 });

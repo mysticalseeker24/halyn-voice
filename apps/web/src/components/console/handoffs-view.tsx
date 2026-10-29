@@ -82,7 +82,7 @@ export function HandoffsView({ api }: { api: ApiClient }) {
       ) : null}
       <ul className="flex flex-col gap-4">
         {handoffs.map((h) => (
-          <li key={h.id} data-testid="handoff" className="rounded-lg border border-slate-200 bg-white p-5">
+          <li key={h.id} data-testid="handoff" className="rounded-lg border border-border bg-card p-5">
             <div className="flex flex-wrap items-center gap-3">
               <span className={cn('rounded px-2 py-0.5 text-xs font-bold', STATUS_STYLE[h.status])}>
                 {h.status.toUpperCase()}
@@ -90,17 +90,17 @@ export function HandoffsView({ api }: { api: ApiClient }) {
               <p className="font-medium">{h.summary}</p>
             </div>
             <dl className="mt-3 grid grid-cols-[140px_1fr] gap-x-4 gap-y-1 text-sm">
-              <dt className="text-slate-500">Why</dt>
+              <dt className="text-muted-foreground">Why</dt>
               <dd className="font-mono">{h.reasons.join(' · ')}</dd>
-              <dt className="text-slate-500">Opened</dt>
+              <dt className="text-muted-foreground">Opened</dt>
               <dd>{when(h.created_at)}</dd>
-              <dt className="text-slate-500">Call (transcript)</dt>
+              <dt className="text-muted-foreground">Call (transcript)</dt>
               <dd className="font-mono">{h.run_id}</dd>
-              <dt className="text-slate-500">Request</dt>
+              <dt className="text-muted-foreground">Request</dt>
               <dd className="font-mono">{h.request_id}</dd>
               {h.checkin ? (
                 <>
-                  <dt className="text-slate-500">Check-in call</dt>
+                  <dt className="text-muted-foreground">Check-in call</dt>
                   <dd>
                     Scheduled {when(h.checkin.at)} ({h.checkin.why}) — not placed until someone calls
                   </dd>
@@ -108,7 +108,7 @@ export function HandoffsView({ api }: { api: ApiClient }) {
               ) : null}
               {h.status !== 'open' && h.resolved_at ? (
                 <>
-                  <dt className="text-slate-500">Resolved</dt>
+                  <dt className="text-muted-foreground">Resolved</dt>
                   <dd>
                     {when(h.resolved_at)}
                     {h.note ? ` — ${h.note}` : ''}
@@ -125,7 +125,7 @@ export function HandoffsView({ api }: { api: ApiClient }) {
                     onChange={(e) => setNotes((n) => ({ ...n, [h.id]: e.target.value }))}
                     maxLength={500}
                     placeholder="Note (optional)"
-                    className="min-h-11 grow rounded-md border border-slate-300 px-3"
+                    className="min-h-11 grow rounded-md border border-border px-3"
                   />
                 </label>
                 <button

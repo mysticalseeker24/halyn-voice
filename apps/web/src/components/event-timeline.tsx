@@ -15,7 +15,7 @@ export interface TimelineItem {
 }
 
 const TONE: Record<NonNullable<TimelineItem['tone']>, string> = {
-  neutral: 'border-slate-400',
+  neutral: 'border-muted-foreground/40',
   good: 'border-emerald-500',
   warn: 'border-amber-400',
   bad: 'border-red-500',

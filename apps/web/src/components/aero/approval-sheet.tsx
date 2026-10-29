@@ -53,7 +53,7 @@ export function ApprovalSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby="approval-title"
-        className="max-h-[92vh] w-full max-w-[420px] overflow-y-auto rounded-t-3xl bg-white p-6 text-slate-900 shadow-2xl"
+        className="max-h-[92vh] w-full max-w-[420px] overflow-y-auto rounded-t-3xl bg-card p-6 text-foreground shadow-2xl"
       >
         <div className="flex items-start justify-between gap-3">
           <h2 id="approval-title" ref={heading} tabIndex={-1} className="text-xl font-bold outline-none">
@@ -64,22 +64,22 @@ export function ApprovalSheet({
             onClick={onClose}
             disabled={busy}
             aria-label={copy.close}
-            className="-mt-2 -mr-2 inline-flex size-11 items-center justify-center rounded-full text-2xl text-slate-600 disabled:opacity-50"
+            className="-mt-2 -mr-2 inline-flex size-11 items-center justify-center rounded-full text-2xl text-muted-foreground disabled:opacity-50"
           >
             ×
           </button>
         </div>
-        <p className="mt-2 text-sm text-slate-700">{copy.approvalIntro}</p>
+        <p className="mt-2 text-sm text-muted-foreground">{copy.approvalIntro}</p>
 
-        <div className="mt-4 rounded-2xl border border-sky-200 bg-sky-50 p-4">
-          <p className="text-sm font-semibold text-sky-800">{ACTION_LABELS[approval.action]}</p>
+        <div className="mt-4 rounded-2xl border border-border bg-background p-4">
+          <p className="text-sm font-semibold text-primary">{ACTION_LABELS[approval.action]}</p>
           {approval.amount ? (
             <p data-testid="approval-amount" className="mt-1 text-3xl font-bold">
               {money(approval.amount)}
             </p>
           ) : null}
           <p className="mt-2 text-base">{approval.summary}</p>
-          <p className="mt-3 text-sm text-slate-700" aria-live="off">
+          <p className="mt-3 text-sm text-muted-foreground" aria-live="off">
             {copy.expiresIn}{' '}
             <span className="font-mono font-semibold">
               {secondsLeft}
@@ -90,13 +90,13 @@ export function ApprovalSheet({
 
         <p
           data-testid="safe-account-warning"
-          className="mt-4 rounded-xl border-2 border-[#ff7a5c] bg-orange-50 p-3 text-sm font-semibold text-slate-900"
+          className="mt-4 rounded-xl border-2 border-coral bg-orange-50 dark:bg-orange-950/40 p-3 text-sm font-semibold text-foreground"
         >
           {copy.safeAccount}
         </p>
 
         {error ? (
-          <p role="alert" className="mt-3 text-sm font-medium text-red-700">
+          <p role="alert" className="mt-3 text-sm font-medium text-red-700 dark:text-red-300">
             {error}
           </p>
         ) : null}
@@ -106,7 +106,7 @@ export function ApprovalSheet({
             type="button"
             onClick={onApprove}
             disabled={busy || secondsLeft === 0}
-            className="min-h-12 rounded-2xl bg-sky-700 px-4 text-base font-semibold text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-sky-900 disabled:opacity-60"
+            className="min-h-12 rounded-2xl bg-primary px-4 text-base font-semibold text-primary-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-sky-900 disabled:opacity-60"
           >
             {busy ? copy.working : copy.approve}
           </button>
@@ -114,7 +114,7 @@ export function ApprovalSheet({
             type="button"
             onClick={onDecline}
             disabled={busy}
-            className="min-h-12 rounded-2xl border-2 border-slate-400 bg-white px-4 text-base font-semibold text-slate-900 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-sky-900 disabled:opacity-60"
+            className="min-h-12 rounded-2xl border-2 border-input bg-card px-4 text-base font-semibold text-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-sky-900 disabled:opacity-60"
           >
             {copy.decline}
           </button>

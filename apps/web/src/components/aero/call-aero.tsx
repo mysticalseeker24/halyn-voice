@@ -42,18 +42,18 @@ export function CallAero({ api, copy }: { api: ApiClient; copy: Copy }) {
 
   const live = state === 'connecting' || state === 'ringing' || state === 'active';
   return (
-    <section aria-label={copy.callAero} className="rounded-3xl border border-sky-100 bg-white p-4 shadow-sm">
-      <p className="text-sm text-slate-700">{copy.callAeroHint}</p>
+    <section aria-label={copy.callAero} className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+      <p className="text-sm text-muted-foreground">{copy.callAeroHint}</p>
       <div className="mt-3 flex items-center gap-3">
         {live ? (
           <>
-            <span role="status" className="grow text-sm font-semibold text-sky-800">
+            <span role="status" className="grow text-sm font-semibold text-primary">
               {state === 'active' ? copy.callActive : copy.callConnecting}
             </span>
             <button
               type="button"
               onClick={() => void call.current?.stop()}
-              className="min-h-11 rounded-xl bg-[#ff7a5c] px-4 text-sm font-bold text-slate-900"
+              className="min-h-11 rounded-xl bg-coral px-4 text-sm font-bold text-foreground"
             >
               {copy.callHangUp}
             </button>
@@ -62,14 +62,14 @@ export function CallAero({ api, copy }: { api: ApiClient; copy: Copy }) {
           <button
             type="button"
             onClick={() => void start()}
-            className="min-h-11 w-full rounded-xl bg-sky-700 px-4 text-sm font-bold text-white"
+            className="min-h-11 w-full rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground"
           >
             {copy.callAero}
           </button>
         )}
       </div>
       {error ? (
-        <p role="alert" className="mt-2 text-sm text-red-700">
+        <p role="alert" className="mt-2 text-sm text-red-700 dark:text-red-300">
           {error}
         </p>
       ) : null}

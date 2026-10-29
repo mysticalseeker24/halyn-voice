@@ -35,7 +35,7 @@ export function SoundboardView({ clips, playing, loadingId, onPlay, onStop }: So
             data-testid="clip"
             className={cn(
               'rounded-2xl border p-5',
-              active ? 'border-indigo-300 bg-indigo-950/60' : 'border-white/10 bg-white/5',
+              active ? 'border-signal bg-accent' : 'border-border bg-card',
             )}
           >
             <div className="flex items-start gap-5">
@@ -44,7 +44,7 @@ export function SoundboardView({ clips, playing, loadingId, onPlay, onStop }: So
                 onClick={() => (active ? onStop() : onPlay(clip))}
                 disabled={loadingId !== null && loadingId !== clip.id}
                 aria-busy={loadingId === clip.id}
-                className="min-h-14 min-w-32 rounded-xl bg-indigo-600 px-5 text-lg font-semibold text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-50"
+                className="min-h-14 min-w-32 rounded-xl bg-primary px-5 text-lg font-semibold text-primary-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
               >
                 {loadingId === clip.id ? 'Loading…' : active ? 'Stop' : 'Play'}
               </button>
@@ -52,7 +52,7 @@ export function SoundboardView({ clips, playing, loadingId, onPlay, onStop }: So
                 <p className="text-xl font-semibold">
                   {clip.order} · {clip.label}
                 </p>
-                <p lang="hi" className="mt-1 text-lg text-slate-200">
+                <p lang="hi" className="mt-1 text-lg text-foreground">
                   {clip.text}
                 </p>
                 <p className="mt-2 inline-block rounded-md bg-amber-300 px-2 py-0.5 text-sm font-bold text-slate-950">
@@ -128,16 +128,16 @@ export function Soundboard() {
   };
 
   return (
-    <main className="mx-auto h-screen max-w-3xl overflow-y-auto bg-[#0b0d17] px-4 py-8 text-slate-50 sm:px-8">
+    <main className="mx-auto h-screen max-w-3xl overflow-y-auto bg-background px-4 py-8 text-foreground sm:px-8">
       <h1 className="text-3xl font-bold tracking-tight">
-        Halyn <span className="font-medium text-slate-400">Stage</span> · Soundboard
+        Halyn <span className="font-medium text-muted-foreground">Stage</span> · Soundboard
       </h1>
-      <p className="mt-2 text-lg text-slate-300">
+      <p className="mt-2 text-lg text-muted-foreground">
         Scenario 3: the clone&apos;s lines, played into the call from the second phone. {CLIP_DISCLOSURE},
         made with his consent, for this security demo only.
       </p>
       {playError ? (
-        <p role="alert" className="mt-4 text-base font-semibold text-red-300">
+        <p role="alert" className="mt-4 text-base font-semibold text-red-600 dark:text-red-300">
           {playError}
         </p>
       ) : null}

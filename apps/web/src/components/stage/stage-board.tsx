@@ -3,7 +3,9 @@
 import type { Region, WsMessage } from '@halyn/shared';
 import { useCallback, useEffect, useReducer, useRef, useState, useSyncExternalStore } from 'react';
 import { DEMO_CODE_COPY_EN, DemoCodePrompt } from '@/components/demo-code-prompt';
+import { HalynMark } from '@/components/halyn-mark';
 import { ErrorState, LoadingState } from '@/components/states';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { useHub } from '@/lib/hub/use-hub';
 import { useDemoSession } from '@/lib/session';
 import { cn } from '@/lib/utils';
@@ -188,16 +190,17 @@ export function StageBoard() {
   const ready = session.status === 'ready';
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-[#0b0d17]">
+    <div className="fixed inset-0 overflow-hidden bg-background">
       <div
         data-testid="stage-canvas"
         data-recording={recording ? 'on' : 'off'}
-        className={cn('origin-top-left bg-[#0b0d17] text-slate-50', recording && 'stage-recording')}
+        className={cn('origin-top-left bg-background text-foreground', recording && 'stage-recording')}
         style={{ width: STAGE_SIZE.width, height: STAGE_SIZE.height, transform: `scale(${scale})` }}
       >
-        <header className="flex h-[96px] items-center gap-8 border-b border-white/10 px-8">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Halyn <span className="font-medium text-slate-400">Stage</span>
+        <header className="flex h-[96px] items-center gap-5 border-b border-border px-8">
+          <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight">
+            <HalynMark className="size-8" />
+            Halyn <span className="font-medium text-muted-foreground">Stage</span>
           </h1>
           {recording ? null : (
             <>
@@ -210,17 +213,17 @@ export function StageBoard() {
                     aria-busy={running === s.id}
                     onClick={() => run(s.id)}
                     className={cn(
-                      'min-h-14 rounded-xl px-5 text-lg font-semibold focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-50',
+                      'min-h-12 rounded-lg px-4 text-base font-medium whitespace-nowrap focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50',
                       running === s.id
-                        ? 'bg-indigo-500 text-white'
-                        : 'bg-white/[0.06] text-slate-100 ring-1 ring-white/15 hover:bg-white/10',
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-card text-foreground ring-1 ring-border hover:bg-accent',
                     )}
                   >
                     {s.id} · {s.label}
                   </button>
                 ))}
               </div>
-              <div role="group" aria-label="Region" className="flex rounded-xl bg-white/10 p-1">
+              <div role="group" aria-label="Region" className="flex rounded-lg bg-muted p-1">
                 {(['IN', 'US'] as const).map((r) => (
                   <button
                     key={r}
@@ -229,25 +232,32 @@ export function StageBoard() {
                     disabled={!ready}
                     onClick={() => switchRegion(r)}
                     className={cn(
-                      'min-h-12 min-w-16 rounded-lg px-4 text-lg font-semibold disabled:opacity-50',
-                      region === r ? 'bg-white text-slate-950' : 'text-slate-100',
+                      'min-h-10 min-w-14 rounded-md px-3 text-base font-semibold disabled:opacity-50',
+                      region === r ? 'bg-foreground text-background' : 'text-foreground',
                     )}
                   >
                     {r}
                   </button>
                 ))}
               </div>
-              <p className="text-base font-medium">Text mode</p>
+              <p className="font-mono text-xs tracking-[0.12em] whitespace-nowrap text-muted-foreground uppercase">
+                Text mode
+              </p>
               {actionError ? (
-                <p role="alert" className="max-w-[420px] truncate text-base font-semibold text-red-300">
+                <p
+                  role="alert"
+                  className="max-w-[420px] truncate text-base font-semibold text-red-600 dark:text-red-300"
+                >
                   {actionError}
                 </p>
               ) : null}
-              <p role="status" data-hub={hubStatus} className="ml-auto text-base">
+              <p role="status" data-hub={hubStatus} className="ml-auto text-sm whitespace-nowrap">
                 Hub:{' '}
                 <span
                   className={
-                    hubStatus === 'open' ? 'font-semibold text-emerald-300' : 'font-semibold text-amber-300'
+                    hubStatus === 'open'
+                      ? 'font-semibold text-emerald-600 dark:text-emerald-300'
+                      : 'font-semibold text-amber-600 dark:text-amber-300'
                   }
                 >
                   {hubStatus === 'open' ? 'live' : hubStatus === 'idle' ? 'not connected' : hubStatus}
@@ -258,17 +268,18 @@ export function StageBoard() {
                 disabled={!ready}
                 onClick={demoReset}
                 title="Earlier calls stop counting towards the call-burst signal. Nothing is deleted."
-                className="min-h-12 rounded-lg bg-white/10 px-4 text-base font-semibold text-slate-100 disabled:opacity-50"
+                className="min-h-10 rounded-md px-3 text-sm font-medium whitespace-nowrap text-foreground ring-1 ring-border hover:bg-accent disabled:opacity-50"
               >
                 {resetDone ? 'Reset done' : 'Demo reset'}
               </button>
               <button
                 type="button"
                 onClick={() => setRecording(true)}
-                className="min-h-12 rounded-lg bg-white/10 px-4 text-base font-semibold text-slate-100"
+                className="min-h-10 rounded-md px-3 text-sm font-medium whitespace-nowrap text-foreground ring-1 ring-border hover:bg-accent"
               >
                 Recording mode
               </button>
+              <ThemeToggle className="h-10" />
             </>
           )}
         </header>

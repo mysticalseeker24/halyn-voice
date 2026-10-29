@@ -105,42 +105,42 @@ export function AssistantAccessView() {
       />
     );
   if (!passes || home.status === 'loading')
-    return <LoadingState label={copy.loading} className="text-slate-800" />;
+    return <LoadingState label={copy.loading} className="text-foreground" />;
   const registered = home.status === 'ready' && home.data.passkey_registered;
 
   return (
     <div className="flex flex-col gap-5 p-4">
-      <h1 className="text-2xl font-bold text-slate-900">{copy.assistantTitle}</h1>
-      <p className="text-base text-slate-800">{copy.assistantBody}</p>
+      <h1 className="text-2xl font-bold text-foreground">{copy.assistantTitle}</h1>
+      <p className="text-base text-foreground">{copy.assistantBody}</p>
 
       <section aria-labelledby="passes-title" className="flex flex-col gap-3">
-        <h2 id="passes-title" className="text-lg font-semibold text-slate-900">
+        <h2 id="passes-title" className="text-lg font-semibold text-foreground">
           {copy.assistantPasses}
         </h2>
-        {passes.length === 0 ? <p className="text-slate-700">{copy.assistantNone}</p> : null}
+        {passes.length === 0 ? <p className="text-muted-foreground">{copy.assistantNone}</p> : null}
         {passes.map((p) => (
-          <article key={p.id} data-testid="pass-row" className="rounded-2xl bg-white p-4 shadow-sm">
+          <article key={p.id} data-testid="pass-row" className="rounded-2xl bg-card p-4 shadow-sm">
             <div className="flex items-center justify-between gap-2">
-              <p className="font-semibold text-slate-900">{p.assistant_name}</p>
+              <p className="font-semibold text-foreground">{p.assistant_name}</p>
               <span
-                className={`rounded-full px-2 py-1 text-xs font-bold ${p.status === 'active' ? 'bg-emerald-100 text-emerald-900' : 'bg-slate-200 text-slate-800'}`}
+                className={`rounded-full px-2 py-1 text-xs font-bold ${p.status === 'active' ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-200' : 'bg-muted text-foreground'}`}
               >
                 {copy[STATUS_KEY[p.status]]}
               </span>
             </div>
-            <p className="mt-1 text-sm text-slate-700">
+            <p className="mt-1 text-sm text-muted-foreground">
               {p.scopes
                 .map((s) => copy[SCOPES.find((x) => x.action === s.action)?.key ?? 'assistantScopes'])
                 .join(' · ')}
             </p>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-muted-foreground">
               {copy.passUntil} {new Date(p.expires_at).toLocaleDateString()}
             </p>
             {p.status === 'active' ? (
               <button
                 type="button"
                 onClick={() => void revoke(p.id)}
-                className="mt-3 min-h-11 rounded-xl border border-rose-300 px-4 text-sm font-semibold text-rose-800"
+                className="mt-3 min-h-11 rounded-xl border border-rose-300 dark:border-rose-800 px-4 text-sm font-semibold text-rose-800 dark:text-rose-300"
               >
                 {copy.assistantRevoke}
               </button>
@@ -149,33 +149,33 @@ export function AssistantAccessView() {
         ))}
       </section>
 
-      <section aria-labelledby="new-pass" className="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm">
-        <h2 id="new-pass" className="text-lg font-semibold text-slate-900">
+      <section aria-labelledby="new-pass" className="flex flex-col gap-3 rounded-2xl bg-card p-4 shadow-sm">
+        <h2 id="new-pass" className="text-lg font-semibold text-foreground">
           {copy.assistantTitle}
         </h2>
-        <label className="flex flex-col gap-1 text-sm font-medium text-slate-800">
+        <label className="flex flex-col gap-1 text-sm font-medium text-foreground">
           {copy.assistantName}
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={80}
-            className="min-h-11 rounded-xl border border-slate-300 px-3 text-base"
+            className="min-h-11 rounded-xl border border-input px-3 text-base"
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm font-medium text-slate-800">
+        <label className="flex flex-col gap-1 text-sm font-medium text-foreground">
           {copy.assistantNumber}
           <input
             value={number}
             onChange={(e) => setNumber(e.target.value)}
             inputMode="tel"
             placeholder="+91…"
-            className="min-h-11 rounded-xl border border-slate-300 px-3 text-base"
+            className="min-h-11 rounded-xl border border-input px-3 text-base"
           />
         </label>
         <fieldset className="flex flex-col gap-2">
-          <legend className="mb-1 text-sm font-medium text-slate-800">{copy.assistantScopes}</legend>
+          <legend className="mb-1 text-sm font-medium text-foreground">{copy.assistantScopes}</legend>
           {SCOPES.map((s) => (
-            <label key={s.action} className="flex min-h-11 items-center gap-3 text-base text-slate-900">
+            <label key={s.action} className="flex min-h-11 items-center gap-3 text-base text-foreground">
               <input
                 type="checkbox"
                 checked={chosen.includes(s.action)}
@@ -186,7 +186,7 @@ export function AssistantAccessView() {
             </label>
           ))}
         </fieldset>
-        <label className="flex flex-col gap-1 text-sm font-medium text-slate-800">
+        <label className="flex flex-col gap-1 text-sm font-medium text-foreground">
           {copy.assistantExpiry}
           <input
             type="number"
@@ -194,11 +194,13 @@ export function AssistantAccessView() {
             max={30}
             value={days}
             onChange={(e) => setDays(Math.min(30, Math.max(1, Number(e.target.value) || 1)))}
-            className="min-h-11 w-24 rounded-xl border border-slate-300 px-3 text-base"
+            className="min-h-11 w-24 rounded-xl border border-input px-3 text-base"
           />
         </label>
         {registered ? null : (
-          <p className="text-sm font-semibold text-amber-900">{copy.assistantNeedsPasskey}</p>
+          <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+            {copy.assistantNeedsPasskey}
+          </p>
         )}
         <button
           type="button"
@@ -206,17 +208,23 @@ export function AssistantAccessView() {
           disabled={
             !registered || phase === 'working' || chosen.length === 0 || !number.trim() || !name.trim()
           }
-          className="min-h-12 rounded-2xl bg-sky-700 px-4 text-base font-semibold text-white disabled:opacity-60"
+          className="min-h-12 rounded-2xl bg-primary px-4 text-base font-semibold text-primary-foreground disabled:opacity-60"
         >
           {phase === 'working' ? copy.working : copy.assistantCta}
         </button>
         {phase === 'done' ? (
-          <p role="status" className="rounded-xl bg-emerald-100 p-3 font-semibold text-emerald-900">
+          <p
+            role="status"
+            className="rounded-xl bg-emerald-100 dark:bg-emerald-950 p-3 font-semibold text-emerald-900 dark:text-emerald-200"
+          >
             {copy.assistantIssued}
           </p>
         ) : null}
         {error ? (
-          <p role="alert" className="rounded-xl bg-rose-100 p-3 text-rose-900">
+          <p
+            role="alert"
+            className="rounded-xl bg-rose-100 dark:bg-rose-950 p-3 text-rose-900 dark:text-rose-200"
+          >
             {error}
           </p>
         ) : null}

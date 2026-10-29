@@ -27,7 +27,7 @@ function Mono({ children }: { children: React.ReactNode }) {
 }
 
 function Codes({ codes }: { codes: readonly string[] }) {
-  if (codes.length === 0) return <span className="text-slate-500">none</span>;
+  if (codes.length === 0) return <span className="text-muted-foreground">none</span>;
   return <span className="font-mono text-xs">{codes.join(' · ')}</span>;
 }
 
@@ -73,7 +73,7 @@ export function CallsView({ api }: { api: ApiClient }) {
               <td className={cell}>
                 <Link
                   href={`/console/calls/${encodeURIComponent(call.run_id)}`}
-                  className="text-indigo-700 underline"
+                  className="text-foreground underline"
                 >
                   Open
                 </Link>
@@ -97,7 +97,7 @@ export function RequestsTable({ requests }: { requests: readonly ConsoleRequest[
           <td className={cell}>{istTime(r.created_at)}</td>
           <td className={cell}>
             <p className="font-medium">{actionLabel(r.action)}</p>
-            <p className="text-slate-600">{r.summary}</p>
+            <p className="text-muted-foreground">{r.summary}</p>
             <Mono>{r.request_id}</Mono>
           </td>
           <td className={cell}>
@@ -120,7 +120,7 @@ export function RequestsTable({ requests }: { requests: readonly ConsoleRequest[
           <td className={cell}>
             <Codes codes={[...r.signals, ...r.cues]} />
             {r.coaching_score > 0 ? (
-              <p className="text-xs text-slate-600">coaching {r.coaching_score.toFixed(2)}</p>
+              <p className="text-xs text-muted-foreground">coaching {r.coaching_score.toFixed(2)}</p>
             ) : null}
           </td>
           <td className={cell}>{r.status}</td>
@@ -135,33 +135,33 @@ export function CallDetailView({ api, runId }: { api: ApiClient; runId: string }
     <Loaded what="the call" load={() => api.call(runId)}>
       {({ call, requests, handoffs, transcript, transcript_status, recording_url }) => (
         <div className="flex flex-col gap-6">
-          <dl className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-1 rounded-lg border border-slate-200 bg-white p-4 text-sm">
-            <dt className="text-slate-500">Run</dt>
+          <dl className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-1 rounded-lg border border-border bg-card p-4 text-sm">
+            <dt className="text-muted-foreground">Run</dt>
             <dd>
               <Mono>{call.run_id}</Mono>
             </dd>
-            <dt className="text-slate-500">Channel</dt>
+            <dt className="text-muted-foreground">Channel</dt>
             <dd>
               {call.channel} · {call.region}
             </dd>
-            <dt className="text-slate-500">Caller</dt>
+            <dt className="text-muted-foreground">Caller</dt>
             <dd>
               {call.kind} · {call.registered ? 'registered number' : 'unregistered'}
               {call.from_last4 ? ` (…${call.from_last4})` : ''}
               {call.pass_id ? ` · Pass ${call.pass_id}` : ''}
             </dd>
-            <dt className="text-slate-500">Started</dt>
+            <dt className="text-muted-foreground">Started</dt>
             <dd>{when(call.started_at)}</dd>
-            <dt className="text-slate-500">Ended</dt>
+            <dt className="text-muted-foreground">Ended</dt>
             <dd>{call.ended_at ? when(call.ended_at) : 'still live'}</dd>
-            <dt className="text-slate-500">Recording</dt>
+            <dt className="text-muted-foreground">Recording</dt>
             <dd>
               {recording_url ? (
                 <a
                   href={recording_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-indigo-700 underline"
+                  className="text-foreground underline"
                 >
                   Listen to the recording
                 </a>
@@ -175,7 +175,7 @@ export function CallDetailView({ api, runId }: { api: ApiClient; runId: string }
             {requests.length ? (
               <RequestsTable requests={requests} />
             ) : (
-              <p className="text-sm text-slate-600">No requests on this call.</p>
+              <p className="text-sm text-muted-foreground">No requests on this call.</p>
             )}
           </section>
           <section aria-label="Handoffs" className="flex flex-col gap-2">
@@ -183,27 +183,27 @@ export function CallDetailView({ api, runId }: { api: ApiClient; runId: string }
             {handoffs.length ? (
               <ul className="flex flex-col gap-2 text-sm">
                 {handoffs.map((h) => (
-                  <li key={h.id} className="rounded-lg border border-slate-200 bg-white p-3">
+                  <li key={h.id} className="rounded-lg border border-border bg-card p-3">
                     <span className="mr-2 font-bold">{h.status.toUpperCase()}</span>
                     {h.summary} · <Codes codes={h.reasons} /> ·{' '}
-                    <Link href="/console/handoffs" className="text-indigo-700 underline">
+                    <Link href="/console/handoffs" className="text-foreground underline">
                       Handoffs
                     </Link>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-slate-600">No handoff on this call.</p>
+              <p className="text-sm text-muted-foreground">No handoff on this call.</p>
             )}
           </section>
           <section aria-label="Transcript" className="flex flex-col gap-2">
             <h2 className="text-lg font-semibold">Transcript</h2>
             {transcript ? (
-              <pre className="max-h-[480px] overflow-auto rounded-lg border border-slate-200 bg-white p-4 text-sm whitespace-pre-wrap">
+              <pre className="max-h-[480px] overflow-auto rounded-lg border border-border bg-card p-4 text-sm whitespace-pre-wrap">
                 {transcript}
               </pre>
             ) : (
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 {transcript_status === 'none'
                   ? 'Bolna has no transcript for this call yet.'
                   : 'Transcript unavailable (text-mode run, or Bolna not reachable).'}
@@ -258,12 +258,12 @@ export function PoliciesView({ api }: { api: ApiClient }) {
                 <Mono>{pack.source_sha.slice(0, 12)}</Mono>
                 <Link
                   href={`/console/test?region=${pack.region}`}
-                  className="ml-auto min-h-11 rounded-md border border-indigo-600 px-4 py-2.5 text-sm font-medium text-indigo-700"
+                  className="ml-auto min-h-11 rounded-md border border-border px-4 py-2.5 text-sm font-medium text-foreground"
                 >
                   Test this pack
                 </Link>
               </div>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 Coaching hold at {pack.coaching.threshold} · confirmation {pack.confirm.timeout_seconds} s
               </p>
               <Table
@@ -363,7 +363,7 @@ function CountList({
     <section aria-label={label} className="flex flex-col gap-2">
       <h2 className="text-lg font-semibold">{label}</h2>
       {rows.length === 0 ? (
-        <p className="text-sm text-slate-600">None raised.</p>
+        <p className="text-sm text-muted-foreground">None raised.</p>
       ) : (
         <Table label={label} head={['Code', 'Count', 'Meaning']}>
           {rows.map((r) => (
@@ -391,7 +391,7 @@ export function SignalsView({ api }: { api: ApiClient }) {
     >
       {(d) => (
         <div className="flex flex-col gap-8">
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-muted-foreground">
             Over the newest {d.window.requests} requests
             {d.window.since ? ` since ${when(d.window.since)}` : ''}. Codes and cue ids only — never what the
             caller said.
@@ -409,7 +409,7 @@ export function SignalsView({ api }: { api: ApiClient }) {
           <section aria-label="Latest flagged requests" className="flex flex-col gap-2">
             <h2 className="text-lg font-semibold">Latest flagged requests</h2>
             {d.latest.length === 0 ? (
-              <p className="text-sm text-slate-600">No request raised a signal or cue.</p>
+              <p className="text-sm text-muted-foreground">No request raised a signal or cue.</p>
             ) : (
               <Table
                 label="Latest flagged"
@@ -421,7 +421,7 @@ export function SignalsView({ api }: { api: ApiClient }) {
                     <td className={cell}>
                       <Link
                         href={`/console/calls/${encodeURIComponent(r.run_id)}`}
-                        className="text-indigo-700 underline"
+                        className="text-foreground underline"
                       >
                         <Mono>{r.request_id}</Mono>
                       </Link>
@@ -486,14 +486,14 @@ export function LedgerView({ api }: { api: ApiClient }) {
           type="button"
           onClick={runVerify}
           disabled={busy}
-          className="min-h-11 rounded-md bg-indigo-600 px-4 text-sm font-medium text-white disabled:opacity-50"
+          className="min-h-11 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50"
         >
           Verify chain
         </button>
         <button
           type="button"
           onClick={exportChain}
-          className="min-h-11 rounded-md border border-indigo-600 px-4 text-sm font-medium text-indigo-700"
+          className="min-h-11 rounded-md border border-border px-4 text-sm font-medium text-foreground"
         >
           Export JSON
         </button>
@@ -570,31 +570,31 @@ export function IntegrationsView({ api }: { api: ApiClient }) {
               </tr>
             ))}
           </Table>
-          <dl className="grid grid-cols-[220px_1fr] gap-x-4 gap-y-2 rounded-lg border border-slate-200 bg-white p-4 text-sm">
-            <dt className="text-slate-500">Bolna IP allowlist</dt>
+          <dl className="grid grid-cols-[220px_1fr] gap-x-4 gap-y-2 rounded-lg border border-border bg-card p-4 text-sm">
+            <dt className="text-muted-foreground">Bolna IP allowlist</dt>
             <dd>
               <Flag on={d.guards.ip_allowlist} />
             </dd>
-            <dt className="text-slate-500">Tool secret</dt>
+            <dt className="text-muted-foreground">Tool secret</dt>
             <dd>
               <Flag on={d.guards.tool_secret} yes="SET" no="MISSING" />
             </dd>
-            <dt className="text-slate-500">Bolna API key</dt>
+            <dt className="text-muted-foreground">Bolna API key</dt>
             <dd>
               <Flag on={d.guards.bolna_key} yes="SET" no="MISSING" />
             </dd>
-            <dt className="text-slate-500">Sarvam key (coaching layer 2)</dt>
+            <dt className="text-muted-foreground">Sarvam key (coaching layer 2)</dt>
             <dd>
               <Flag on={d.guards.sarvam_key} yes="SET" no="MISSING" />
             </dd>
-            <dt className="text-slate-500">Aero Core</dt>
+            <dt className="text-muted-foreground">Aero Core</dt>
             <dd>
               <Flag on={d.aero_core.ok} yes="HEALTHY" no="DOWN" />
               {d.aero_core.ms !== null ? ` ${d.aero_core.ms} ms` : ''}
             </dd>
-            <dt className="text-slate-500">Hub → TiDB mirror backlog</dt>
+            <dt className="text-muted-foreground">Hub → TiDB mirror backlog</dt>
             <dd>{d.hub.mirror_backlog} rows</dd>
-            <dt className="text-slate-500">Open app connections</dt>
+            <dt className="text-muted-foreground">Open app connections</dt>
             <dd>
               {Object.entries(d.hub.sockets)
                 .map(([role, n]) => `${role} ${n}`)

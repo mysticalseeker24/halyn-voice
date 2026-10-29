@@ -33,7 +33,7 @@ export function ChainStatusPill({ status }: { status: ChainStatus }) {
       ? 'bg-emerald-700 text-white'
       : status.state === 'broken'
         ? 'bg-red-700 text-white'
-        : 'bg-slate-600 text-white';
+        : 'bg-muted-foreground text-background';
   return (
     <span data-chain={status.state} className={cn('rounded-full px-3 py-1 text-sm font-semibold', style)}>
       {status.state === 'verified' ? '✓ ' : status.state === 'broken' ? '✕ ' : ''}
@@ -54,14 +54,18 @@ export function LedgerLines({ lines, max = 6 }: { lines: readonly LedgerLine[]; 
           {...ENTER}
           key={line.seq}
           data-seq={line.seq}
-          className="grid grid-cols-[3rem_9rem_1fr_auto] items-center gap-3 rounded-md bg-white/5 px-3 py-1.5 font-mono text-sm"
+          className="grid grid-cols-[3rem_9rem_1fr_auto] items-center gap-3 rounded-md bg-card px-3 py-1.5 font-mono text-sm"
         >
           <span>#{line.seq}</span>
           <span className="font-semibold">{line.entry_type}</span>
           <span title={line.hash}>
             {short(line.prev_hash)} → {short(line.hash)}
           </span>
-          <span className={line.chain_ok ? 'text-emerald-300' : 'text-red-300'}>
+          <span
+            className={
+              line.chain_ok ? 'text-emerald-600 dark:text-emerald-300' : 'text-red-600 dark:text-red-300'
+            }
+          >
             {line.chain_ok ? 'linked' : 'BROKEN'}
           </span>
         </motion.li>

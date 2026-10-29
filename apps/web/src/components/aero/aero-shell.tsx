@@ -22,7 +22,7 @@ export function LangToggle({
     { id: 'en', text: 'English', aria: 'English' },
   ];
   return (
-    <div role="group" aria-label={label} className="flex rounded-full bg-sky-100 p-1">
+    <div role="group" aria-label={label} className="flex rounded-full bg-accent p-1">
       {options.map((o) => (
         <button
           key={o.id}
@@ -32,7 +32,7 @@ export function LangToggle({
           onClick={() => onChange(o.id)}
           className={cn(
             'min-h-11 min-w-11 rounded-full px-3 text-sm font-semibold',
-            lang === o.id ? 'bg-sky-700 text-white' : 'text-sky-900',
+            lang === o.id ? 'bg-primary text-primary-foreground' : 'text-accent-foreground',
           )}
         >
           {o.text}
@@ -53,12 +53,15 @@ function Shell({ children }: { children: ReactNode }) {
   ];
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="flex items-center justify-between gap-2 border-b border-sky-100 bg-white px-4 py-2">
-        <span className="text-lg font-bold text-sky-700">{copy.appName}</span>
+      <header className="flex items-center justify-between gap-2 border-b border-border bg-card px-4 py-2">
+        <span className="text-lg font-bold text-primary">{copy.appName}</span>
         <LangToggle lang={lang} onChange={setLang} label={copy.language} />
       </header>
       {hubStatus === 'reconnecting' ? (
-        <p role="status" className="bg-amber-100 px-4 py-1 text-center text-sm font-medium text-slate-900">
+        <p
+          role="status"
+          className="bg-amber-100 dark:bg-amber-950 px-4 py-1 text-center text-sm font-medium text-foreground"
+        >
           {copy.offline}
         </p>
       ) : null}
@@ -68,7 +71,7 @@ function Shell({ children }: { children: ReactNode }) {
             tone="aero"
             rejected={demoCode.rejected}
             onSubmit={demoCode.submit}
-            className="text-slate-900"
+            className="text-foreground"
             copy={{
               label: copy.demoCodeLabel,
               hint: copy.demoCodeHint,
@@ -82,7 +85,7 @@ function Shell({ children }: { children: ReactNode }) {
       </div>
       <nav
         aria-label="Aero"
-        className="fixed bottom-0 left-1/2 flex w-full max-w-[420px] -translate-x-1/2 border-t border-sky-100 bg-white"
+        className="fixed bottom-0 left-1/2 flex w-full max-w-[420px] -translate-x-1/2 border-t border-border bg-card"
       >
         {tabs.map((tab) => {
           const current = path === tab.href;
@@ -94,13 +97,13 @@ function Shell({ children }: { children: ReactNode }) {
               className={cn(
                 'flex min-h-14 flex-1 items-center justify-center gap-1 text-sm font-semibold',
                 current
-                  ? 'border-t-4 border-[#ff7a5c] text-sky-800'
-                  : 'border-t-4 border-transparent text-slate-700',
+                  ? 'border-t-4 border-coral text-primary'
+                  : 'border-t-4 border-transparent text-muted-foreground',
               )}
             >
               {tab.label}
               {tab.badge ? (
-                <span className="rounded-full bg-[#ff7a5c] px-2 text-xs font-bold text-slate-900">
+                <span className="rounded-full bg-coral px-2 text-xs font-bold text-foreground">
                   {tab.badge}
                 </span>
               ) : null}

@@ -27,7 +27,7 @@ const STATUS_STYLE = {
   passed: 'bg-emerald-700 text-white',
   failed: 'bg-red-700 text-white',
   skipped: 'bg-slate-600 text-white',
-  pending: 'bg-amber-400 text-slate-900',
+  pending: 'bg-amber-400 text-foreground',
 } as const;
 
 function StatusWord({ status }: { status: keyof typeof STATUS_STYLE }) {
@@ -40,8 +40,8 @@ function StatusWord({ status }: { status: keyof typeof STATUS_STYLE }) {
 
 function Tile({ label, value, ok }: { label: string; value: string; ok?: boolean }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4">
-      <p className="text-xs font-semibold tracking-wide text-slate-600 uppercase">{label}</p>
+    <div className="rounded-lg border border-border bg-card p-4">
+      <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{label}</p>
       <p className="mt-1 text-2xl font-semibold">
         {value}
         {ok === undefined ? null : (
@@ -78,7 +78,7 @@ export function TestRunReport({ data }: { data: TestRunResponse }) {
   const byId = new Map(run.results.map((r) => [r.scenario_id, r]));
   return (
     <div className="flex flex-col gap-6">
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-muted-foreground">
         Run <span className="font-mono">{run.id}</span> ·{' '}
         {run.region ? `${run.region} pack` : 'all scenarios'} · started {istTime(run.started_at)} IST ·{' '}
         {scorecard.passed} passed, {scorecard.failed} failed, {scorecard.skipped} skipped, {scorecard.pending}{' '}
@@ -105,9 +105,9 @@ export function TestRunReport({ data }: { data: TestRunResponse }) {
       <section aria-label="Changes since the previous run" className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">Changes since the previous run</h2>
         {!previous ? (
-          <p className="text-sm text-slate-600">No previous run to compare with.</p>
+          <p className="text-sm text-muted-foreground">No previous run to compare with.</p>
         ) : previous.changes.length === 0 ? (
-          <p className="text-sm text-slate-600">No changes since run {previous.id}.</p>
+          <p className="text-sm text-muted-foreground">No changes since run {previous.id}.</p>
         ) : (
           <ul className="flex flex-col gap-1 text-sm">
             {previous.changes.map((c) => (
@@ -126,7 +126,7 @@ export function PermissionMapPanel({ map }: { map: PermissionMapResponse }) {
   return (
     <div className="flex flex-col gap-4">
       {map.graphs.map((g) => (
-        <article key={g.file} data-testid="graph" className="rounded-lg border border-slate-200 bg-white p-4">
+        <article key={g.file} data-testid="graph" className="rounded-lg border border-border bg-card p-4">
           <div className="flex flex-wrap items-center gap-3">
             <span
               data-status={g.status}
@@ -175,7 +175,7 @@ function VoicePanel({ api }: { api: ApiClient }) {
     <Loaded what="voice personas" load={api.voicePersonas}>
       {(d) => (
         <div className="flex flex-col gap-3">
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-muted-foreground">
             Real calls from number B to Aero&apos;s number A — each one only with Saksham&apos;s go-ahead,
             09:00–21:00 IST. A persona&apos;s button stays off until its Bolna agent exists. Attacker personas
             are not created.
@@ -201,11 +201,11 @@ function VoicePanel({ api }: { api: ApiClient }) {
                             setRuns((s) => ({ ...s, [p.id]: err instanceof Error ? err.message : 'failed' })),
                         )
                       }
-                      className="min-h-11 rounded-md bg-indigo-600 px-4 text-sm font-medium text-white disabled:opacity-50"
+                      className="min-h-11 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50"
                     >
                       Place call
                     </button>
-                    {!p.ready ? <p className="text-xs text-slate-600">Agent not created yet</p> : null}
+                    {!p.ready ? <p className="text-xs text-muted-foreground">Agent not created yet</p> : null}
                   </td>
                   <td className={cell}>
                     {typeof run === 'string' ? (
@@ -224,7 +224,7 @@ function VoicePanel({ api }: { api: ApiClient }) {
                             () => undefined,
                           )
                         }
-                        className="min-h-11 rounded-md border border-indigo-600 px-4 text-sm text-indigo-700"
+                        className="min-h-11 rounded-md border border-border px-4 text-sm text-foreground"
                       >
                         Score the call
                       </button>
@@ -307,7 +307,7 @@ export function TestView({ api, token }: { api: ApiClient; token: string | null 
     <div className="flex flex-col gap-10">
       <section aria-label="Run" className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-3">
-          <div role="group" aria-label="Pack" className="flex rounded-md border border-slate-300 p-1">
+          <div role="group" aria-label="Pack" className="flex rounded-md border border-border p-1">
             {([null, 'IN', 'US'] as const).map((r) => (
               <button
                 key={r ?? 'all'}
@@ -317,7 +317,7 @@ export function TestView({ api, token }: { api: ApiClient; token: string | null 
                 onClick={() => setRegion(r)}
                 className={cn(
                   'min-h-11 rounded px-4 text-sm font-medium',
-                  region === r ? 'bg-indigo-600 text-white' : 'text-slate-700',
+                  region === r ? 'bg-primary text-primary-foreground' : 'text-foreground',
                 )}
               >
                 {r ?? 'All scenarios'}
@@ -328,11 +328,11 @@ export function TestView({ api, token }: { api: ApiClient; token: string | null 
             type="button"
             disabled={running !== null}
             onClick={() => void runSuite()}
-            className="min-h-11 rounded-md bg-indigo-600 px-5 text-sm font-semibold text-white disabled:opacity-50"
+            className="min-h-11 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
           >
             {region ? `Test the ${region} pack` : 'Run all scenarios'}
           </button>
-          <p className="text-sm text-slate-600">Text mode, against the live Hub (demo customer).</p>
+          <p className="text-sm text-muted-foreground">Text mode, against the live Hub (demo customer).</p>
           {running ? (
             <p role="status" className="text-sm font-semibold">
               Running scenario {running}…
