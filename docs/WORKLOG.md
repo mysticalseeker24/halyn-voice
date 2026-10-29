@@ -2,6 +2,16 @@
 
 Newest at the top. One entry per session via `/handoff`: what changed, tests run (with counts), what's next, anything risky.
 
+## 2026-10-30 · English demo, demo reset, findings 1/4/5/6/9, README draft, UI pass — chat #8
+- A: `make-aero-en.mjs in|us` writes both English graphs from the Hindi `aero-hi.graph.json`; Confirm + Assistant
+  English; all 4 pushed (restricted false). Seed language `en` (halyn_dev seeded). Fee summary "late fee for October".
+  8 English clone clips (en-IN, name STT-checked as सक्षम मिश्रा) in KV; IFSC line says "AERO, like the bank's name".
+- B: `POST /web/stage/demo-reset` (Hub burst epoch, nothing deleted) + Stage button + `scripts/ops/demo-reset.mjs`.
+  API deployed `8077f296` (cd31bc8 + English + reset); Aero Core re-seeded.
+- G: verify_pass refuses a body number that disagrees with the telephony record (1); propose budget 300 ms live,
+  1 s in-process (6, the combined-run flake); audit low + demo auth documented (4, 5). 3 skipped, 7 waits for call data.
+- F/H: README draft (numbers after the last run); Stage/Console one quiet accent, Pass date en-IN. E: clips verified.
+
 ## 2026-10-29 · Step 16, Step 19 code, Step 17 started (Vercel, personas, clips, first voice calls) — chat #7
 - Step 16: review fixes (masked `logLine` everywhere + source-scan test; registered-number proof from the webhook's
   telephony record), Hub-down drill + propose p95 test, undici override, history secrets scan clean, CPU on deploy ok.

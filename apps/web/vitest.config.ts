@@ -7,6 +7,8 @@ export default defineConfig({
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   test: {
     environment: 'jsdom',
+    // Packages run in parallel under `pnpm verify`; jsdom + userEvent tests crossed 5 s there (docs/HANDOFF.md 15).
+    testTimeout: 20_000,
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
     coverage: {
