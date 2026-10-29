@@ -21,3 +21,13 @@ forty-five thousand rupees to a new account.", account ending 4471, "The IFSC is
 right, please send it.",
 waiting, goodbye) live in `scripts/clone-clips.ts` (voice C, atempo 1.25, KV `file:ten_aero:clip:<id>`); play them
 from `/stage/soundboard` into the second phone. Record the Stage with `/stage?recording=1` (Escape leaves).
+
+## Recording checklist (each take)
+1. Before every take: Stage → **Demo reset** (or `node scripts/ops/demo-reset.mjs`) so the call-burst signal starts
+   clean, and `pnpm seed:core --remote --yes` (go-ahead) so the card is unfrozen and balances are back.
+2. Laptop: `https://halyn-voice.vercel.app/stage?recording=1` at 1920×1080 (Escape shows the controls), Stage tab
+   **muted**; the Aero app open on the phone for scenarios 1–2 and the passkey sheet.
+3. Calls: phone held **at the ear** (speaker noise keeps the speech detector open). Scenario 3 uses the **second
+   phone**: call number A from it and play `/stage/soundboard` clips 1→8 into it; decline on the real phone.
+4. Order: 1 freeze → 2 fee waiver → 3 clone → 4 coached → 5+6 Assistant → 10 US browser call → Halyn Test "Run all".
+5. After the session: `/compliance-check` and the COMPLIANCE.md session log.
