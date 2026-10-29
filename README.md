@@ -9,13 +9,28 @@ Halyn can execute, and only with a one-time grant bound to the exact action.
 Built on [Bolna](https://www.bolna.ai) with [Sarvam](https://www.sarvam.ai) speech for the **Bolna Symphony
 Buildathon 2026**, by Saksham Mishra (solo).
 
-| Try it | |
-|---|---|
-| Call the demo bank (English) | **+91 80653 56344** — Aero Bank's voice agent, protected by Halyn |
-| Web apps | **https://halyn-voice.vercel.app** — Stage, Console, Aero Bank app, Saksham's Assistant (demo access code on request) |
-| The spec | [`docs/SCENARIOS.md`](docs/SCENARIOS.md) — 12 scenarios with exact expected outcomes |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screens/landing-dark.png">
+  <img alt="Halyn's landing page: Don't trust the voice. Trust the permission. Example decisions — ALLOWED, STEP-UP then DENIED, HELD — and a map of the four apps" src="docs/screens/landing.png">
+</picture>
 
-![Halyn Stage: a cloned voice asks for ₹45,000; Halyn steps up, the real customer declines on his phone, the request is denied and the ledger chain verifies](docs/screens/stage-v1.png)
+## Try it in two minutes
+1. **Call Aero Bank**, the fictional demo bank, in English: **+91 80653 56344**. You're an unregistered caller, so
+   anything risky steps up to the demo customer and won't execute for you.
+2. **Open the Stage** to watch decisions live, then the other apps. Every page has light and dark themes; the apps
+   ask for a demo access code (available on request).
+
+| App | Link | Who it's for | What to look at |
+|---|---|---|---|
+| Landing | [halyn-voice.vercel.app](https://halyn-voice.vercel.app) | Everyone | What Halyn is and where to click first |
+| **Halyn Stage** | [/stage](https://halyn-voice.vercel.app/stage) | Judges, the demo video | Scenario buttons 1–4, the live call, the decision with its reason codes, the ledger. [/stage?recording=1](https://halyn-voice.vercel.app/stage?recording=1) is the clean recording canvas; [/stage/soundboard](https://halyn-voice.vercel.app/stage/soundboard) plays the labelled voice-clone clips |
+| **Halyn Console** | [/console](https://halyn-voice.vercel.app/console) | The bank's teams | [Policies](https://halyn-voice.vercel.app/console/policies) (every action's tier), [Test](https://halyn-voice.vercel.app/console/test) (run all scenarios, permission map), [Ledger](https://halyn-voice.vercel.app/console/ledger), [Handoffs](https://halyn-voice.vercel.app/console/handoffs), [Passes](https://halyn-voice.vercel.app/console/passes), [Calls](https://halyn-voice.vercel.app/console/calls), [Signals](https://halyn-voice.vercel.app/console/signals), [Integrations](https://halyn-voice.vercel.app/console/integrations) |
+| **Aero Bank app** | [/aero](https://halyn-voice.vercel.app/aero) | The customer, on their phone | Balance, card, loan; approval sheets with a passkey; alerts; Assistant access (issue or revoke a Pass); "Call Aero" in the browser for the US twin |
+| **Saksham's Assistant** | [/assistant](https://halyn-voice.vercel.app/assistant) | The customer's AI agent | A Halyn Pass as a boarding pass; give it a task and watch two agents talk |
+
+The spec: [`docs/SCENARIOS.md`](docs/SCENARIOS.md) — 12 scenarios with exact expected outcomes.
+
+![Halyn Stage: a cloned voice asks for ₹45,000; Halyn steps up, the real customer declines on his phone, the request is denied and the ledger chain verifies](docs/screens/stage-v1-dark.png)
 
 ---
 
