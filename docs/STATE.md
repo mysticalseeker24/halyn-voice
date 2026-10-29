@@ -5,7 +5,7 @@ seed). Parts A, B, E, H, G (1/4/5/6/9) and the README draft are done locally; ca
 
 ## Where we are
 - **Done on `main`:** Steps 0–16, slim 14, Day-0; Step 19's code. Working mode: **CLAUDE.md §5 speed mode**.
-- **Chat #8 (local commits, not pushed yet at 02:15):** English demo (`make-aero-en.mjs in|us` from the Hindi
+- **Chat #8 (pushed `5e2be1d`, CI green, 02:20):** English demo (`make-aero-en.mjs in|us` from the Hindi
   `agents/aero-hi.graph.json`; Confirm/Assistant English; seed `en`; 8 English clips in KV), console demo reset
   (`POST /web/stage/demo-reset`, `scripts/ops/demo-reset.mjs`), findings 1/4/5/6/9, README draft, UI accent pass.
 - **Step 16 (chat #7):** whole-codebase review → fixed: unmasked error logs (all via `logLine`, source-scan test), the
@@ -53,7 +53,7 @@ Snapshots: `agent.ts get --out` (MCP `get_agent` shows the tool secret). Offline
 ## Deployed / cloud
 | Thing | Status |
 |---|---|
-| API Worker | `https://halyn-api.halyn-api.workers.dev`, version `8077f296` (2026-10-30 01:50; cd31bc8 + English + demo reset). Finding-1 fix not deployed yet |
+| API Worker | `https://halyn-api.halyn-api.workers.dev`, version `581b9b6e` (2026-10-30 02:18; English, demo reset, finding-1 fix = main `5e2be1d`) |
 | Aero Core Worker | `https://halyn-aero-core.halyn-api.workers.dev`; D1 `aero-core` (`pnpm seed:core --remote --yes` = demo reset) |
 | KV `CONFIG` | packs `pack:ten_aero:IN|US`; clips `file:ten_aero:clip:<id>` (8, English en-IN, 2026-10-30) |
 | TiDB `halyn_dev` | migrated + seeded (`pass_demo` → number B, 30 days from 2026-10-28) |
@@ -69,7 +69,7 @@ from the number during testing); Confirm call approved → executed; Aero never 
 fixed by `cd31bc8`. 3, 4, 5+6, 10, personas, round 2: not yet.
 
 ## Next steps (chat #8, from 09:00 IST)
-1. Go-ahead → push (Vercel redeploys the web: Demo reset button, UI pass) + deploy the API (finding-1 fix).
+1. Done 02:20: pushed (CI green) (Vercel redeploys the web) + API deployed with the finding-1 fix.
 2. Part C calls, round 1 then round 2 (English): 1–4, 5+6, 10, personas; demo reset + `seed:core` before each;
    measure proposal → outcome audio (finding 7 decides on it); /compliance-check; COMPLIANCE.md log; Halyn Test
    "Run all" on the deployed API → README numbers.
