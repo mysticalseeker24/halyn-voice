@@ -1,11 +1,15 @@
 # STATE — read at the start of every chat, update at the end (`/handoff`). Keep it short (speed mode).
 
-_Last updated: 2026-10-30 03:00 IST, end of chat #8. **Everything but the real calls is done** (English demo, demo
-reset, findings, detailed README, UI pass, ship-check). Chat #9 = the English call rounds from 09:00 IST, then
-README numbers, freeze, video (prompt in docs/HANDOFF.md)._
+_Last updated: 2026-10-30 05:00 IST, end of chat #8. **All code done, pushed (`9cd3ac4`), CI green.** Chat #9 (prompt in
+docs/HANDOFF.md): English call rounds → freeze → README numbers → submission video + X video/post → pitch deck →
+submit (Sat Oct 31)._
 
 ## Where we are
 - **Done on `main`:** Steps 0–16, slim 14, Day-0; Step 19's code. Working mode: **CLAUDE.md §5 speed mode**.
+- **Chat #8, after 03:00:** frontend redesign — landing page with a clear map of the four apps, light/dark tokens on
+  every page (`globals.css`; Aero has its own `.aero` scope; `theme-toggle.tsx`), Console/Stage/Aero/Assistant
+  restyled; brand assets (`apps/web/public`: halyn-mark, halyn-lockup, og.png, pipeline.png; `src/app/icon.png`);
+  README link table + pipeline figure; `docs/BRAND.md` (palette, image prompts, 14 pitch-deck prompts → `docs/deck/`).
 - **Chat #8 (pushed `5e2be1d`, CI green, 02:20):** English demo (`make-aero-en.mjs in|us` from the Hindi
   `agents/aero-hi.graph.json`; Confirm/Assistant English; seed `en`; 8 English clips in KV), console demo reset
   (`POST /web/stage/demo-reset`, `scripts/ops/demo-reset.mjs`), findings 1/4/5/6/9, README draft, UI accent pass.
