@@ -58,7 +58,7 @@ Cloud Starter cluster, a Vercel account, the Bolna API key, the Sarvam API key. 
 | Reset the demo bank | `pnpm seed:core` (local) · `pnpm seed:core --remote --yes` (deployed, go-ahead first) |
 | E2E | `pnpm test:e2e` |
 | Deploy API / Aero Core | `pnpm deploy:api` · `pnpm deploy:core` |
-| Deploy web | `pnpm deploy:web` (or Vercel Git integration) |
+| Deploy web | Vercel Git integration on push to main (Root Directory `apps/web`; build pinned in `apps/web/vercel.json`) — not `pnpm deploy:web` |
 | Tail logs | `pnpm --filter api exec wrangler tail` |
 
 ## Exposing local API to Bolna
