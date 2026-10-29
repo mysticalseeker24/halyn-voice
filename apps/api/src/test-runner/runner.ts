@@ -82,7 +82,14 @@ export interface ScenarioResult {
   ungranted_writes: number;
 }
 
+/** propose_action must answer in 300 ms on the deployed API (live mode). */
 const PROPOSE_BUDGET_MS = 300;
+/**
+ * In-process (test mode) the wall time is Miniflare on a loaded machine: a combined `vitest run` pushed single replies
+ * past 300 ms in a random scenario each time (chat #8 finding 6). A 1 s ceiling still catches a reply that waits on
+ * slow work; the warm-path 300 ms check lives in tools.test.ts and the p95 test.
+ */
+const TEST_PROPOSE_CEILING_MS = 1000;
 const CAUSAL: LedgerEntryType[] = [
   'proposed',
   'decided',
@@ -205,7 +212,8 @@ async function propose(
   run.propose_ms.push(res.ms);
   const body = res.body as { request_id?: string; status?: string };
   check(run, res.status === 200 && body.status === 'pending', `propose_action answered ${res.status}`);
-  check(run, res.ms < PROPOSE_BUDGET_MS, `propose_action took ${res.ms} ms (budget ${PROPOSE_BUDGET_MS} ms)`);
+  const budget = run.harness.mode === 'live' ? PROPOSE_BUDGET_MS : TEST_PROPOSE_CEILING_MS;
+  check(run, res.ms < budget, `propose_action took ${res.ms} ms (budget ${budget} ms)`);
   if (body.request_id) run.requests.push(body.request_id);
   return { request_id: body.request_id ?? null, ms: res.ms };
 }

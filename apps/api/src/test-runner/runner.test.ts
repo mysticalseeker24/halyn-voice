@@ -76,7 +76,7 @@ function fake(over: Partial<Harness> = {}, entries: LedgerEntry[] = []): Harness
     webCall: async () => null,
     tool: async (name) =>
       name === 'propose_action'
-        ? { status: 200, body: { request_id: 'req_1', status: 'pending' }, ms: 450 }
+        ? { status: 200, body: { request_id: 'req_1', status: 'pending' }, ms: 1200 }
         : { status: 200, body: { code: '123456', valid: false }, ms: 1 },
     settle: async () => undefined,
     advance: async () => undefined,
@@ -118,9 +118,24 @@ describe('runScenario reports every way Halyn can be wrong', () => {
     expect(text).toMatch(/reasons lack P_PROTECTIVE/);
     expect(text).toMatch(/Aero Core was not called/);
     expect(text).toMatch(/events \[\], expected \[allow, done\]/);
-    expect(text).toMatch(/took 450 ms/);
+    expect(text).toMatch(/took 1200 ms/);
     expect(text).toMatch(/without a grant/);
     expect(text).toMatch(/unmasked numbers/);
+  });
+
+  it('the 300 ms propose budget binds the deployed API; in-process tests allow load up to 1 s (finding 6)', async () => {
+    const slow = (mode: Harness['mode']) =>
+      fake({
+        mode,
+        tool: async (name) =>
+          name === 'propose_action'
+            ? { status: 200, body: { request_id: 'req_1', status: 'pending' }, ms: 450 }
+            : { status: 200, body: {}, ms: 1 },
+      });
+    const failures = async (mode: Harness['mode']) =>
+      (await runScenario(spec, scenario('1'), slow(mode))).failures.join(' | ');
+    expect(await failures('live')).toMatch(/took 450 ms \(budget 300 ms\)/);
+    expect(await failures('test')).not.toMatch(/took 450 ms/);
   });
 
   it('an event that does not match the decision, or follows it out of order, fails every step (rule 3)', async () => {
