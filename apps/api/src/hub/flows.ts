@@ -136,7 +136,9 @@ export function identify(
 ): { call: CallState; customer: DirectoryCustomer | null } {
   const { store } = core;
   const existing = store.call(input.run_id);
-  const byNumber = input.number_hash ? store.customerByNumber(input.region, input.number_hash) : null;
+  // Bolna's telephony record of the calling number (the webhook) beats the number a tool body carries.
+  const number_hash = existing?.number_hash ?? input.number_hash;
+  const byNumber = number_hash ? store.customerByNumber(input.region, number_hash) : null;
   const byName =
     !byNumber && input.claimed_name
       ? customerByName(store.customers(), input.claimed_name, input.region)
@@ -512,17 +514,20 @@ export async function propose(core: HubCore, raw: ProposeInput): Promise<Propose
   if (latest) return { duplicate: true, record: latest, customer: customerOf(latest.customer_id) };
 
   // The call: from lookup_customer / verify_pass, or identified now by the calling number alone.
-  const { call } = store.call(input.run_id)
-    ? { call: store.call(input.run_id) as CallState }
-    : identify(core, {
-        run_id: input.run_id,
-        call_sid: input.call_sid,
-        channel: input.channel,
-        region: input.default_region,
-        number_hash: input.number_hash,
-        from_last4: input.from_number?.slice(-4) ?? null,
-        claimed_name: null,
-      });
+  // A call the webhook registered before any lookup has no customer yet: identify it now (never swaps a customer).
+  const known = store.call(input.run_id);
+  const { call } =
+    known && known.customer_id !== null
+      ? { call: known }
+      : identify(core, {
+          run_id: input.run_id,
+          call_sid: input.call_sid,
+          channel: input.channel,
+          region: input.default_region,
+          number_hash: input.number_hash,
+          from_last4: input.from_number?.slice(-4) ?? null,
+          claimed_name: null,
+        });
   const pack = packFor(input, call.region);
   const pass = call.pass_id ? store.pass(call.pass_id) : null;
   const passActive = pass !== null && passState(pass, now) === 'active';

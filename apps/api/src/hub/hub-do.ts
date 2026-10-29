@@ -508,6 +508,9 @@ export class HubDO extends DurableObject<Env> {
       ended: boolean;
       recording_url: string | null;
       purpose: string | null;
+      /** The calling number's hash from Bolna's telephony record (inbound calls); it beats a tool body's number. */
+      number_hash?: string | null;
+      from_last4?: string | null;
     },
   ): Promise<HubResult<boolean>> {
     return this.guard(() =>
@@ -515,10 +518,17 @@ export class HubDO extends DurableObject<Env> {
         this.bindTenant(tenant_id);
         const now = this.clock.nowMs();
         const existing = this.store.call(input.run_id);
+        const telephony = input.number_hash ?? null;
+        // A record that contradicts the number a tool body claimed takes the registered-number proof back.
+        const contradicted =
+          telephony !== null && existing?.number_hash != null && existing.number_hash !== telephony;
         const call: CallState = existing
           ? {
               ...existing,
               call_sid: existing.call_sid ?? input.call_sid,
+              number_hash: telephony ?? existing.number_hash,
+              from_last4: telephony ? (input.from_last4 ?? null) : existing.from_last4,
+              registered: contradicted ? false : existing.registered,
               ended_at: input.ended ? (existing.ended_at ?? now) : existing.ended_at,
               purpose: existing.purpose ?? input.purpose,
               recording_url: input.recording_url ?? existing.recording_url ?? null,
@@ -531,8 +541,8 @@ export class HubDO extends DurableObject<Env> {
               region: 'IN',
               customer_id: null,
               registered: false,
-              number_hash: null,
-              from_last4: null,
+              number_hash: telephony,
+              from_last4: telephony ? (input.from_last4 ?? null) : null,
               kind: 'unknown',
               pass_id: null,
               app_session_customer_id: null,

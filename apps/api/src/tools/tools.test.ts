@@ -499,4 +499,66 @@ describe('the webhook', () => {
     });
     expect(await done.json()).toEqual({ ok: true });
   });
+
+  // Step 16 review: the tool body's from_number is filled by Bolna but also visible to the LLM, so a caller who talks
+  // the model into "my number is …" must not become the registered customer. Bolna's own record of the call wins.
+  const inbound = (from: string) => ({
+    id: RUN,
+    status: 'in-progress',
+    telephony_data: {
+      from_number: from,
+      to_number: '+918065356344',
+      call_type: 'inbound',
+      call_sid: 'CAsid0001',
+    },
+  });
+  const hook = (body: unknown) =>
+    h.fetch('/webhooks/bolna', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-halyn-secret': 'test-tool-secret-0123456789abcdef0123456789',
+        'cf-connecting-ip': '13.203.39.153',
+      },
+      body: JSON.stringify(body),
+    });
+
+  it("the calling number in Bolna's record beats a different from_number in a tool body", async () => {
+    await hook(inbound(UNREGISTERED));
+    const res = await h.tool('lookup_customer', { run_id: RUN, from_number: REGISTERED });
+    expect(await res.json()).toMatchObject({ registered: false });
+    // ₹10,000 to a saved payee: tier 2 → allow from the registered number, step-up from any other.
+    await propose({
+      ...freeze(),
+      action: 'transfer.saved',
+      params: { amount_minor: 1000000, currency: 'INR', payee_id: 'payee_mom' },
+    });
+    await h.settle();
+    const events = h.bolna.events.get(RUN)?.map((e) => e.event) ?? [];
+    expect(events.length).toBeGreaterThan(0);
+    expect(events).not.toContain('allow');
+    expect(events).not.toContain('done');
+  });
+
+  it("Bolna's record of the registered number identifies the customer", async () => {
+    await hook(inbound(REGISTERED.replace('+', '')));
+    const res = await h.tool('lookup_customer', { run_id: RUN, from_number: REGISTERED });
+    expect(await res.json()).toMatchObject({ customer_found: true, registered: true });
+  });
+
+  it('a record that arrives after a spoofed lookup takes the proof back', async () => {
+    await h.tool('lookup_customer', { run_id: RUN, from_number: REGISTERED });
+    await hook(inbound(UNREGISTERED));
+    // ₹10,000 to a saved payee: tier 2 → allow from the registered number, step-up from any other.
+    await propose({
+      ...freeze(),
+      action: 'transfer.saved',
+      params: { amount_minor: 1000000, currency: 'INR', payee_id: 'payee_mom' },
+    });
+    await h.settle();
+    const events = h.bolna.events.get(RUN)?.map((e) => e.event) ?? [];
+    expect(events.length).toBeGreaterThan(0);
+    expect(events).not.toContain('allow');
+    expect(events).not.toContain('done');
+  });
 });
