@@ -1,120 +1,98 @@
 # STATE — read at the start of every chat, update at the end (`/handoff`). Keep it short (speed mode).
 
-_Last updated: 2026-10-29 05:30 IST, end of chat #6 (Steps 13, 15 and a slim 14 built, pushed `5e88fb1`, CI green; API deployed `e2eec772`). Next: chat #7 → Step 16, the full testing + hardening pass (voice smoke only when Saksham asks)._
+_Last updated: 2026-10-29 16:10 IST, end of chat #7 (context budget hit at 54 %). Step 16 done + pushed (CI green
+`e519872`); Step 19 code done; Step 17 in progress (Vercel live, personas, clips, voice fixes; voice call 1 ✅). **Saksham
+switched the demo to ENGLISH (2026-10-29 16:00)** — that is the first item of chat #8 (prompt in docs/HANDOFF.md)._
 
 ## Where we are
-- **Done on `main`:** Steps 0–3, 5, 6, 7, 9, Day-0, **Steps 8 + 10 live** (voice smoke pending), **Step 11 built**
-  (deployed; voice-smoke 4 pending), **Step 12 built** (deployed; the real browser call is pending), **Steps 13, 15,
-  slim 14 built** (chat #6; the API changes are not deployed yet).
-- **Step 13 (Console):** Live (Hub stream, role console; decisions carry cue ids), Calls + call detail (requests,
-  handoffs, masked Bolna transcript, recording link kept on the Hub call state), Policies (KV packs, "Test this pack"),
-  Passes (tenant-wide, revoke), Signals (codes/cue ids only), Ledger (verify, JSON export), Integrations (agents via
-  `GET /v2/agent`: name/status/restricted/webhook host; guard booleans; Aero Core health; mirror backlog). Hub reads only.
-- **Step 15 (Halyn Test):** suite runs stored in the Hub (`POST /web/tests/runs`, one `/web/stage/run` per scenario with
-  `suite_run_id`; 3b = skipped live), scorecard + changes vs the previous run, permission map (both Aero graphs GREEN),
-  voice mode: `agents/test-*.json` (3 benign personas, files only) + place/score routes; button off until
-  `TEST_AGENT_*_ID` exist. **Step 14:** runner rule "event matches the decision" on every step; screening-refuses-answers
-  test; TESTING.md maps every security case to its test.
-- **Step 11:** Sarvam coaching layer 2 after the 300 ms answer (ADR-024: money allow/step_up wait as `screening`,
-  `escalateForCoaching` → hold); Hub handoff records + booked check-in (record only); `GET /web/handoffs`,
-  `POST /web/handoffs/:id/resolve` (release executes with a grant); Console shell + `/console/handoffs`.
-- **Step 12:** `POST /web/calls/session` mints the Bolna web-call session for the region's agent and registers the
-  run id as the customer's browser call (proof app_session; US → `cus_saksham_us`); Aero "Call Aero" card
-  (`@bolna/web-call` 3.0.1); `aero-en` agent (English, USD, Deepgram Asteria, web only, no transfer). Stage region
-  switch was already wired. Scenario 10 passes in text mode.
-  Working mode: **CLAUDE.md §5 speed mode** (one chat per step, no subagents, light tests, local commits, ask before push).
-- **Step 8:** prompts in Devanagari Hindi (voice: Sarvam `bulbul:v4-flash` `simran_enhi_banking_expressive` 1.1×,
-  Saksham's pick; endpointing 300 ms). API + Aero Core deployed; Aero graph on A, Confirm graph (speech only, hangs up
-  on the `recorded` event) on B. Bolna webhooks can't send headers → `/webhooks/*` take `?key=` (ADR-022).
-- **Step 10:** `/web/passes` (options → issue with a passkey challenge bound to the draft; list; revoke),
-  `/web/assistant/tasks` (Assistant calls A from B, bound to the Pass: `get_pass_code` sends only `call_sid`), Aero
-  "Assistant" tab, Assistant app (Pass card, task box, live log: Pass-code line, decisions, transcript at call end).
-- `DEMO_ACCESS_CODE` set on the deployed API (2026-10-29). Chat #6: `pnpm verify` ✓ 05:45 IST (scenarios 13/13, api 916 +
-  44 int, web 125), e2e 15 ✓; pushed `5e88fb1`, CI green (verify + e2e); API deployed `e2eec772` (health 200).
+- **Done on `main`:** Steps 0–16, slim 14, Day-0; Step 19's code (clip routes, `/stage/soundboard`, recording mode,
+  `scripts/clone-clips.ts`). Working mode: **CLAUDE.md §5 speed mode**.
+- **Step 16 (chat #7):** whole-codebase review → fixed: unmasked error logs (all via `logLine`, source-scan test), the
+  registered-number proof now comes from Bolna's telephony record (webhook), not the LLM-visible tool body; Hub-down
+  drill + propose p95 test; undici override (audit); history secrets scan clean. Rest → "Chat #8 findings" below.
+- **Step 17 so far:** Vercel `https://halyn-voice.vercel.app` (Git integration, Root Directory `apps/web`,
+  `apps/web/vercel.json`); `WEB_ORIGIN`/`RP_ID` = the domain (+ localhost origin); CORS checked; persona agents created;
+  8 Hindi clone clips rendered + in KV; demo reset done (card 8812 is **frozen** again after call 1 — reset before reuse).
+- **Voice fixes from the smoke (all live on Bolna except the last API one):** `propose_action` params as quote-free
+  `key=value; …` (Bolna pastes `%(params)s` into a quoted JSON string — JSON objects broke every proposal); quotes
+  `' | '`-separated; card on record in the Aero records (no digit capture); Hindi pre-call/"still there?" lines (Bolna's
+  defaults are English); `confirmed`/`protect` don't rely on `{{reference}}`/`{{reason}}` (Bolna left them unfilled);
+  one short filler after a proposal; transcriber `noise_reduction: true`, `vad_threshold 0.65`.
+  **Not deployed yet:** `cd31bc8` (no Confirm callback to the phone the caller is already on — call waiting).
 
 ## Bolna facts (binding; details in docs/BOLNA.md)
-- Tool params: never a run id (`%(execution_id)s` isn't a tool variable; a param `run_id` crashes the call); send
-  `call_sid`, the API maps it from the webhooks. Never argument names `method`, `run_id`, `url`, `headers`, `param`.
-  Optional LLM args risk a KeyError in `%(x)s` → `propose_action` sends one JSON `params` string; all args required.
-- Every agent's `webhook_url` and each tool's `pre_call_webhook_url` = `<API>/webhooks/bolna?key=<HALYN_TOOL_SECRET>`.
-- Events work on graph agents (~230–430 ms). Static nodes can't speak variables (`confirmed` is an LLM node).
-- DTMF off everywhere (Vobiz). Hindi a voice speaks → Devanagari; names → सक्षम / सक्षम मिश्रा.
+- Tool params: never a run id; send `call_sid`. Never argument names `method`, `run_id`, `url`, `headers`, `param`.
+  Every LLM argument required. **Values are pasted raw into a quoted JSON template: no `"` in any value** →
+  `params` = `k=v; k=v`, quotes `a | b` (`packages/shared` `bolnaParams`/`bolnaQuotes` read both shapes).
+- **Event properties are NOT substituted into node prompts** (`{{reference}}` reached the LLM as `{reference}`), even on
+  LLM nodes; events wait until the agent stops speaking (fillers delay outcomes).
+- Every agent's `webhook_url` and each tool's `pre_call_webhook_url` = `<API>/webhooks/bolna?key=<HALYN_TOOL_SECRET>`
+  (raw logs show the key in plain text — never paste them).
+- Empty `pre_call_message` / default `check_user_online_message` → Bolna speaks English defaults: set them.
+- DTMF off (Vobiz). Names a voice speaks → सक्षम / सक्षम मिश्रा (English sentences too).
 
 ## Approvals (per chat — re-confirm in a new chat)
-- Any real call / number / agent create-update-delete / relink / wallet spend / deploy / DB write: go-ahead in the chat.
-- Attacker persona agents on Bolna: **NOT approved** (text mode only). Push: ask Saksham.
+- Any real call / number / agent create-update-delete / relink / wallet spend / deploy / DB or KV write / Sarvam spend:
+  go-ahead in the chat. Attacker persona agents on Bolna: **NOT approved** (text mode only). Push: ask Saksham.
 
 ## Bolna resources
 | Resource | Id | Notes |
 |---|---|---|
-| Number A +918065356344 | `9a3b9852-ae7e-4b7c-bab9-f1f0bf4b24d2` | → **Aero graph** (relinked 2026-10-29) |
+| Number A +918065356344 | `9a3b9852-ae7e-4b7c-bab9-f1f0bf4b24d2` | → Aero graph |
 | Number B +918065356379 | `b6875116-e8b9-4174-9c71-08a87cd1dc62` | `from_phone_number` for Confirm + Assistant |
-| Aero graph (`aero-hi`) | `f02fa07d-54e8-4140-a318-72b816c10a57` | `agents/aero.graph.json`, snapshot `aero.current.json` |
-| Halyn Confirm graph | `96a6c2a2-9695-4876-8a34-41112d812077` | `agents/confirm.graph.json`; guardrails 9–21 |
-| Saksham's Assistant | `29d45c35-c6c4-44df-9548-76f9b9084a5c` | `agents/assistant.json`; guardrails 9–21 |
-| Aero English, US web (`aero-en`) | `f281278d-90cb-4550-a285-60f2abcb7638` | `agents/aero-en.graph.json` (generated: `scripts/bolna/make-aero-en.mjs`); web only |
-| Old Kavach listener, Day-0 agents (Aero test `c03d110b…`, Confirm test `e0f05bf4…`, Assistant `a4d3d5cf…`, caller `17ad7f4e…`) | — | unlinked, kept; retire only with go-ahead |
-All real agents `restricted: false` (aero-en checked 2026-10-29 04:40); `list_violations` empty (00:35). Wallet 958.7 ¢.
-Use `agent.ts get --out` for snapshots: the MCP `get_agent` returns the tool secret in plain text. Helpers:
-`scripts/bolna/*.ts` (writes need `--yes`; agent pushes fill `{{API_URL}}` from `HALYN_API_URL`); `check-agents.ts` (offline
-gate) and `inspect-agent.mjs` (snapshot summary). Workflow: HANDOFF.md conventions 11–15.
+| Aero graph (`aero-hi`, IN) | `f02fa07d-54e8-4140-a318-72b816c10a57` | `agents/aero.graph.json` → snapshot `aero.current.json` |
+| Halyn Confirm graph | `96a6c2a2-9695-4876-8a34-41112d812077` | `agents/confirm.graph.json`; Hindi; tool pre-call line still English |
+| Saksham's Assistant | `29d45c35-c6c4-44df-9548-76f9b9084a5c` | `agents/assistant.json` |
+| Aero English, US web (`aero-en`) | `f281278d-90cb-4550-a285-60f2abcb7638` | generated by `scripts/bolna/make-aero-en.mjs`; web only |
+| Persona polite-hindi / hinglish-noisy / impatient-en | `b06bbbba-062e-4bc1-9e8a-8da55051c519` / `1d8328c7-aa89-4399-9ea9-a87c911272e9` / `f023effc-8b3e-45fc-afe5-f7aa99d0fdd8` | `agents/test-*.json`; ids in `.env` + Worker secrets (21) |
+| Old Kavach listener, Day-0 agents | — | unlinked, kept; retire only with go-ahead |
+All real agents `restricted: false` (checked after every update, 2026-10-29 ≤ 15:56). Wallet 926.7 ¢ (16:10, after ~14 calls).
+Snapshots: `agent.ts get --out` (MCP `get_agent` shows the tool secret). Offline gate `check-agents.ts`.
 
 ## Deployed / cloud
 | Thing | Status |
 |---|---|
-| API Worker | `https://halyn-api.halyn-api.workers.dev` (18 secrets via `scripts/cf-secrets.ts api --yes`; Steps 13–15 deployed `e2eec772`, 2026-10-29) |
-| Aero Core Worker | `https://halyn-aero-core.halyn-api.workers.dev`; D1 `aero-core` `bfc0e8a5…` seeded |
-| KV `CONFIG` | `0944d7d7…`; `pack:ten_aero:IN` / `:US` uploaded. **Files go here too** (ADR-023; R2 refused, no card; S3 if final round) |
-| TiDB `halyn_dev` | migrated (0001) + seeded (real number, `pass_demo` → number B, 30 days) — the Worker's DB |
-| Web (Vercel) | Not linked yet → passkeys (need HTTPS + RP_ID) and the Assistant/Aero screens are local-only until then |
-`*.workers.dev` opened from this machine on 2026-10-28 (curl /health 200).
+| API Worker | `https://halyn-api.halyn-api.workers.dev`, version `6091884a` (2026-10-29 14:25; 21 secrets). `cd31bc8` pending |
+| Aero Core Worker | `https://halyn-aero-core.halyn-api.workers.dev`; D1 `aero-core` (`pnpm seed:core --remote --yes` = demo reset) |
+| KV `CONFIG` | packs `pack:ten_aero:IN|US`; clips `file:ten_aero:clip:<id>` (8, Hindi) |
+| TiDB `halyn_dev` | migrated + seeded (`pass_demo` → number B, 30 days from 2026-10-28) |
+| Web (Vercel) | `https://halyn-voice.vercel.app` — every push to main redeploys; preview URLs can't call the API |
+This machine's network intermittently resets `wrangler tail` and once blocked the API host for ~2 min (Bolna unaffected).
 
 ## Scenario status
-Text mode (`pnpm test:scenarios`): all 13 ✅ (1–12, 3b), coaching layer 2 on (mock Sarvam).
-Voice: none yet. Smoke plan: 1, 2, 3 (Saksham calls A; 3 from a second phone, step-up → Confirm call → decline) and
-5, 6 (`POST /web/assistant/tasks` with `pass_demo` from a customer session; 6 = step-up → decline).
+Text mode (`pnpm test:scenarios`): all 13 ✅. Live Stage text run of 1 and 2 on the deployed API ✅ (CPU: normal
+requests ≤ 8 ms; the in-process Stage run 105 ms; one Hub event 15 ms; no CPU-limit hit).
+Voice (Hindi, round 1): **1 ✅** (call `3e4a4e81`: registered via telephony, allow tier 1, executed, Hindi outcome;
+proposal → outcome audio 6.6 s, fillers since cut). **2 ⚠️** (`ded42251`): step_up because `S_CALL_BURST` (≥ 3 calls/hour
+from the number during testing); Confirm call approved → executed; Aero never spoke it (carrier call-waiting audio) →
+fixed by `cd31bc8`. 3, 4, 5+6, 10, personas, round 2: not yet.
 
-## Next steps (in order) — only after Saksham's go-ahead (full detail: the chat #7 prompt in docs/HANDOFF.md)
-**Priority (Saksham, 2026-10-29): a complete product — every function working end to end — for the submission; the
-build freeze is gone. Screens stay plain until a UI refinement pass (professional, not AI-looking) after all steps.**
-1. Chat #7: Steps 16–19 + the real calls (prompt in HANDOFF.md): review + hardening (blockers/high now, the rest to a
-   "Chat #8 findings" list), Vercel (whole repo, Root Directory apps/web) + WEB_ORIGIN/RP_ID, phone passkey, persona agents,
-   voice smoke ×2, browser call, freeze + tag, clone clips + soundboard + recording mode. Chat #8: Step 20 + refining.
-2. Waiting for Saksham (09:00–21:00 IST, go-ahead per call or agent): voice smoke 1, 2, 3, 5, 6, 4 and the browser
-   call (scenario 10) — inbound calls can't carry `user_data`, so 3/4's `security_demo` tag lives in our notes; create
-   the three persona agents (`pnpm exec tsx scripts/bolna/agent.ts create agents/test-<persona>.json --yes` → `restricted: false` → `TEST_AGENT_*_ID` in
-   `.env` → `cf-secrets.ts api --yes`), then voice runs from /console/test.
-3. Steps 17–20 (Step 17: Vercel + `WEB_ORIGIN`/`RP_ID` + the phone passkey), then the UI refinement pass.
+## Next steps — chat #8 (prompt in docs/HANDOFF.md)
+1. **English demo** (Saksham, 2026-10-29): Aero IN, Confirm, Assistant in English (names still Devanagari in TTS),
+   transcriber/synthesizer languages, demo customer language `en`, clone clips re-rendered in English, prompts mirror.
+2. Deploy the API (`cd31bc8` + any English changes); a demo "burst reset" so `S_CALL_BURST` doesn't step up scenario 2
+   during retakes; then the calls: 1–4, 5+6, 10, personas, round 2; /compliance-check; COMPLIANCE.md log.
+3. Step 18 freeze (snapshots, `demo-freeze` tag), Step 19 render (English clips), Step 20 README + submission, then the
+   UI refinement pass (professional, not AI-looking).
 
-## Carry into later steps
-- Steps 11/13: approved tier-4 changes become a handoff until the Console release flow exists.
-- Steps 15/17: live Stage/Test runs touch the demo customer's real Aero Core rows (demo reset); 3b (60 s) is reported
-  "skipped in live mode"; if 12 times out live, run long scenarios inside the Hub (alarm-stepped).
-- Voice personas: Aero's side of a persona call is matched by number B's last 4 + start time (±30 s); check it on the
-  first real run (and whether Bolna accepts `api_tools: null` on create).
-- Step 12 browser call: if tools 400 on a non-phone `from_number` or the call sid never maps, read the raw logs first.
-- Step 13/19: files in KV `file:<tenant>:<kind>:<id>` (ADR-023). Step 17: deploy web to Vercel, set `WEB_ORIGIN` +
-  `RP_ID` on the API, register the passkey on the phone.
-- Step 19: clone lines in voice C then `atempo=1.25`; `scripts/clone-clips.ts` refuses Roman "Saksham".
-- Names: spoken text uses सक्षम / सक्षम मिश्रा (`customer_name`, `user_data`); screens show "Saksham".
-
-## Chat #8 findings (Step 16 review, not blocking; chat #8 refines)
-1. `verify_pass` matches a Pass's assistant numbers against the tool body's `from_number`; use the telephony number
-   the webhook now records on the call (as `identify` does) — medium.
-2. Confirmed on call 1 (2026-10-29): Bolna sends the full `telephony_data.from_number`, and the LLM fills
-   `from_number` in its own tool arguments — the webhook number is what Halyn trusts (call registered: true).
-3. Try removing `from_number`/`call_sid` from the LLM-visible tool `properties` (keep `%(from_number)s` in `param`)
-   if Bolna still substitutes them — an agent change, test on one call.
-4. `pnpm audit --prod`: one low (deepmerge via the shadcn CLI, no patch; dev-time only). `pnpm install` warns about peers.
+## Chat #8 findings (Step 16 review + voice smoke; not blocking; chat #8 refines)
+1. `verify_pass` matches a Pass's assistant numbers against the tool body's `from_number`; use the telephony number the
+   webhook records on the call (as `identify` does) — medium.
+2. Confirmed on call 1: Bolna sends the full `telephony_data.from_number`, and the LLM fills `from_number` itself.
+3. Try removing `from_number`/`call_sid` from the LLM-visible tool `properties` (keep them in `param`) — test on a call.
+4. `pnpm audit --prod`: one low (deepmerge via the shadcn CLI, no patch). `pnpm install` warns about peers.
 5. Demo auth by design: anyone with `DEMO_ACCESS_CODE` can mint a console or any customer's session.
-6. Flaky only in one combined `vitest run` of apps/api (unit + int + scenarios in one process): a different scenario
-   fails each time (1, 5, 11) and passes alone; `pnpm test:scenarios` and `pnpm verify` pass. Timing under load.
+6. Flaky only in one combined `vitest run` of apps/api: a different scenario fails each time (1, 5, 11) and passes alone;
+   `pnpm test:scenarios` / `pnpm verify` pass. Timing under load.
+7. Proposal → outcome audio 6.6 s on call 1 (target < 2 s): Bolna queues events behind speech; tool round trip 1.2 s.
+8. The Confirm summary is English inside the greeting and `fee.waive` reads "(late oct)"; Confirm's tool pre-call line
+   is Bolna's English default — moot if the demo goes English, but fix the fee wording.
+9. `S_CALL_BURST` (`calls_last_hour >= 3`) fires during test sessions; add a console-only demo reset (a Hub epoch, never
+   deleting ledger rows).
 
 ## Known issues / notes
-- pnpm 12.15.0 global. IST time: `node -e "console.log(new Date().toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}))"`.
-- Wrangler auth: `set -a; . ./.env; set +a` (CLOUDFLARE_API_TOKEN), then `pnpm deploy:api|deploy:core`.
-- Pure-module lint rule covers gate/grants/ledger/pass/shared + the two lexicons; don't name files `db.ts`/`bolna.ts`/
-  `hub.ts`/`core-client.ts` there. Action/route catalog: `docs/ACTIONS.md`. Gate clarifications: ADR-011 / GATE.md.
-- `GITHUB secret TIDB_TEST_DATABASE_URL` not set → the DB suite skips in CI (passes locally).
-- AWS MCP failed to connect in chat #4 ("Invalid request parameters"). Never use the AWS root account.
-- Waiting on Bolna: attacker-persona approval, $40 credits, ElevenLabs $15 credits.
+- pnpm 12.15.0 global. IST: `node -e "console.log(new Date().toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}))"`.
+- Wrangler auth: `set -a; . ./.env; set +a`, then `pnpm deploy:api|deploy:core`. The secret scan treats agent ids,
+  Bolna IPs and the WS URL as public. Callers on number A: hold the phone to the ear (speaker noise kept VAD open).
+- Pure-module lint rule covers gate/grants/ledger/pass/shared + the lexicons. `TIDB_TEST_DATABASE_URL` not in CI.
+- AWS MCP fails to connect. Waiting on Bolna: attacker-persona approval, credits; ElevenLabs credits.

@@ -2,6 +2,18 @@
 
 Newest at the top. One entry per session via `/handoff`: what changed, tests run (with counts), what's next, anything risky.
 
+## 2026-10-29 · Step 16, Step 19 code, Step 17 started (Vercel, personas, clips, first voice calls) — chat #7
+- Step 16: review fixes (masked `logLine` everywhere + source-scan test; registered-number proof from the webhook's
+  telephony record), Hub-down drill + propose p95 test, undici override, history secrets scan clean, CPU on deploy ok.
+- Step 19 code: `GET /web/clips[/:id]` (KV), `/stage/soundboard` (disclosure on every clip), Stage recording mode
+  (`?recording=1`), `scripts/clone-clips.ts` (Sarvam voice C → atempo 1.25 → KV REST); 8 Hindi clips rendered + stored.
+- Step 17: Vercel live (`apps/web/vercel.json`), WEB_ORIGIN/RP_ID, 3 persona agents (restricted false), demo resets.
+- Voice smoke: `propose_action` never reached Halyn (Bolna pastes values into quoted JSON) → `key=value` params; then
+  outcome lines, fillers, card on record, transcriber noise reduction; call 1 ✅, call 2 step_up (burst) → `cd31bc8`.
+- Tests: verify ✓ (api 927 unit + 44 int, scenarios 15, shared 680→683, web 130, root 44), e2e 16 ✓; CI green `e519872`.
+- Next (chat #8): English demo (Saksham), deploy `cd31bc8`, burst reset, the remaining calls, Steps 18–20, UI pass.
+- Risks: event properties don't reach node prompts; outcome latency 6.6 s; this network resets `wrangler tail`.
+
 ## 2026-10-29 · Steps 13, 15 + slim 14 (Console, Halyn Test) — chat #6
 - Console (Hub reads only, console sessions): Live, Calls + detail (masked transcript, recording), Policies, Passes
   (tenant-wide revoke), Signals (codes/cue ids), Ledger (verify, export), Integrations (agents, guards, health, backlog).

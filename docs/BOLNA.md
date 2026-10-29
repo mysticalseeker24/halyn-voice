@@ -48,7 +48,8 @@ a param named `run_id` is refused by Bolna's tool runner ("got multiple values f
 Bolna's own argument names — `run_id`, `method` (refused: "ERROR CALLING API: 'method'"), and to be safe `url`,
 `headers`, `param`: `confirm_result` sends `answer_method`. Then add
 `call_sid` to every tool (`"call_sid": "%(call_sid)s"`); `from_number` as `%(from_number)s` (with or without `+`).
-`propose_action` may send its params as one `params` object or each param under its own name (as the Day-0 agent
+**Voice smoke (chat #7):** Bolna pastes each value raw into a quoted JSON template, so no value may contain `"`: the
+Aero agents send `params` as `k=v; k=v` and quotes as `a | b`. `propose_action` may send its params as one `params` object, that pair string, or each param under its own name (as the Day-0 agent
 does); `readback_confirmed` may be `"true"`/`"false"`; `caller_quotes` may be one string. `lookup_customer` takes
 `claimed_name` when the caller says who they are. The tools' `pre_call_webhook_url` and the agent's `webhook_url`
 both point at `{API_URL}/webhooks/bolna` (same guard): it maps the call sid to the run id when `%(execution_id)s` does
@@ -57,7 +58,7 @@ not substitute. Until Day-0 records real bodies, `tests/fixtures/bolna` holds sy
 ## Events
 `POST https://api.bolna.ai/v1/call/{run_id}/events` with `{ "event": "<name>", "properties": {...} }` and
 `Authorization: Bearer <key>` → `202 {"status":"accepted"}`; `404 {"detail":"No active call found for this run_id"}`
-once the call has ended. Properties merge into `context_data` (usable as `{{variable}}`). Events wait until the agent
+once the call has ended. Properties merge into `context_data`, but chat #7 saw them **not** substituted into node prompts (`{{reference}}` reached the LLM as `{reference}`), so no node relies on them. Events wait until the agent
 finishes speaking. Static target nodes speak in ~50 ms.
 Sent by `apps/api/src/bolna/client.ts` (one retry on a 5xx or network error; a 404 is logged and the decision stands;
 synthetic `sid:` run ids are never sent) and, for `timeout`, by the Hub's alarm. `done` carries
