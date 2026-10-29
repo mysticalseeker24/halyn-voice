@@ -44,7 +44,12 @@ export const CLIPS: readonly CloneClip[] = [
     label: 'Account ending',
     text: 'The account number ends in four, four, seven, one.',
   },
-  { id: 'ifsc', order: 4, label: 'IFSC', text: 'The IFSC is A, E, R, O, then six zeros and one.' },
+  {
+    id: 'ifsc',
+    order: 4,
+    label: 'IFSC',
+    text: "The IFSC is AERO, like the bank's name, then six zeros and a one.",
+  },
   { id: 'payee', order: 5, label: 'Payee name', text: "The payee's name is Rohan Verma." },
   { id: 'confirm', order: 6, label: 'Read-back: yes', text: "Yes, that's right, please send it." },
   { id: 'hold', order: 7, label: 'Waiting', text: "Okay, I'll hold." },
@@ -95,7 +100,8 @@ export function parseCloneArgs(argv: readonly string[]): CloneArgs {
     else if (a.startsWith('--ffmpeg=')) args.ffmpeg = a.slice('--ffmpeg='.length);
     else if (a.startsWith('--tenant=')) args.tenant = a.slice('--tenant='.length);
     else if (a.startsWith('--only=')) args.only = a.slice('--only='.length).split(',').filter(Boolean);
-    else if (a === '--lang=en-IN' || a === '--lang=hi-IN') args.lang = a.slice('--lang='.length) as CloneArgs['lang'];
+    else if (a === '--lang=en-IN' || a === '--lang=hi-IN')
+      args.lang = a.slice('--lang='.length) as CloneArgs['lang'];
     else throw new Error(`unknown option ${a}`);
   }
   if ((args.render || args.upload) && !args.yes)

@@ -17,7 +17,7 @@ Recorded from the Stage; Saksham's phone filmed beside the screen.
 45-second cut: hook, scenario 3, close. Label the clone on screen as "AI clone of my own voice".
 
 Scenario 3's clone lines, in English since 2026-10-29 (8 clips: "Hi, this is सक्षम मिश्रा.", "I need to send
-forty-five thousand rupees to a new account.", account ending 4471, IFSC AERO0000001, payee Rohan Verma, "Yes, that's
+forty-five thousand rupees to a new account.", account ending 4471, "The IFSC is AERO, like the bank's name, then six zeros and a one.", payee Rohan Verma, "Yes, that's
 right, please send it.",
 waiting, goodbye) live in `scripts/clone-clips.ts` (voice C, atempo 1.25, KV `file:ten_aero:clip:<id>`); play them
 from `/stage/soundboard` into the second phone. Record the Stage with `/stage?recording=1` (Escape leaves).
