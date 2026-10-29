@@ -4,7 +4,9 @@
 on near-black `#141519` (dark), one signal colour, cobalt `#3A55D6` (dark theme `#7C93F5`), for focus, links and
 the live dot only. Outcome colours always carry their word: ALLOWED green, STEP-UP amber, HELD violet, DENIED red.
 **Type:** Inter (tight tracking for display), JetBrains Mono for labels, ids and hashes. **Mark:** an "H" whose
-crossbar is a gate (`apps/web/src/components/halyn-mark.tsx`, a placeholder until the final logo lands).
+crossbar is a gate: `apps/web/public/halyn-mark.png` (generated, 512 px), drawn in the UI by `halyn-mark.tsx` (same geometry);
+wordmark `apps/web/public/halyn-lockup.png`; social card `apps/web/public/og.png` (watermark covered); favicon
+`apps/web/src/app/icon.svg` (drawn from the mark — the generated favicon and diagram were unusable).
 Aero Bank (the demo bank) has its own brand: sky blue + white with a coral highlight. Never mix the two.
 
 ## Image prompts (for an image model; save the results where noted)

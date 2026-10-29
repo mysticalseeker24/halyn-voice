@@ -1,3 +1,5 @@
+<p align="center"><img src="apps/web/public/halyn-lockup.png" alt="Halyn" width="320"></p>
+
 # Halyn — the permission layer for voice agents
 
 **A voice agent should never hold the power to act.** With Halyn it can only *propose* an action. Halyn decides —

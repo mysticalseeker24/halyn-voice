@@ -1,5 +1,5 @@
 // Halyn's mark: an "H" whose crossbar is a gate — the one place every action must pass. currentColor, so it follows
-// the theme. Replace with the final logo file when it exists (public/halyn-mark.svg).
+// the theme. The final mark (public/halyn-mark.png, docs/BRAND.md) has the same geometry; the UI draws it so it stays crisp in both themes.
 export function HalynMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
