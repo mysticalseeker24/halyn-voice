@@ -90,7 +90,7 @@
                 "key": "custom_task",
                 "name": "propose_action",
                 "description": "Submit the caller's request for a security decision. Use it only on the propose step. The decision arrives a moment later.",
-                "pre_call_message": "जी, एक पल।",
+                "pre_call_message": "जी।",
                 "parameters": {
                   "type": "object",
                   "properties": {
@@ -248,7 +248,7 @@
                 },
                 {
                   "id": "propose",
-                  "prompt": "Call @propose_action now: the action id, the details in params as key=value pairs separated by semicolons with no quotes (for example card_last4=8812), readback_confirmed (true only if the caller clearly said yes), and the caller's last one or two sentences as caller_quotes, without double quotes, separated by ' | '. Then say only: \"बस एक moment।\"",
+                  "prompt": "Call @propose_action now: the action id, the details in params as key=value pairs separated by semicolons with no quotes (for example card_last4=8812), readback_confirmed (true only if the caller clearly said yes), and the caller's last one or two sentences as caller_quotes, without double quotes, separated by ' | '. Then say nothing more: the next line comes by itself.",
                   "function_call": "propose_action",
                   "edges": [
                     {
@@ -276,7 +276,7 @@
                 {
                   "id": "working",
                   "node_type": "static",
-                  "static_message": "धन्यवाद, बस एक moment, मैं इसे पूरा कर रही हूँ।",
+                  "static_message": "बस एक moment।",
                   "edges": [
                     {
                       "to_node_id": "confirmed",
