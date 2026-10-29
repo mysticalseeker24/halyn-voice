@@ -31,6 +31,14 @@ Bolna's published rules; where a rule is unclear we ask Bolna first; every test 
 7. After every session: `restricted` on all agents + `list_violations`; log below.
 8. Never spend wallet, place calls, buy/delete numbers, relink numbers or create agents without Saksham's go-ahead.
 
+## Demo-only shortcuts (not for production)
+- **Demo access code:** anyone holding `DEMO_ACCESS_CODE` can mint a Console session or a session as any demo
+  customer (`POST /web/session`). Production would use the bank's own sign-in; the code is shared only with judges
+  on request.
+- **Dependency audit:** `pnpm audit --prod` reports one low advisory (deepmerge, via the shadcn CLI, a dev-time
+  generator; no patched release on 2026-10-30). Not reachable from the deployed Workers or the web bundle.
+- **Demo reset:** the Console's "Demo reset" only moves the call-burst window for retakes; it deletes nothing.
+
 ## Attacker personas
 Status: **awaiting Bolna** (update `docs/STATE.md` when answered).
 If approved: name "Halyn Test: authorised security test caller", prompt states QA role against our own Aero agent,
