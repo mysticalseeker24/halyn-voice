@@ -90,6 +90,7 @@ describe('bolnaQuotes', () => {
     ['["one","two"]', ['one', 'two']],
     ['[not json', ['[not json']],
     ['first line\n\nsecond line', ['first line', 'second line']],
+    ['मेरा कार्ड फ्रीज़ कर दो | हाँ, सही है', ['मेरा कार्ड फ्रीज़ कर दो', 'हाँ, सही है']],
     [{ x: 1 }, { x: 1 }],
   ])('%j → %j', (input, expected) => expect(bolnaQuotes(input)).toEqual(expected));
 });
@@ -134,6 +135,40 @@ describe('bolnaParams', () => {
   it('parses a params JSON string, and passes a non-JSON string through for the schema to refuse', () => {
     expect(bolnaParams('card.freeze', { params: '{"card_last4":"8812"}' })).toEqual({ card_last4: '8812' });
     expect(bolnaParams('card.freeze', { params: 'card 8812' })).toBe('card 8812');
+  });
+
+  // Chat #7 voice smoke: Bolna pastes `%(params)s` into a quoted JSON string, so a JSON object (with its own quotes)
+  // breaks the request before it leaves Bolna ("Expecting ',' delimiter"). The agent now writes quote-free pairs.
+  it('reads quote-free key=value pairs separated by semicolons (the shape the Aero agent sends)', () => {
+    expect(bolnaParams('card.freeze', { params: 'card_last4=8812' })).toEqual({ card_last4: '8812' });
+    expect(
+      bolnaParams('transfer.new_payee', {
+        params:
+          ' amount_minor=4500000; currency=INR;payee_account_last4=4471 ; payee_ifsc=AERO0000001; payee_name=Rohan Verma ',
+      }),
+    ).toEqual({
+      amount_minor: 4500000,
+      currency: 'INR',
+      payee_account_last4: '4471',
+      payee_ifsc: 'AERO0000001',
+      payee_name: 'Rohan Verma',
+    });
+    expect(bolnaParams('card.freeze', { params: "{card_last4='8812'}" })).toEqual({ card_last4: '8812' });
+    expect(bolnaParams('card.freeze', { params: 'card_last4: 8812' })).toEqual({ card_last4: '8812' });
+  });
+
+  it('passes malformed pairs through for the schema to refuse; "__proto__" stays an own key', () => {
+    expect(bolnaParams('card.freeze', { params: 'card_last4=8812; the card' })).toBe(
+      'card_last4=8812; the card',
+    );
+    expect(bolnaParams('card.freeze', { params: 'card_last4=8812;card_last4=1111' })).toBe(
+      'card_last4=8812;card_last4=1111',
+    );
+    const out = bolnaParams('card.freeze', { params: '__proto__=x; card_last4=8812' }) as Record<
+      string,
+      unknown
+    >;
+    expect(Object.keys(out)).toEqual(['__proto__', 'card_last4']);
   });
 
   it("collects flat params (the Day-0 agent's shape) by the action's param names", () => {

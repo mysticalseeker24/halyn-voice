@@ -1,0 +1,11 @@
+{
+  "_source": "chat #7 voice smoke (2026-10-29), after the fix",
+  "_note": "Bolna pastes %(params)s into a quoted JSON string, so a JSON object broke the request inside Bolna ('Expecting , delimiter'). The Aero tool now asks for quote-free key=value pairs and quotes separated by ' | '.",
+  "call_sid": "CAday0example0001",
+  "from_number": "••••0003",
+  "channel": "phone",
+  "action": "card.freeze",
+  "params": "card_last4=8812",
+  "readback_confirmed": "true",
+  "caller_quotes": "मेरा कार्ड फ्रीज़ कर दीजिए | हाँ, सही है"
+}

@@ -72,9 +72,35 @@ export function bolnaQuotes(value: unknown): unknown {
     }
   }
   return v
-    .split(/\n+/)
+    .split(/\n+|\s\|\s/)
     .map((q) => q.trim())
     .filter(Boolean);
+}
+
+const PAIR = /^([a-z][a-z0-9_]{0,40}|__proto__)\s*[=:]\s*'?([^']*?)'?$/;
+
+/**
+ * Quote-free `key=value; key=value` params (or `key: value`, optionally in braces). Bolna pastes `%(params)s` into a
+ * quoted JSON string, so the agent cannot send a JSON object: its quotes break the request (chat #7 voice smoke).
+ * Null when any part is not a pair or a key repeats — the caller then gets the raw string, which the schema refuses.
+ */
+function keyValueParams(text: string): Record<string, unknown> | null {
+  const inner = text
+    .trim()
+    .replace(/^\{\s*/, '')
+    .replace(/\s*\}$/, '');
+  const parts = inner
+    .split(/[;\n]+/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  if (parts.length === 0) return null;
+  const out: Record<string, unknown> = {};
+  for (const part of parts) {
+    const m = PAIR.exec(part);
+    if (!m || Object.hasOwn(out, m[1] as string)) return null;
+    setOwn(out, m[1] as string, (m[2] as string).trim());
+  }
+  return out;
 }
 
 /** "approve"/"yes"/"approved" → approve, "decline"/"no"/"declined" → decline. */
@@ -106,17 +132,21 @@ function setOwn(target: Record<string, unknown>, key: string, value: unknown): v
 }
 
 /**
- * The proposed action's params: a `params` object, a `params` JSON string, or — when the agent's tool maps each
- * param to its own key, as the Day-0 agent does — the action's param names collected from the body. Unfilled values
- * are dropped (an optional param the caller never gave); integer params written as digit strings become numbers.
+ * The proposed action's params: a `params` object, a `params` JSON string, quote-free `key=value; …` pairs, or —
+ * when the agent's tool maps each param to its own key, as the Day-0 agent does — the action's param names collected
+ * from the body. Unfilled values are dropped (an optional param the caller never gave); integer params written as
+ * digit strings become numbers.
  */
 export function bolnaParams(action: unknown, body: Record<string, unknown>): unknown {
   let params = bolnaValue(body.params);
   if (typeof params === 'string') {
+    const text = params;
     try {
-      params = JSON.parse(params) as unknown;
+      params = JSON.parse(text) as unknown;
     } catch {
-      return params; // not an object: the envelope schema refuses it
+      const pairs = keyValueParams(text);
+      if (!pairs) return params; // not an object: the envelope schema refuses it
+      params = pairs;
     }
   }
   if (params === undefined) {
