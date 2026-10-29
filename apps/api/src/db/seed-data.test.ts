@@ -23,9 +23,10 @@ describe('buildSeed', async () => {
   it('builds the demo tenant, both customers by hashed number, both packs and pass_demo', async () => {
     const rows = await buildSeed(input);
     expect(rows.tenant).toMatchObject({ id: SEED_TENANT, default_region: 'IN', signing_key_id: 'seed-test' });
-    expect(rows.customers.map((c) => [c.id, c.region])).toEqual([
-      ['cus_saksham', 'IN'],
-      ['cus_saksham_us', 'US'],
+    // Both demo customers speak English (the demo switched from Hindi on 2026-10-29).
+    expect(rows.customers.map((c) => [c.id, c.region, c.language])).toEqual([
+      ['cus_saksham', 'IN', 'en'],
+      ['cus_saksham_us', 'US', 'en'],
     ]);
     const hash = await registeredNumberHash(PEPPER, '+919000000003');
     for (const c of rows.customers) {

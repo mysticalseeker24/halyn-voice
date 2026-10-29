@@ -89,7 +89,7 @@ export async function buildSeed(input: SeedInput): Promise<SeedRows> {
     },
     // Same person, same number, two regions; phone lookups are per region (number A is IN), and the US twin
     // reaches Aero through a browser session (scenario 10).
-    customers: [customer('cus_saksham', 'IN', 'hi'), customer('cus_saksham_us', 'US', 'en')],
+    customers: [customer('cus_saksham', 'IN', 'en'), customer('cus_saksham_us', 'US', 'en')],
     policyPacks: input.packs.map((pack) => ({
       id: `${pack.pack}-v${pack.version}`,
       tenant_id: SEED_TENANT,
