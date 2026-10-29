@@ -52,6 +52,25 @@ export type StageAction =
 const KEEP = 50;
 const tail = <T>(list: T[], item: T): T[] => [...list, item].slice(-KEEP);
 
+type CallMsg = Msg<'call_update'>;
+
+/**
+ * Bolna's end-of-call transcript arrives as one system message ("assistant: … user: …"). Split it into agent and
+ * caller lines so the Live call panel reads as a conversation, not one block of text. Anything else stays one line.
+ */
+function callLines(message: CallMsg): { speaker: CallMsg['speaker']; text: string }[] {
+  if (message.speaker !== 'system') return [{ speaker: message.speaker, text: message.text }];
+  const parts = message.text
+    .split(/(?:^|\s)(?=(?:assistant|user)\s*:)/i)
+    .map((p) => /^(assistant|user)\s*:\s*([\s\S]+)$/i.exec(p.trim()))
+    .filter((m): m is RegExpExecArray => m !== null && Boolean(m[2]?.trim()));
+  if (parts.length === 0) return [{ speaker: 'system', text: message.text }];
+  return parts.map((m) => ({
+    speaker: m[1]?.toLowerCase() === 'user' ? 'caller' : 'agent',
+    text: (m[2] ?? '').trim(),
+  }));
+}
+
 function timelineItem(message: WsMessage, index: number): TimelineItem {
   const id = `${message.type}-${message.at}-${index}`;
   switch (message.type) {
@@ -137,13 +156,17 @@ export function stageReducer(state: StageState, action: StageAction): StageState
         case 'call_update':
           return {
             ...next,
-            transcript: tail(state.transcript, {
-              id: `${message.run_id}-${state.transcript.length}`,
-              at: message.at,
-              agent: message.agent,
-              speaker: message.speaker,
-              text: message.text,
-            }),
+            transcript: callLines(message).reduce(
+              (list, line, i) =>
+                tail(list, {
+                  id: `${message.run_id}-${state.transcript.length + i}`,
+                  at: message.at,
+                  agent: message.agent,
+                  speaker: line.speaker,
+                  text: line.text,
+                }),
+              state.transcript,
+            ),
           };
         case 'core_update':
           return {

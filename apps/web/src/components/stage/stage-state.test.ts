@@ -24,6 +24,19 @@ describe('stageReducer', () => {
     expect(s.timeline.map((t) => t.kind)).toEqual(['Call · aero', 'Call · aero']);
   });
 
+  it("splits Bolna's end-of-call transcript into agent and caller lines (voice smoke call 2)", () => {
+    const blob = 'assistant: Hello! How can I help? user: Please waive my late fee.\nassistant: Done!';
+    const s = run([ws(callLine('system', blob))]);
+    expect(s.transcript.map((l) => [l.speaker, l.text])).toEqual([
+      ['agent', 'Hello! How can I help?'],
+      ['caller', 'Please waive my late fee.'],
+      ['agent', 'Done!'],
+    ]);
+    expect(run([ws(callLine('system', 'Pass verified'))]).transcript.map((l) => l.text)).toEqual([
+      'Pass verified',
+    ]);
+  });
+
   it('keeps the latest decision and the confirm lifecycle', () => {
     const s = run([
       { type: 'ws', message: decisionMessage('step_up') },
