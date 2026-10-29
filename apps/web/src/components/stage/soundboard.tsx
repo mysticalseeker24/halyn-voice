@@ -79,8 +79,8 @@ export function Soundboard() {
   const audio = useRef<HTMLAudioElement | null>(null);
   const cache = useRef(new Map<string, string>());
 
+  // The list starts as loading; a retry sets it back before fetching (no setState inside the effect).
   const load = useCallback(() => {
-    setList({ status: 'loading' });
     api.clips().then(
       (r) => setList({ status: 'ready', clips: r.clips }),
       (error: unknown) =>
@@ -164,7 +164,10 @@ export function Soundboard() {
             title="Could not load the clips"
             message={list.message}
             retryLabel="Try again"
-            onRetry={load}
+            onRetry={() => {
+              setList({ status: 'loading' });
+              load();
+            }}
           />
         ) : list.status === 'ready' ? (
           <SoundboardView

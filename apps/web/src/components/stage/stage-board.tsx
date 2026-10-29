@@ -1,7 +1,7 @@
 'use client';
 
 import type { Region, WsMessage } from '@halyn/shared';
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState, useSyncExternalStore } from 'react';
 import { DEMO_CODE_COPY_EN, DemoCodePrompt } from '@/components/demo-code-prompt';
 import { ErrorState, LoadingState } from '@/components/states';
 import { useHub } from '@/lib/hub/use-hub';
@@ -44,17 +44,30 @@ function useFitScale(): number {
  * Recording mode (Step 19): `?recording=1` hides the scenario, region and dev controls and enlarges the type on the
  * same fixed canvas. Escape leaves it.
  */
+const RECORDING_EVENT = 'halyn:recording';
+
+function subscribeRecording(onChange: () => void): () => void {
+  window.addEventListener('popstate', onChange);
+  window.addEventListener(RECORDING_EVENT, onChange);
+  return () => {
+    window.removeEventListener('popstate', onChange);
+    window.removeEventListener(RECORDING_EVENT, onChange);
+  };
+}
+
 export function useRecordingMode(): [boolean, (on: boolean) => void] {
-  const [recording, setRecording] = useState(false);
-  useEffect(() => {
-    setRecording(new URLSearchParams(window.location.search).get('recording') === '1');
-  }, []);
+  // The URL is the store: off on the server, read from location.search in the browser.
+  const recording = useSyncExternalStore(
+    subscribeRecording,
+    () => new URLSearchParams(window.location.search).get('recording') === '1',
+    () => false,
+  );
   const set = useCallback((on: boolean) => {
-    setRecording(on);
     const url = new URL(window.location.href);
     if (on) url.searchParams.set('recording', '1');
     else url.searchParams.delete('recording');
     window.history.replaceState(null, '', url);
+    window.dispatchEvent(new Event(RECORDING_EVENT));
   }, []);
   useEffect(() => {
     if (!recording) return;
