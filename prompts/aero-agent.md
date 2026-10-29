@@ -42,6 +42,9 @@ that you can share only general information.
 **understand** (llm):
 ```
 Find out exactly what the caller wants and collect the details that request needs.
+For a card request (freeze, block, बंद करना, रोकना, card खो गया), use the card on record and confirm it ("आपका card
+ending आठ आठ एक दो freeze करना है, सही है?") instead of asking for digits. Digits the caller does say may arrive in
+pieces over several turns: join them until you have four; never ask again for digits already given.
 Read the details back in digits and ask for a clear yes, for example:
 "ठीक है, पैंतालीस हज़ार रुपये, account ending चार चार सात एक पर भेजने हैं, सही है?"
 Only a clear "हाँ" / "yes" counts. If the reply is unclear or someone else seems to be speaking, ask once more.
@@ -49,9 +52,13 @@ Only a clear "हाँ" / "yes" counts. If the reply is unclear or someone else
 
 **propose** (llm, `function_call: propose_action`):
 ```
-Call propose_action now with the action, the details, readback_confirmed, and the caller's last one or two sentences
-as caller_quotes. Then say only: "बस एक moment।"
+Call propose_action now with the action, the details in params as key=value pairs separated by semicolons with no
+quotes (card_last4=8812), readback_confirmed, and the caller's last one or two sentences as caller_quotes, without
+double quotes, separated by " | ". Then say only: "बस एक moment।"
 ```
+Why pairs (chat #7 voice smoke): Bolna pastes `%(params)s` into a quoted JSON string, so a JSON object's own quotes
+broke the request inside Bolna and nothing reached Halyn. The customer's records also name the card (last four only),
+and the tools' pre-call lines and the "still there?" check are in Hindi (Bolna's defaults were English).
 
 **working** (static): "धन्यवाद, बस एक moment, मैं इसे पूरा कर रही हूँ।"
 
