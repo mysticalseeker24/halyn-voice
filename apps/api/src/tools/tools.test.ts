@@ -477,6 +477,26 @@ describe('confirm_result (the Confirm callback)', () => {
   });
 });
 
+describe('a step-up for a caller already on the registered phone (voice smoke call 2)', () => {
+  it('rings no callback — it would hit call waiting on the same phone — and offers the passkey only', async () => {
+    await h.tool('lookup_customer', { run_id: RUN, from_number: REGISTERED });
+    const { json } = await propose({
+      ...freeze(),
+      action: 'transfer.new_payee',
+      params: {
+        amount_minor: 4500000,
+        currency: 'INR',
+        payee_account_last4: '4471',
+        payee_ifsc: 'AERO0000001',
+      },
+    });
+    await h.settle();
+    expect(h.bolna.events.get(RUN)?.map((e) => e.event)).toEqual(['step_up']);
+    expect(h.bolna.calls.filter((c) => c.request_id === json.request_id)).toEqual([]);
+    expect((await h.hub.requestState(json.request_id))?.confirm?.channels).toEqual(['passkey']);
+  });
+});
+
 describe('the webhook', () => {
   it('acknowledges an unreadable record without acting, and refuses a non-JSON body', async () => {
     const headers = {

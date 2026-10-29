@@ -86,13 +86,23 @@ describe('the Confirm passkey leg', () => {
     expect(h.aero.calls.some((c) => c.path === '/core/transfers')).toBe(false);
   });
 
-  it('approve within the cap from the registered number executes; the Confirm call still queued is stopped', async () => {
+  it('approve within the cap from the registered number executes; no callback rings the phone already on the call', async () => {
     const passkey = await h.registerPasskey(-8);
     const request_id = await stepUp(500000, REGISTERED);
     const res = await h.approve(request_id, passkey);
     expect(res.status).toBe(200);
     await h.settle();
     expect(h.bolna.events.get(RUN)?.map((e) => e.event)).toEqual(['step_up', 'approved', 'done']);
+    expect(h.bolna.calls.filter((c) => c.request_id === request_id)).toEqual([]);
+    expect(h.bolna.stopped).toHaveLength(0);
+  });
+
+  it('a passkey answer stops the Confirm call still queued for a caller on another phone', async () => {
+    const passkey = await h.registerPasskey(-8);
+    const request_id = await stepUp(500000, UNREGISTERED);
+    expect(h.bolna.calls.filter((c) => c.request_id === request_id)).toHaveLength(1);
+    expect((await h.approve(request_id, passkey)).status).toBe(200);
+    await h.settle();
     expect(h.bolna.stopped).toHaveLength(1);
   });
 

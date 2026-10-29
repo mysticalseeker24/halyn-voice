@@ -590,8 +590,13 @@ export async function propose(core: HubCore, raw: ProposeInput): Promise<Propose
   const customer = call.customer_id ? store.customer(call.customer_id) : null;
   let channels: ConfirmChannel[] = [];
   if (gate.outcome === 'step_up') {
+    // No callback to the phone the caller is on right now: it would only hit call waiting (voice smoke call 2).
+    const onRegisteredPhone = customer !== null && call.number_hash === customer.number_hash;
     const callbackOk =
-      input.callback.available && customer !== null && customer.number_hash === input.callback.number_hash;
+      input.callback.available &&
+      customer !== null &&
+      customer.number_hash === input.callback.number_hash &&
+      !onRegisteredPhone;
     channels = (gate.confirm?.channels ?? ['passkey']).filter((c) => c === 'passkey' || callbackOk);
     if (channels.length === 0) channels = ['passkey'];
   }
