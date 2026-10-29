@@ -123,6 +123,14 @@ describe('runScenario reports every way Halyn can be wrong', () => {
     expect(text).toMatch(/unmasked numbers/);
   });
 
+  it('a scenario that needs a Pass is skipped, not failed, where no Pass token can be had (live Run all)', async () => {
+    const result = await runScenario(spec, scenario('5'), fake({ mode: 'live', passToken: () => null }));
+    expect(result.failures).toEqual([]);
+    expect(result.skipped.join(' ')).toMatch(/Pass/);
+    expect(result.passed).toBe(true);
+    expect(result.steps).toEqual([]);
+  });
+
   it('the 300 ms propose budget binds the deployed API; in-process tests allow load up to 1 s (finding 6)', async () => {
     const slow = (mode: Harness['mode']) =>
       fake({

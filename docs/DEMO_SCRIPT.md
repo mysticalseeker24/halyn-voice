@@ -29,5 +29,7 @@ from `/stage/soundboard` into the second phone. Record the Stage with `/stage?re
    **muted**; the Aero app open on the phone for scenarios 1–2 and the passkey sheet.
 3. Calls: phone held **at the ear** (speaker noise keeps the speech detector open). Scenario 3 uses the **second
    phone**: call number A from it and play `/stage/soundboard` clips 1→8 into it; decline on the real phone.
-4. Order: 1 freeze → 2 fee waiver → 3 clone → 4 coached → 5+6 Assistant → 10 US browser call → Halyn Test "Run all".
+4. Order: 1 freeze → 2 fee waiver → 3 clone → 4 coached → 5+6 Assistant → 10 US browser call → Halyn Test "Run all"
+   (daytime only: after 23:00 IST the unusual-hour signal raises every tier, by design; run one Stage scenario first so
+   the Hub is warm; a live run executes real Aero Core actions, so `seed:core` again afterwards).
 5. After the session: `/compliance-check` and the COMPLIANCE.md session log.

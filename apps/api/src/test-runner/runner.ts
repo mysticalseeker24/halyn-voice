@@ -523,6 +523,12 @@ export async function runScenario(
       run.skipped.push(`browser call: not possible in ${harness.mode} mode`);
       return result(run);
     }
+    // The Console's live run has no Pass token to mint a code with (only the Assistant app holds one).
+    const pass = scenario.caller.pass;
+    if (harness.mode === 'live' && pass && pass !== 'none' && harness.passToken(pass) === null) {
+      run.skipped.push(`Pass ${pass}: no token in ${harness.mode} mode`);
+      return result(run);
+    }
     run.run_id = web ?? harness.newRunId();
     await identify(run, scenario.region);
     await runSteps(run);
