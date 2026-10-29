@@ -50,3 +50,7 @@ allowBuilds:
   sharp: true
   '@tailwindcss/oxide': true
   unrs-resolver: true
+
+# Security (Step 16, pnpm audit --prod): undici comes only through the shadcn CLI; pin it to the patched release.
+overrides:
+  'undici@>=7.0.0 <7.30.1': ^7.30.1
