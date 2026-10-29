@@ -92,6 +92,7 @@ fixed by `cd31bc8`. 3, 4, 5+6, 10, personas, round 2: not yet.
 
 ## Known issues / notes
 - pnpm 12.15.0 global. IST: `node -e "console.log(new Date().toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}))"`.
+- Call-review helpers: `scripts/ops/*.mjs` (call-detail, call-timeline, stage-run, json-diff, set-env, tail-cpu).
 - Wrangler auth: `set -a; . ./.env; set +a`, then `pnpm deploy:api|deploy:core`. The secret scan treats agent ids,
   Bolna IPs and the WS URL as public. Callers on number A: hold the phone to the ear (speaker noise kept VAD open).
 - Pure-module lint rule covers gate/grants/ledger/pass/shared + the lexicons. `TIDB_TEST_DATABASE_URL` not in CI.
