@@ -193,3 +193,38 @@ test('Stage asks for the demo access code, remembers it for the tab and signs in
   expect(await page.evaluate(() => window.sessionStorage.getItem('halyn.demo-code'))).toBe('open-sesame');
   await page.screenshot({ path: screenshotPath('stage-v1-demo-code') });
 });
+
+test('Recording mode hides the controls on the fixed canvas; the soundboard labels every clip as the AI clone', async ({
+  page,
+}) => {
+  const clip = (id: string, order: number, label: string) => ({
+    id,
+    order,
+    label,
+    text: 'नमस्ते',
+    content_type: 'audio/mpeg',
+  });
+  await mockApi(page, {
+    'POST /web/session': (route) => json(route, sessionBody('console')),
+    'GET /web/ledger': (route) => json(route, { entries: [], head_hash: null }),
+    'GET /web/ledger/verify': (route) => json(route, { ok: true, entries: 0, head_hash: null }),
+    'GET /web/clips': (route) =>
+      json(route, { clips: [clip('greet', 1, 'Greeting'), clip('request', 2, 'Request')] }),
+  });
+  await mockHub(page);
+  await page.goto('/stage?recording=1');
+  await expect(page.getByTestId('stage-canvas')).toHaveAttribute('data-recording', 'on');
+  await expect(page.getByRole('group', { name: 'Scenarios' })).toHaveCount(0);
+  await expect(page.getByRole('group', { name: 'Region' })).toHaveCount(0);
+  await expectNoScroll(page);
+  await page.screenshot({ path: screenshotPath('stage-v1-recording') });
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('group', { name: 'Scenarios' })).toBeVisible();
+
+  await page.goto('/stage/soundboard');
+  const clips = page.getByTestId('clip');
+  await expect(clips).toHaveCount(2);
+  for (const item of await clips.all())
+    await expect(item.getByText("AI clone of Saksham's own voice")).toBeVisible();
+  await page.screenshot({ path: screenshotPath('stage-v1-soundboard') });
+});
