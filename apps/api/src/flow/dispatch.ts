@@ -2,6 +2,7 @@ import { startCallback } from '../confirm/start';
 import type { ProposeOutcome } from '../hub/flows';
 import type { FlowContext } from './context';
 import { executeRequest } from './execute';
+import { logLine } from '../http/errors';
 
 // docs/ARCHITECTURE.md "Main flow" step 7, after propose_action has answered `{request_id, status: "pending"}`:
 //   allow   → event `allow`, then execute (grant → Aero Core → `done`, or `deny` if the bank refused)
@@ -39,13 +40,11 @@ export async function dispatchProposal(ctx: FlowContext, outcome: ProposeOutcome
       await event;
     }
   } catch (err) {
-    console.log(
-      JSON.stringify({
-        level: 'error',
-        component: 'dispatch',
-        request_id: record.request_id,
-        detail: err instanceof Error ? err.message.slice(0, 200) : 'error',
-      }),
-    );
+    logLine({
+      level: 'error',
+      component: 'dispatch',
+      request_id: record.request_id,
+      detail: err instanceof Error ? err.message.slice(0, 200) : 'error',
+    });
   }
 }

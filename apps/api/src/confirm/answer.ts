@@ -3,6 +3,7 @@ import type { FlowContext } from '../flow/context';
 import { executeRequest } from '../flow/execute';
 import type { ConfirmationOutcome } from '../hub/hub-do';
 import type { RequestRecord } from '../hub/types';
+import { logLine } from '../http/errors';
 
 // An answer to a step-up, from either leg: the Aero app's passkey (POST /web/approvals/:id/verify|decline) or the
 // Confirm agent's `confirm_result` tool. The Hub decides which answer counts — the first; later ones are recorded and
@@ -70,13 +71,11 @@ export async function afterAnswer(
     await stop;
     if (settled.status === 'approved') await executeRequest(ctx, settled.request_id);
   } catch (err) {
-    console.log(
-      JSON.stringify({
-        level: 'error',
-        component: 'confirm',
-        request_id: settled.request_id,
-        detail: err instanceof Error ? err.message.slice(0, 200) : 'error',
-      }),
-    );
+    logLine({
+      level: 'error',
+      component: 'confirm',
+      request_id: settled.request_id,
+      detail: err instanceof Error ? err.message.slice(0, 200) : 'error',
+    });
   }
 }

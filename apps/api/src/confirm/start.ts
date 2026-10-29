@@ -3,6 +3,7 @@ import { ConfirmEnvSchema, PhoneEnvSchema, requireEnv } from '../env';
 import { registeredNumberHash } from '../db/numbers';
 import type { FlowContext } from '../flow/context';
 import type { RequestRecord } from '../hub/types';
+import { logLine } from '../http/errors';
 
 // The Confirm callback leg (docs/ARCHITECTURE.md "Confirmation"): Bolna's Confirm agent rings the customer's
 // registered phone from number B and reads back the exact action; its `confirm_result` tool answers. It runs in
@@ -66,15 +67,13 @@ export async function startCallback(
     await ctx.hub.attachCallback(record.request_id, execution_id);
     return execution_id;
   } catch (err) {
-    console.log(
-      JSON.stringify({
-        level: 'warn',
-        component: 'confirm',
-        request_id: record.request_id,
-        result: 'callback_not_placed',
-        detail: err instanceof Error ? err.message.slice(0, 200) : 'error',
-      }),
-    );
+    logLine({
+      level: 'warn',
+      component: 'confirm',
+      request_id: record.request_id,
+      result: 'callback_not_placed',
+      detail: err instanceof Error ? err.message.slice(0, 200) : 'error',
+    });
     await ctx.hub.attachCallback(record.request_id, null).catch(() => true);
     return null;
   }

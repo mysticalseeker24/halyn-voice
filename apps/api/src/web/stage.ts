@@ -17,6 +17,7 @@ import { runScenario, type ScenarioResult } from '../test-runner/runner';
 import { bundledSpec } from '../test-runner/spec';
 import { readJson } from './session-route';
 import { testResult } from './tests';
+import { logLine } from '../http/errors';
 
 /** Scenarios a live run cannot fit into one Worker request (3b waits out a 60 s confirmation). */
 const LIVE_SKIP: Record<string, string> = {
@@ -120,17 +121,15 @@ export function stageRun(deps: AppDeps, makeApp: (deps: AppDeps) => AppLike) {
             }
           : await runScenario(spec, scenario, harness);
         await record(result);
-        console.log(
-          JSON.stringify({
-            level: result.passed ? 'info' : 'warn',
-            component: 'stage',
-            test_run_id,
-            scenario: result.id,
-            passed: result.passed,
-            failures: result.failures.slice(0, 10),
-            skipped: result.skipped.slice(0, 10),
-          }),
-        );
+        logLine({
+          level: result.passed ? 'info' : 'warn',
+          component: 'stage',
+          test_run_id,
+          scenario: result.id,
+          passed: result.passed,
+          failures: result.failures.slice(0, 10),
+          skipped: result.skipped.slice(0, 10),
+        });
         await progress(result.passed ? 'passed' : 'failed', 1);
       })(),
     );

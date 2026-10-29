@@ -5,6 +5,7 @@ import {
   type Region,
   REGIONS,
 } from '@halyn/shared';
+import { logLine } from '../http/errors';
 
 // Compiled policy packs live in KV `CONFIG` under `pack:<tenant>:<region>` (JSON from `pnpm compile:packs`; the
 // Worker never parses YAML). Each text is Zod-parsed once per isolate — the schema re-checks the critical and
@@ -50,14 +51,12 @@ export async function loadPacks(
           if (pack.region === region) out[region] = pack;
         }
       } catch (err) {
-        console.log(
-          JSON.stringify({
-            level: 'error',
-            component: 'packs',
-            region,
-            detail: err instanceof Error ? err.message.slice(0, 200) : 'error',
-          }),
-        );
+        logLine({
+          level: 'error',
+          component: 'packs',
+          region,
+          detail: err instanceof Error ? err.message.slice(0, 200) : 'error',
+        });
       }
     }),
   );

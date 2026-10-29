@@ -74,6 +74,7 @@ import {
   type MirrorItem,
   type RequestRecord,
 } from './types';
+import { logLine } from '../http/errors';
 
 // One Hub per tenant (ADR-014, ADR-016): the single writer of the tenant's ledger, the idempotency cache, the
 // confirmation timers, the WebSocket fan-out — and the call-time read model the Bolna tools answer from within
@@ -224,13 +225,11 @@ export class HubDO extends DurableObject<Env> {
       return { ok: true, value: await fn() };
     } catch (err) {
       if (!(err instanceof HalynError))
-        console.log(
-          JSON.stringify({
-            level: 'error',
-            hub: 'unexpected',
-            detail: err instanceof Error ? err.message.slice(0, 200) : 'error',
-          }),
-        );
+        logLine({
+          level: 'error',
+          hub: 'unexpected',
+          detail: err instanceof Error ? err.message.slice(0, 200) : 'error',
+        });
       return toFailure(err);
     }
   }
@@ -366,13 +365,11 @@ export class HubDO extends DurableObject<Env> {
     this.setMeta('directory_at', String(now));
     this.ctx.waitUntil(
       this.serial(load).catch((err: unknown) =>
-        console.log(
-          JSON.stringify({
-            level: 'warn',
-            hub: 'directory_refresh_failed',
-            detail: err instanceof Error ? err.message.slice(0, 200) : 'error',
-          }),
-        ),
+        logLine({
+          level: 'warn',
+          hub: 'directory_refresh_failed',
+          detail: err instanceof Error ? err.message.slice(0, 200) : 'error',
+        }),
       ),
     );
   }
@@ -907,15 +904,13 @@ export class HubDO extends DurableObject<Env> {
       `${kind}_retry_at`,
       String(now + Math.min(RETRY_BASE_MS * 2 ** (attempts - 1), RETRY_MAX_MS)),
     );
-    console.log(
-      JSON.stringify({
-        level: 'warn',
-        at: new Date(now).toISOString(),
-        hub: kind === 'flush' ? 'ledger_flush_failed' : 'mirror_flush_failed',
-        attempts,
-        detail: err instanceof Error ? err.message.slice(0, 200) : 'error',
-      }),
-    );
+    logLine({
+      level: 'warn',
+      at: new Date(now).toISOString(),
+      hub: kind === 'flush' ? 'ledger_flush_failed' : 'mirror_flush_failed',
+      attempts,
+      detail: err instanceof Error ? err.message.slice(0, 200) : 'error',
+    });
   }
 
   /** Push the mirror outbox to TiDB in order; on failure keep it and back off (caller holds the lane). */
@@ -1233,14 +1228,12 @@ export class HubDO extends DurableObject<Env> {
             );
           return record;
         } catch (err) {
-          console.log(
-            JSON.stringify({
-              level: 'error',
-              hub: 'sweep_present_failed',
-              request_id: item.record.request_id,
-              detail: err instanceof Error ? err.message.slice(0, 200) : 'error',
-            }),
-          );
+          logLine({
+            level: 'error',
+            hub: 'sweep_present_failed',
+            request_id: item.record.request_id,
+            detail: err instanceof Error ? err.message.slice(0, 200) : 'error',
+          });
           return null;
         }
       }),

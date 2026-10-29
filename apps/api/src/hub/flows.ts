@@ -52,6 +52,7 @@ import {
 import type { HubAppend } from './hub-do';
 import type { HubStore } from './store';
 import type { CallState, DirectoryCustomer, MirrorItem, RequestRecord, RequestStatus } from './types';
+import { logLine } from '../http/errors';
 
 // What the Hub does for the Bolna tools and the Confirm orchestration, inside its serial lane (ADR-014, ADR-016):
 // identify the caller, verify and mint Pass codes, decide a proposal with the real Gate and record it, settle a
@@ -279,7 +280,7 @@ export async function verifyPass(
       });
   }
   if (!result.valid) {
-    console.log(JSON.stringify({ level: 'warn', hub: 'pass_code_refused', reason: result.reason }));
+    logLine({ level: 'warn', hub: 'pass_code_refused', reason: result.reason });
     return { valid: false };
   }
   const pass = store.pass(result.pass_id);
