@@ -38,5 +38,5 @@ id = "0944d7d7f5c9451e813fc1e7cbe2e87e"
 [vars]
 DEFAULT_TENANT_ID = "ten_aero"
 BOLNA_SOURCE_IPS = "13.203.39.153,13.126.9.249,13.202.133.53"
-WEB_ORIGIN = "http://localhost:3000"
-RP_ID = "localhost"
+WEB_ORIGIN = "https://halyn-voice.vercel.app,http://localhost:3000"
+RP_ID = "halyn-voice.vercel.app"

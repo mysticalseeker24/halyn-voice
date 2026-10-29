@@ -199,7 +199,8 @@ export async function appHarness(options: AppHarnessOptions = {}): Promise<AppHa
   const testEnv = Object.assign(
     {},
     env,
-    { DEFAULT_TENANT_ID: tenant },
+    // The deployed wrangler.toml names the Vercel domain; tests sign passkeys for localhost.
+    { DEFAULT_TENANT_ID: tenant, WEB_ORIGIN, RP_ID: 'localhost' },
     options.sarvam ? { SARVAM_API_KEY: 'sk_test_sarvam' } : {},
   ) as unknown as Env;
   const app = createApp({
