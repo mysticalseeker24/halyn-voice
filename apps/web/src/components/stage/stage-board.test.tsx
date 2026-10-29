@@ -247,6 +247,19 @@ describe('Stage board', () => {
     expect(screen.getByRole('button', { name: 'US' })).toHaveAttribute('aria-pressed', 'true');
   });
 
+  it('resets the demo before a retake and reports a reset error', async () => {
+    const user = userEvent.setup();
+    routes['POST /web/stage/demo-reset'] = () => jsonResponse({ ok: true });
+    render(<StageBoard />);
+    await user.click(await screen.findByRole('button', { name: 'Demo reset' }));
+    expect(await screen.findByRole('button', { name: 'Reset done' })).toBeInTheDocument();
+    expect(calls.some((c) => c.key === 'POST /web/stage/demo-reset')).toBe(true);
+    routes['POST /web/stage/demo-reset'] = () =>
+      jsonResponse({ error: { code: 'E_UNAUTHORIZED', message: 'console only' } }, 401);
+    await user.click(screen.getByRole('button', { name: 'Reset done' }));
+    expect(await screen.findByText('console only')).toBeInTheDocument();
+  });
+
   it('refetches the ledger when the Hub reconnects', async () => {
     render(<StageBoard />);
     await screen.findByText(/Chain verified/);

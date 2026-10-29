@@ -33,7 +33,7 @@ import {
 import { assistantTask, issuePassRoute, listPasses, passOptions, revokePassRoute } from './web/passes';
 import { createSession } from './web/session-route';
 import { webCallSession } from './web/web-calls';
-import { stageRegion, stageRun } from './web/stage';
+import { stageDemoReset, stageRegion, stageRun } from './web/stage';
 import {
   createTestRun,
   permissionMapRoute,
@@ -125,6 +125,7 @@ export function createApp(deps: AppDeps = defaultDeps) {
   app.get('/web/clips/:id', clipAudio);
   app.post('/web/stage/run/:scenario', stageRun(deps, createApp));
   app.post('/web/stage/region', stageRegion);
+  app.post('/web/stage/demo-reset', stageDemoReset);
   app.post('/web/tests/runs', createTestRun(deps));
   app.get('/web/tests/runs/:id', testRunRoute);
   app.get('/web/tests/permission-map', permissionMapRoute);

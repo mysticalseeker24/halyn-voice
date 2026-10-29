@@ -114,7 +114,7 @@ by the Hub's own alarm.
 | `POST /web/passes/options` · `POST /web/passes` · `DELETE /web/passes/:id` · `GET /web/passes` | Pass consent options (challenge binds the draft) / issue `{assistant, scopes, expires_in_days, response}` → `{pass, token}` / revoke → `{pass}` / list → `{passes}` (Step 10) |
 | `POST /web/assistant/tasks` | `{task, pass_id}` → `{ok, execution_id}`: the Assistant agent calls A from B (09:00–21:00 IST), bound to that Pass, so its `get_pass_code` sends only `call_sid` |
 | `POST /web/calls/session` | Customer: `{region?}` → Bolna's web-call session (single-use, ~120 s) for `@bolna/web-call`; region (default: the Stage's) picks the Aero agent; the run id is registered as this customer's browser call (channel `web`, proof `app_session`; in US the customer's US record) (Step 12) |
-| `POST /web/stage/run/:scenario` · `POST /web/stage/region` | Stage controls |
+| `POST /web/stage/run/:scenario` · `POST /web/stage/region` · `POST /web/stage/demo-reset` | Stage controls |
 | `GET /web/calls` · `GET /web/calls/:run_id` | Console: the newest 50 calls (`CallListResponseSchema`: channel, region, caller kind, registered, last 4, requests, last outcome) · one call: its requests (outcome, final, tier, reasons, signal codes, cue ids, status), handoffs, Bolna transcript (numbers masked; `transcript_status` ok / none / unavailable) and recording link (kept on the Hub call state from the webhook) (Step 13) |
 | `GET /web/policies` | Console: the compiled packs from KV, read-only, and any `missing` region (calls there fail closed) |
 | `GET /web/console/passes` · `DELETE /web/console/passes/:id` | Console: every Pass of the tenant with its customer · revoke one (`pass_revoked` in the ledger; 404 if unknown) |
@@ -149,6 +149,8 @@ Built in Step 7 (`apps/api/src/web`; bodies in `packages/shared/src/api.ts` + `w
   With `suite_run_id` the result is recorded into that Halyn Test run before `test_progress` (`test_run_id` = the suite,
   `completed`/`total` over its scenarios).
   **`POST /web/stage/region`** `{region}` → `{ok:true}` stores the Stage's region in the Hub (scenario 10 uses it, Step 12).
+  **`POST /web/stage/demo-reset`** `{}` → `{ok:true}` (console only): the Hub stores a burst epoch, so calls that started
+  before it stop counting towards `S_CALL_BURST` (retakes). Nothing is deleted; Aero Core resets with `pnpm seed:core`.
 - `POST /web/session` also warms the tenant's Hub (its directory load from TiDB) in the background.
 
 ## Aero Core (`apps/aero-core`)

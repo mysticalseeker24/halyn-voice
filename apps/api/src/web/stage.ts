@@ -137,6 +137,13 @@ export function stageRun(deps: AppDeps, makeApp: (deps: AppDeps) => AppLike) {
   };
 }
 
+/** POST /web/stage/demo-reset `{}` → `{ok: true}`: a retake starts with no call burst (calls and ledger rows stay). */
+export async function stageDemoReset(c: Context<AppEnv>): Promise<Response> {
+  const tenant = consoleTenant(c);
+  await hubFor(c.env, tenant).resetDemo();
+  return c.json(OkResponseSchema.parse({ ok: true }));
+}
+
 /** POST /web/stage/region `{region}` → `{ok: true}`. */
 export async function stageRegion(c: Context<AppEnv>): Promise<Response> {
   const tenant = consoleTenant(c);

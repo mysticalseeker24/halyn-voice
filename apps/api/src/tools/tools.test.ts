@@ -582,3 +582,29 @@ describe('the webhook', () => {
     expect(events).not.toContain('done');
   });
 });
+
+describe('the demo reset (S_CALL_BURST during retakes, chat #8 finding 9)', () => {
+  const runId = (n: number) => `0b5c7a4e-1111-4222-8333-${String(n).padStart(12, '0')}`;
+  async function callAndFreeze(n: number): Promise<string[]> {
+    await h.tool('lookup_customer', { run_id: runId(n), from_number: REGISTERED });
+    const { json } = await propose(freeze(runId(n)));
+    return (await h.hub.requestState(json.request_id))?.decision.reasons ?? [];
+  }
+
+  it('a console reset stops earlier calls counting towards the burst; calls and ledger rows stay', async () => {
+    await callAndFreeze(1);
+    await callAndFreeze(2);
+    expect(await callAndFreeze(3)).toContain('S_CALL_BURST');
+    const head = await h.hub.ledgerHead();
+    h.clock.advance(60_000);
+
+    expect((await h.web('/web/stage/demo-reset', {}, await h.customerToken())).status).toBe(401);
+    const res = await h.web('/web/stage/demo-reset', {}, await h.consoleToken());
+    expect(await res.json()).toEqual({ ok: true });
+    h.clock.advance(1_000);
+
+    expect(await callAndFreeze(4)).not.toContain('S_CALL_BURST');
+    expect((await h.hub.consoleCalls()).calls.length).toBeGreaterThanOrEqual(4);
+    expect((await h.hub.ledgerHead())?.seq).toBeGreaterThan(head?.seq ?? 0);
+  });
+});

@@ -83,6 +83,8 @@ export interface HubCore {
   }): Promise<number>;
   /** Drops a pending confirmation nobody was asked yet (a screened request turned into a hold). */
   cancelConfirmation(request_id: string): void;
+  /** Calls that started before this instant don't count towards S_CALL_BURST (the Console's demo reset; 0 = never). */
+  burstEpoch: number;
   mirror(item: MirrorItem): void;
 }
 
@@ -576,7 +578,9 @@ export async function propose(core: HubCore, raw: ProposeInput): Promise<Propose
       counters: gateCounters(history, call.customer_id, pack, now),
       signals: {
         unregistered_number: !call.registered && !fromPassNumber && !passActive,
-        calls_last_hour: call.number_hash ? store.callsFromNumberSince(call.number_hash, now - HOUR) : 0,
+        calls_last_hour: call.number_hash
+          ? store.callsFromNumberSince(call.number_hash, Math.max(now - HOUR, core.burstEpoch))
+          : 0,
         unusual_hour: unusualHour(now, call.region),
       },
       coaching: input.coaching,

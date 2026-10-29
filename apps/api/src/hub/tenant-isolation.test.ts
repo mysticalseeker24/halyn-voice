@@ -57,6 +57,7 @@ const RPC_CALLS = {
   assistantCallPass: (s, t) => s.assistantCallPass(t, 'run'),
   setStageRegion: (s, t) => s.setStageRegion(t, 'US'),
   stageRegion: (s, t) => s.stageRegion(t),
+  resetDemo: (s, t) => s.resetDemo(t),
   issueWsTicket: (s, t) => s.issueWsTicket(t, { kind: 'console', customer_id: null, role: 'stage' }),
   webCallCustomer: (s, t) => s.webCallCustomer(t, 'cus_saksham', 'US'),
   registerWebCall: (s, t) =>

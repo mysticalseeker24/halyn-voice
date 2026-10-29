@@ -85,6 +85,7 @@ export function StageBoard() {
   const [region, setRegion] = useState<Region>('IN');
   const [running, setRunning] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [resetDone, setResetDone] = useState(false);
   const [ledgerLoading, setLedgerLoading] = useState(true);
   const [ledgerError, setLedgerError] = useState<string | null>(null);
   const alive = useRef(true);
@@ -174,6 +175,16 @@ export function StageBoard() {
     );
   };
 
+  const demoReset = () => {
+    setActionError(null);
+    setResetDone(false);
+    api.stageDemoReset().then(
+      () => setResetDone(true),
+      (error: unknown) =>
+        setActionError(error instanceof Error ? error.message : 'Could not reset the demo.'),
+    );
+  };
+
   const ready = session.status === 'ready';
 
   return (
@@ -240,6 +251,15 @@ export function StageBoard() {
                   {hubStatus === 'open' ? 'live' : hubStatus === 'idle' ? 'not connected' : hubStatus}
                 </span>
               </p>
+              <button
+                type="button"
+                disabled={!ready}
+                onClick={demoReset}
+                title="Earlier calls stop counting towards the call-burst signal. Nothing is deleted."
+                className="min-h-12 rounded-lg bg-white/10 px-4 text-base font-semibold text-slate-100 disabled:opacity-50"
+              >
+                {resetDone ? 'Reset done' : 'Demo reset'}
+              </button>
               <button
                 type="button"
                 onClick={() => setRecording(true)}

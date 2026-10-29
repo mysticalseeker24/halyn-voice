@@ -341,6 +341,7 @@ export class HubDO extends DurableObject<Env> {
         this.ctx.storage.sql.exec('DELETE FROM pending_confirmations WHERE request_id = ?', request_id);
       },
       mirror: (item: MirrorItem) => this.store.enqueue(item),
+      burstEpoch: Number(this.meta('burst_epoch') ?? 0) || 0,
     };
   }
 
@@ -810,6 +811,19 @@ export class HubDO extends DurableObject<Env> {
         return call;
       }),
     );
+  }
+
+  /**
+   * The Console's demo reset (retakes): calls before now stop counting towards S_CALL_BURST. Nothing is deleted —
+   * calls, requests and the ledger stay; Aero Core's balances are reset separately (`pnpm seed:core --remote`).
+   */
+  async resetDemo(tenant_id: string): Promise<HubResult<number>> {
+    return this.guard(() => {
+      this.bindTenant(tenant_id);
+      const now = this.clock.nowMs();
+      this.setMeta('burst_epoch', String(now));
+      return now;
+    });
   }
 
   async stageRegion(tenant_id: string): Promise<HubResult<Region>> {
