@@ -5,7 +5,7 @@ review fixes, set the secrets, re-seeded `halyn_dev` with the real number, made 
 redeployed the Day-0 probe for check 11. Chat #3 (Oct 28) built Steps 7 + 9, switched to speed mode (CLAUDE.md §5)
 and ran Day-0 (checks 1–5 pass; Bolna tool-param rules learned; probe deleted). Chat #4 (Oct 28–29) built Steps 8 + 10
 and put them live (Devanagari voice prompts, API + Aero Core deployed, Aero/Confirm/Assistant agents on Bolna, Pass +
-Assistant web flows; CI green `8b0733e`) with no subagents; its voice smoke (scenarios 1, 2, 3, 5, 6) moved to chat #5. Chat #5 (Oct 29, night) set DEMO_ACCESS_CODE and built + deployed Steps 11 + 12 (coaching layer 2, handoffs, browser calls, aero-en agent); pushed (CI green 6efbbf8); Chat #6 (Oct 29) built Steps 13, 15 and a slim 14 (all Console pages, Halyn Test: suite runs, scorecard, permission map, voice personas as files); chat #7 does Steps 16–19 (review + hardening, Vercel + the real calls, freeze, recording support); chat #8 does Step 20 and all refining. Everything a new chat needs is in the repo: `CLAUDE.md` (auto-loaded) →
+Assistant web flows; CI green `8b0733e`) with no subagents; its voice smoke (scenarios 1, 2, 3, 5, 6) moved to chat #5. Chat #5 (Oct 29, night) set DEMO_ACCESS_CODE and built + deployed Steps 11 + 12 (coaching layer 2, handoffs, browser calls, aero-en agent); pushed (CI green 6efbbf8); Chat #6 (Oct 29) built Steps 13, 15 and a slim 14 (all Console pages, Halyn Test: suite runs, scorecard, permission map, voice personas as files); chat #7 (Oct 29) did Step 16, Step 19's code and most of Step 17 (Vercel, personas, clips, voice-path fixes; call 1 passed) and hit its context budget; Saksham then switched the demo to English, so chat #8 does the English switch, the rest of the calls, Steps 18–20 and the refining. Everything a new chat needs is in the repo: `CLAUDE.md` (auto-loaded) →
 `docs/STATE.md` (auto-loaded via CLAUDE.md) → this file → the docs they point to. Nothing lives only in chat history.
 
 ## Open the new chat in `E:\Code and Shit\DevLabs\Bolna Buildathon\Build 2\halyn-voice`
@@ -85,94 +85,57 @@ non-protective prompt wording and misspellings of Saksham's name).
     `pnpm test:e2e` when the web app changed** — e2e is not part of verify (chat #4's first CI run failed on it).
 
 
-## Prompt to paste into the new chat (chat #7 → Steps 16, 17, 18, 19 + the real calls)
+## Prompt to paste into the new chat (chat #8 → English demo, the real calls, Steps 18–20)
 
 ```
-Halyn chat #7 (Bolna Symphony Buildathon). Do Steps 16, 17, 18 and 19 of PROMPTS.md, plus the real calls that are
-still waiting (voice smoke, the browser call, the three test persona agents). Chat #8 = Step 20 + all refining.
+Halyn chat #8 (Bolna Symphony Buildathon). Chat #7 ended at its context budget in the middle of Step 17's calls.
+Do, in order: (A) switch the demo to ENGLISH, (B) finish Step 17's calls, (C) Step 18 freeze, (D) Step 19 render,
+(E) Step 20 README + submission, (F) the "Chat #8 findings" in docs/STATE.md, (G) the UI refinement pass.
 
-ALREADY DONE — do not redo: Steps 0–15 + slim 14 on main (CI green 5e88fb1); API deployed e2eec772 (Steps 13–15
-live), Aero Core deployed, KV packs, TiDB halyn_dev migrated + seeded, Aero graph on number A, Confirm + Assistant +
-aero-en agents on Bolna (restricted false). Text scenarios 13/13. The demo environment IS this deployment
-(*.workers.dev + halyn_dev) plus Vercel for the web — no second environment. Two local docs commits (STATE + this
-prompt) go out with the first push.
+ALREADY DONE — do not redo (see docs/STATE.md): Steps 0–16 + Step 19's code on main (CI green e519872; 14 more local
+commits incl. cd31bc8 — push them with the first push). Vercel live at https://halyn-voice.vercel.app (WEB_ORIGIN/RP_ID
+set; passkey registered on Saksham's phone). API version 6091884a (cd31bc8 NOT deployed). Persona agents created.
+8 Hindi clone clips in KV. Voice call 1 (Hindi) passed end to end; call 2 stepped up under S_CALL_BURST.
 
-READ: CLAUDE.md + docs/STATE.md are loaded; docs/HANDOFF.md lines 19–86 (conventions); PROMPTS.md Steps 16–19 (grep
-"### Step 1"); docs/DEMO_SCRIPT.md scenario 3 only for Step 19. Nothing else whole.
-HOW (speed-mode rules): build and test yourself, no subagents (.claude/agents/*.md = checklists; "the test-engineer"
-= you write the test); narrow reads; quiet commands; multi-line scripts in files (Write tool, not heredocs or inline
-backticks); small local commits; status ≤ 5 lines; context budget ~50 % (get_usage after each step). If it runs out:
-stop after a finished step, verify, push, write the chat #8 prompt.
-APPROVALS: every call, agent create/update, deploy, DB/KV write, secret change, push and tag = my go-ahead in this chat.
-Calls only 09:00–21:00 IST (check IST first). If we are outside the window, do the code work first.
+READ: CLAUDE.md + docs/STATE.md are loaded; docs/HANDOFF.md lines 19–86 (conventions); docs/BOLNA.md lines 45–65 (the
+voice-smoke Bolna facts: values pasted raw into quoted JSON → key=value params; event properties not substituted into
+node prompts; English defaults for empty pre-call / still-there lines). Nothing else whole.
+HOW: speed mode (no subagents, narrow reads, quiet commands, multi-line scripts in files via the Write tool — never
+heredocs or inline backticks), small local commits, status ≤ 5 lines, context budget ~50 % (get_usage after each part).
+APPROVALS: every call, agent create/update, deploy, DB/KV write, Sarvam spend, secret change, push and tag = Saksham's
+go-ahead in this chat. Calls only 09:00–21:00 IST (check first). Saksham calls with the phone at his ear.
 
-STEP 16 — review + hardening (code only, no calls)
-- /review over the WHOLE codebase (not the diff). For each finding: failing test first, then the fix. Fix blockers and
-  high-severity findings now; put everything else in a "Chat #8 findings" list in docs/STATE.md (chat #8 refines).
-- Performance: propose_action p95 < 300 ms on the warm path (a timing test, 50 calls) and Worker CPU < 10 ms (wrangler
-  tail --format json on the deployed API during one Stage text run; read cpuTime).
-- Fail-closed drill (in tests): the API/Hub/Aero Core dies mid-call after propose → deny E_FAIL_CLOSED, a polite
-  event, nothing executed; check_decision while the Hub is down.
-- Log-masking audit (every log site; no full phone/account number anywhere), secrets scan over all history
-  (scripts/check-secrets.mjs + the CI patterns), `pnpm audit --prod` (fix high/critical or record why not).
-- Docs: one line where behaviour changed. Then ONE verify (+ e2e if web changed) → ask → push.sh → CI both jobs.
-
-STEP 17 — demo environment
-17a. Vercel. First check the exact build locally from the root: `pnpm turbo run build --filter=@halyn/web` (fix
-     anything before I click). Then walk me through, in this order, and wait for me at each step:
-     1. vercel.com → Add New → Project → Import Git Repository → mysticalseeker24/halyn-voice (install the Vercel
-        GitHub app for this one repository only).
-     2. Import the WHOLE repository (it is a pnpm monorepo: the web needs packages/shared and the root pnpm-lock.yaml).
-        Root Directory = apps/web; keep "Include files outside the Root Directory" ON.
-     3. Framework preset Next.js. Build Command (override) `cd ../.. && pnpm turbo run build --filter=@halyn/web`
-        (builds @halyn/shared first). Install Command: default (pnpm install). Output Directory: default.
-     4. Settings → Node.js version 22.x (root engines: >=22.12).
-     5. Environment variables (Production and Preview): NEXT_PUBLIC_API_URL = https://halyn-api.halyn-api.workers.dev
-        and ENABLE_EXPERIMENTAL_COREPACK = 1 (Vercel then uses pnpm@12.15.0 from packageManager). Nothing secret goes
-        to Vercel: the Bolna key, tool secret and DEMO_ACCESS_CODE stay on the API.
-     6. Deploy; I tell you the production domain (e.g. halyn-voice.vercel.app). Production branch = main: every push
-        to main redeploys the web from now on (preview URLs are not in WEB_ORIGIN, so they cannot call the API).
-     7. You: apps/api/wrangler.toml [vars] WEB_ORIGIN = "https://<domain>,http://localhost:3000", RP_ID = "<domain>"
-        (one RP id: localhost passkeys stop working — expected), commit, deploy the API (go-ahead), check a CORS
-        preflight from the domain, then /stage, /console, /aero, /assistant on the domain (demo code, Hub "live").
-     Do NOT use `pnpm deploy:web` (CLI); the Git integration deploys.
-17b. Passkey: I open https://<domain>/aero on my phone and register the passkey (needs HTTPS + RP_ID = domain).
-17c. Demo reset (go-ahead): `pnpm seed:core --remote --yes` (Aero Core cards, fees, balances) and `pnpm seed` against
-     halyn_dev if needed (pass_demo valid). Wallet check before calls (≈ 3–4 ¢/min).
-17d. Persona agents (go-ahead): `pnpm exec tsx scripts/bolna/agent.ts create agents/test-<persona>.json --dry-run`
-     first (does Bolna take `api_tools: null`?), then `--yes` for test-polite-hindi, test-hinglish-noisy,
-     test-impatient-en → `agent.ts get <id> --out=agents/<x>.current.json` → restricted false (else list_violations,
-     reword protectively, re-save) → TEST_AGENT_*_ID into .env (Node script that replaces one KEY= line, never print)
-     → `pnpm exec tsx scripts/cf-secrets.ts api --yes` → STATE.md Bolna resources.
-17e. Calls (go-ahead per round; the Stage open on the laptop to watch live; 3 and 4 are security_demo in our notes —
-     inbound calls carry no user_data). Round 1 = the voice smoke; round 2 = the same again (Step 17's "twice"):
-     1 freeze card (Hindi) — I call A from my registered phone → allow, done.
-     2 fee waiver ₹600 — same phone → allow after the read-back.
-     3 clone — I call A from a SECOND phone (unregistered), new payee ₹45,000 → step_up → Halyn Confirm calls my
-       phone from B (+ the passkey sheet on my phone) → I decline → deny, alert.
-     4 coached — registered phone, the coached lines → hold, specialist transfer, check-in booked (Console Handoffs).
-     5 + 6 — Assistant app on the domain, pass_demo task → B calls A: statement + EMI move → allow, allow; then
-       transfer ₹45,000 → step_up → I decline on the phone → deny.
-     10 browser call — Stage region US, Aero app on the laptop → Call Aero → wire $8,000 → hold.
-     Personas — /console/test Voice mode, one call each, then "Score the call" (check the B-last-4 + time match).
-     After each call: /pull-call (timeline, masked fixture), latency proposal → event → speech; fix blockers only.
-     After the session: /compliance-check, COMPLIANCE.md session log, STATE scenario table (voice column).
-     Also once: /console/test → Run all scenarios on the deployed API; record the scorecard.
-
-STEP 18 — /ship-check; fix only what blocks the Definition of done. Freeze: `agent.ts get --out` snapshots for every
-agent (aero, aero-en, confirm, assistant, the three personas), commit; tag `demo-freeze` (push the tag = go-ahead);
-STATE.md says frozen: no prompt/agent edits, no API or Aero Core deploys unless something breaks. Known exception:
-Step 19's web-only changes deploy through Vercel on push — record that in STATE.
-
-STEP 19 — scripts/clone-clips.ts with what we have: the clone's lines from docs/DEMO_SCRIPT.md scenario 3 (voices say
-the name in Devanagari; the script refuses Roman "Saksham"), Sarvam instant voice cloning from my consented sample
-(Day-0 check 8, voice C, then atempo=1.25 with @ffmpeg-installer/ffmpeg in a scratch folder); ElevenLabs only if its
-credits arrived. Storage = KV `file:<tenant>:clip:<id>` (ADR-023 — R2 was refused), not R2. /stage/soundboard: plays
-the clips, "AI clone of Saksham's own voice" on every clip. Stage "recording mode": hides scenario/region/dev controls,
-larger type, still the fixed 1920×1080 canvas. Tests: component test (the label on every clip; recording mode hides the
-controls) + one e2e. Rendering the clips (Sarvam spend) and the KV writes = go-ahead.
-
-END: /handoff (STATE short, WORKLOG ≤ 8 lines per step), Prettier, ONE final verify + e2e → ask → push.sh → CI both
-jobs. Write the chat #8 prompt into HANDOFF.md: Step 20 (README + submission) + the "Chat #8 findings" list + the UI
-refinement pass (professional, not AI-looking).
+A. ENGLISH DEMO (Saksham, 2026-10-29: "everyone will be comfortable with English"; launching on X + submission)
+  1. Aero IN (agents/aero.graph.json, number A): English welcome, agent_information, node prompts, static lines,
+     pre-call lines, check_user_online_message; transcriber language → English (Sarvam saaras:v4 en-IN — check Bolna's
+     docs for the value), synthesizer language → English with the same Sarvam voice (bulbul:v4-flash
+     simran_enhi_banking_expressive, 1.1×) unless Saksham picks another; keep INR, the IN records, the card on record,
+     key=value params, ' | ' quotes, noise_reduction + vad 0.65. Names a voice speaks stay Devanagari (सक्षम).
+     Easiest: a generator like scripts/bolna/make-aero-en.mjs (or extend it) so IN-English and US-English share text.
+  2. Confirm graph (agents/confirm.graph.json) and Assistant (agents/assistant.json): English welcome/lines; set the
+     confirm_result pre_call_message (Bolna's default English filler was spoken); summary wording: fee.waive reads
+     "(late oct)" — make it "the ₹600 late fee for October" (packages/shared action-summary.ts + test).
+  3. Demo customer language 'en' (apps/api/src/db/seed-data.ts + the Aero app's i18n default; `pnpm seed` against
+     halyn_dev = DB write, go-ahead) so lookup/Confirm/Aero app all say English. Keep the persona agents as they are
+     unless Saksham says otherwise (ask once).
+  4. prompts/*.md mirror; docs/DEMO_SCRIPT.md lines in English; clone lines in scripts/clone-clips.ts in English
+     ("Hi, I'm सक्षम मिश्रा…" — the script refuses Roman Saksham); re-render (≈ ₹1) + upload = go-ahead.
+  5. Offline gate (check-agents.ts), local tests, then one push of the agents (go-ahead) → get --out → restricted false.
+B. STEP 17 CALLS (deploy the API first: cd31bc8 + A's API changes; go-ahead)
+  - Add a console-only demo "burst reset" (finding 9: a Hub epoch for calls_last_hour; never delete ledger rows) and
+    call it before each round; `pnpm seed:core --remote --yes` (demo reset; the card is frozen now).
+  - Round 1 then round 2: 1 freeze (registered phone → allow, done), 2 fee waiver ₹600 (allow), 3 clone from a SECOND
+    phone using /stage/soundboard (step_up → Confirm call to Saksham's phone + passkey sheet → decline → deny),
+    4 coached (hold, specialist transfer, check-in in Console Handoffs), 5+6 Assistant app pass_demo task (statement +
+    EMI → allow; transfer ₹45,000 → step_up → decline), 10 browser call US (wire $8,000 → hold), personas from
+    /console/test (Score the call). After each: list executions → masked transcript (scripts/bolna/executions.ts) →
+    Halyn's record (GET /web/calls/:id with a console session) → raw logs only when needed (they show the tool secret:
+    never paste) → fix blockers only. Then /compliance-check, COMPLIANCE.md session log, STATE voice column, Console
+    "Run all scenarios" once on the deployed API (scorecard).
+C. STEP 18 — /ship-check; snapshots for every agent (aero, aero-en, confirm, assistant, 3 personas); tag demo-freeze
+   (push the tag = go-ahead); STATE "frozen" (web-only changes still deploy via Vercel).
+D. STEP 19 — English clips in KV (from A.4), soundboard check on the domain, recording mode check.
+E. STEP 20 — README + submission per PROMPTS.md Step 20.
+F/G. The Chat #8 findings list, then the UI refinement pass (professional, not AI-looking), in a fresh chat if needed.
+END: /handoff, Prettier, one final verify + e2e → ask → bash scripts/push.sh → CI both jobs; next-chat prompt here.
 ```
