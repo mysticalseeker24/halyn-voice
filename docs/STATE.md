@@ -101,13 +101,14 @@ build freeze is gone. Screens stay plain until a UI refinement pass (professiona
 ## Chat #8 findings (Step 16 review, not blocking; chat #8 refines)
 1. `verify_pass` matches a Pass's assistant numbers against the tool body's `from_number`; use the telephony number
    the webhook now records on the call (as `identify` does) — medium.
-2. The trusted calling number needs Bolna to send the full `telephony_data.from_number` (not PII-masked): check on
-   the first real call (`/pull-call`); if masked, the tool body is the fallback.
+2. Confirmed on call 1 (2026-10-29): Bolna sends the full `telephony_data.from_number`, and the LLM fills
+   `from_number` in its own tool arguments — the webhook number is what Halyn trusts (call registered: true).
 3. Try removing `from_number`/`call_sid` from the LLM-visible tool `properties` (keep `%(from_number)s` in `param`)
    if Bolna still substitutes them — an agent change, test on one call.
 4. `pnpm audit --prod`: one low (deepmerge via the shadcn CLI, no patch; dev-time only). `pnpm install` warns about peers.
 5. Demo auth by design: anyone with `DEMO_ACCESS_CODE` can mint a console or any customer's session.
-6. One API unit test failed once in a full parallel run and did not reproduce (likely a timing test under load).
+6. Flaky only in one combined `vitest run` of apps/api (unit + int + scenarios in one process): a different scenario
+   fails each time (1, 5, 11) and passes alone; `pnpm test:scenarios` and `pnpm verify` pass. Timing under load.
 
 ## Known issues / notes
 - pnpm 12.15.0 global. IST time: `node -e "console.log(new Date().toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}))"`.
