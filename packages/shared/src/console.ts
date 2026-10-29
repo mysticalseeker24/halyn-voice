@@ -360,3 +360,29 @@ export const VoiceRunResultSchema = z.strictObject({
   notes: z.array(z.string().max(300)),
 });
 export type VoiceRunResult = z.infer<typeof VoiceRunResultSchema>;
+
+// ── Soundboard (Step 19): the AI clone's clips, stored in KV `file:<tenant>:clip:<id>` (ADR-023) ──────────────────
+
+/** Every clip is labelled on screen as an AI clone of Saksham's own voice (docs/DEMO_SCRIPT.md, COMPLIANCE.md). */
+export const CLIP_DISCLOSURE = "AI clone of Saksham's own voice";
+
+export const ClipIdSchema = z.string().regex(/^[a-z0-9][a-z0-9_-]{0,39}$/);
+
+/** KV metadata of one clip (≤ 1,024 bytes): what the line says and where it sits in the scene. */
+export const ClipMetaSchema = z.strictObject({
+  label: z.string().min(1).max(60),
+  text: z.string().min(1).max(200),
+  order: z.int().nonnegative().max(99),
+  content_type: z.enum(['audio/mpeg', 'audio/wav']),
+});
+export type ClipMeta = z.infer<typeof ClipMetaSchema>;
+
+export const ClipSchema = ClipMetaSchema.extend({ id: ClipIdSchema });
+export type Clip = z.infer<typeof ClipSchema>;
+
+export const ClipListResponseSchema = z.strictObject({ clips: z.array(ClipSchema).max(50) });
+export const ClipAudioResponseSchema = z.strictObject({
+  id: ClipIdSchema,
+  content_type: ClipMetaSchema.shape.content_type,
+  audio_b64: z.string().min(1).max(4_000_000),
+});

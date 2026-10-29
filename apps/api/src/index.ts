@@ -10,6 +10,7 @@ import { notFound, onError } from './http/errors';
 import { requestLog } from './http/request-log';
 import { bolnaRoutes } from './tools/routes';
 import { aeroHome } from './web/aero-home';
+import { clipAudio, listClips } from './web/clips';
 import {
   callDetail,
   consolePasses,
@@ -120,6 +121,8 @@ export function createApp(deps: AppDeps = defaultDeps) {
   app.delete('/web/console/passes/:id', consoleRevokePass(deps));
   app.get('/web/signals', signalsRoute(deps));
   app.get('/web/integrations', integrations(deps));
+  app.get('/web/clips', listClips);
+  app.get('/web/clips/:id', clipAudio);
   app.post('/web/stage/run/:scenario', stageRun(deps, createApp));
   app.post('/web/stage/region', stageRegion);
   app.post('/web/tests/runs', createTestRun(deps));
