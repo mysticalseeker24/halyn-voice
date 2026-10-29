@@ -16,7 +16,9 @@ describe('clone-clips', () => {
   });
 
   it('renders and uploads only with --yes; costs a few rupees', () => {
-    expect(parseCloneArgs([])).toMatchObject({ render: false, upload: false });
+    expect(parseCloneArgs([])).toMatchObject({ render: false, upload: false, lang: 'en-IN' });
+    expect(parseCloneArgs(['--lang=hi-IN'])).toMatchObject({ lang: 'hi-IN' });
+    expect(() => parseCloneArgs(['--lang=fr-FR'])).toThrow(/unknown option/);
     expect(() => parseCloneArgs(['--render'])).toThrow(/--yes/);
     expect(() => parseCloneArgs(['--upload'])).toThrow(/--yes/);
     expect(parseCloneArgs(['--render', '--upload', '--yes', '--only=greet,bye'])).toMatchObject({

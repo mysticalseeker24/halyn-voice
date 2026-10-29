@@ -1,4 +1,5 @@
 // pnpm exec tsx scripts/clone-clips.ts [--render] [--upload] [--yes] [--ffmpeg=<path>] [--tenant=ten_aero] [--only=<id,…>]
+//   [--lang=en-IN|hi-IN]
 // Step 19: the AI clone's lines for scenario 3 (docs/DEMO_SCRIPT.md), in Saksham's own consented voice — Sarvam
 // instant voice cloning, voice C (docs/DAY0.md check 8) — then ffmpeg atempo=1.25 (his pick) to MP3 in
 // scripts/out/clips/. Clips are played from /stage/soundboard into the call from a second phone, each labelled
@@ -26,27 +27,28 @@ export interface CloneClip extends ClipMeta {
 
 // Scenario 3, the clone's side of the call to Aero (number A) from an unregistered second phone: a plain request for
 // ₹45,000 to a new payee, account ending 4471, IFSC AERO0000001 (tests/scenarios/scenarios.yaml). Aero asks for a
-// step-up, Halyn calls the real Saksham, he declines, and the clone gets nothing. Names are written in Devanagari so the
-// voice says them right (Sarvam reads Roman "Saksham" with a long "Saa").
+// step-up, Halyn calls the real Saksham, he declines, and the clone gets nothing. English since 2026-10-29 (the Hindi
+// lines are in git history). Names are written in Devanagari so the voice says them right (Sarvam reads Roman "Saksham"
+// with a long "Saa").
 export const CLIPS: readonly CloneClip[] = [
-  { id: 'greet', order: 1, label: 'Greeting', text: 'नमस्ते, मैं सक्षम मिश्रा बोल रहा हूँ।' },
+  { id: 'greet', order: 1, label: 'Greeting', text: 'Hi, this is सक्षम मिश्रा.' },
   {
     id: 'request',
     order: 2,
     label: 'The transfer',
-    text: 'मुझे एक नए अकाउंट में पैंतालीस हज़ार रुपये भेजने हैं।',
+    text: 'I need to send forty-five thousand rupees to a new account.',
   },
   {
     id: 'account',
     order: 3,
     label: 'Account ending',
-    text: 'अकाउंट नंबर के आख़िरी चार अंक हैं: चार, चार, सात, एक।',
+    text: 'The account number ends in four, four, seven, one.',
   },
-  { id: 'ifsc', order: 4, label: 'IFSC', text: 'IFSC कोड है: ए, ई, आर, ओ, फिर छह बार शून्य, और एक।' },
-  { id: 'payee', order: 5, label: 'Payee name', text: 'पेयी का नाम रोहन वर्मा है।' },
-  { id: 'confirm', order: 6, label: 'Read-back: yes', text: 'हाँ, सब सही है। भेज दीजिए।' },
-  { id: 'hold', order: 7, label: 'Waiting', text: 'ठीक है, मैं लाइन पर हूँ।' },
-  { id: 'bye', order: 8, label: 'Goodbye', text: 'अच्छा, ठीक है। धन्यवाद।' },
+  { id: 'ifsc', order: 4, label: 'IFSC', text: 'The IFSC is A, E, R, O, then six zeros and one.' },
+  { id: 'payee', order: 5, label: 'Payee name', text: "The payee's name is Rohan Verma." },
+  { id: 'confirm', order: 6, label: 'Read-back: yes', text: "Yes, that's right, please send it." },
+  { id: 'hold', order: 7, label: 'Waiting', text: "Okay, I'll hold." },
+  { id: 'bye', order: 8, label: 'Goodbye', text: 'Okay, thanks.' },
 ].map((c) => ({ ...c, content_type: 'audio/mpeg' as const }));
 
 /** Throws on a line the voice would mispronounce or that the KV metadata cannot hold. */
@@ -72,6 +74,8 @@ export interface CloneArgs {
   ffmpeg: string | null;
   tenant: string;
   only: string[] | null;
+  /** Sarvam language_code for the render (voice C was cloned from a hi-IN take). */
+  lang: 'en-IN' | 'hi-IN';
 }
 
 export function parseCloneArgs(argv: readonly string[]): CloneArgs {
@@ -82,6 +86,7 @@ export function parseCloneArgs(argv: readonly string[]): CloneArgs {
     ffmpeg: null,
     tenant: 'ten_aero',
     only: null,
+    lang: 'en-IN',
   };
   for (const a of argv) {
     if (a === '--render') args.render = true;
@@ -90,6 +95,7 @@ export function parseCloneArgs(argv: readonly string[]): CloneArgs {
     else if (a.startsWith('--ffmpeg=')) args.ffmpeg = a.slice('--ffmpeg='.length);
     else if (a.startsWith('--tenant=')) args.tenant = a.slice('--tenant='.length);
     else if (a.startsWith('--only=')) args.only = a.slice('--only='.length).split(',').filter(Boolean);
+    else if (a === '--lang=en-IN' || a === '--lang=hi-IN') args.lang = a.slice('--lang='.length) as CloneArgs['lang'];
     else throw new Error(`unknown option ${a}`);
   }
   if ((args.render || args.upload) && !args.yes)
@@ -100,11 +106,17 @@ export function parseCloneArgs(argv: readonly string[]): CloneArgs {
   return args;
 }
 
-async function render(clip: CloneClip, key: string, ffmpeg: string, dir: string): Promise<string> {
+async function render(
+  clip: CloneClip,
+  key: string,
+  ffmpeg: string,
+  dir: string,
+  lang: CloneArgs['lang'],
+): Promise<string> {
   const form = new FormData();
   form.set('voice_id', VOICE_C);
   form.set('text', clip.text);
-  form.set('language_code', 'hi-IN');
+  form.set('language_code', lang);
   form.set('output_audio_codec', 'wav');
   form.set('speech_sample_rate', '24000');
   const res = await fetch(SARVAM_CLONE_URL, {
@@ -192,7 +204,7 @@ async function main(argv: string[]): Promise<void> {
     if (!key) throw new Error('SARVAM_API_KEY is not set (.env)');
     if (!ffmpeg || !existsSync(ffmpeg))
       throw new Error('pass --ffmpeg=<path to the ffmpeg binary> or set FFMPEG_PATH');
-    for (const c of clips) console.log(`✓ rendered ${await render(c, key, ffmpeg, dir)}`);
+    for (const c of clips) console.log(`✓ rendered ${await render(c, key, ffmpeg, dir, args.lang)}`);
   }
   if (args.upload) {
     for (const c of clips) {
