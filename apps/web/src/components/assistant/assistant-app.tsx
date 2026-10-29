@@ -84,7 +84,14 @@ export function PassCard({ pass }: { pass: PassSummary }) {
       </div>
       <div className="flex items-center justify-between border-t border-dashed border-slate-600 px-5 py-3">
         <p className="font-mono text-xs text-slate-300">{pass.id}</p>
-        <p className="text-sm">Valid until {new Date(pass.expires_at).toLocaleDateString()}</p>
+        <p className="text-sm">
+          Valid until{' '}
+          {new Date(pass.expires_at).toLocaleDateString('en-IN', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          })}
+        </p>
       </div>
     </article>
   );

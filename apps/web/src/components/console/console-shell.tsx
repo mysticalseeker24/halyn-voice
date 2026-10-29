@@ -39,7 +39,7 @@ export function ConsoleShell({
     <div className="grid min-h-screen grid-cols-[220px_1fr] bg-stone-50 text-slate-900">
       <nav aria-label="Console" className="flex flex-col gap-1 border-r border-slate-200 p-4">
         <p className="mb-4 text-lg font-semibold">
-          Halyn <span className="text-indigo-600">Console</span>
+          Halyn <span className="font-medium text-slate-500">Console</span>
         </p>
         {CONSOLE_PAGES.map((page) => (
           <Link
@@ -48,7 +48,9 @@ export function ConsoleShell({
             aria-current={active(path, page.href) ? 'page' : undefined}
             className={cn(
               'flex min-h-11 items-center rounded-md px-3 text-sm',
-              active(path, page.href) ? 'bg-indigo-600 font-medium text-white' : 'hover:bg-slate-200',
+              active(path, page.href)
+                ? 'bg-indigo-50 font-medium text-indigo-800 ring-1 ring-indigo-200'
+                : 'hover:bg-slate-200',
             )}
           >
             {page.label}

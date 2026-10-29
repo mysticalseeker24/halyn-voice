@@ -130,7 +130,7 @@ export function Soundboard() {
   return (
     <main className="mx-auto h-screen max-w-3xl overflow-y-auto bg-[#0b0d17] px-4 py-8 text-slate-50 sm:px-8">
       <h1 className="text-3xl font-bold tracking-tight">
-        Halyn <span className="text-indigo-300">Stage</span> · Soundboard
+        Halyn <span className="font-medium text-slate-400">Stage</span> · Soundboard
       </h1>
       <p className="mt-2 text-lg text-slate-300">
         Scenario 3: the clone&apos;s lines, played into the call from the second phone. {CLIP_DISCLOSURE},

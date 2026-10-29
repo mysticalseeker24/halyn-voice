@@ -197,7 +197,7 @@ export function StageBoard() {
       >
         <header className="flex h-[96px] items-center gap-8 border-b border-white/10 px-8">
           <h1 className="text-3xl font-bold tracking-tight">
-            Halyn <span className="text-indigo-300">Stage</span>
+            Halyn <span className="font-medium text-slate-400">Stage</span>
           </h1>
           {recording ? null : (
             <>
@@ -211,7 +211,9 @@ export function StageBoard() {
                     onClick={() => run(s.id)}
                     className={cn(
                       'min-h-14 rounded-xl px-5 text-lg font-semibold focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-50',
-                      running === s.id ? 'bg-indigo-400 text-slate-950' : 'bg-indigo-600 text-white',
+                      running === s.id
+                        ? 'bg-indigo-500 text-white'
+                        : 'bg-white/[0.06] text-slate-100 ring-1 ring-white/15 hover:bg-white/10',
                     )}
                   >
                     {s.id} · {s.label}

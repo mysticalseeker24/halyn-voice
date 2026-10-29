@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { NOW, REQ_ID, sessionBody } from '../src/test/fixtures';
-import { json, mockApi } from './helpers';
+import { json, mockApi, screenshotPath } from './helpers';
 
 const handoff = (status: 'open' | 'released') => ({
   id: 'ho_01J9ZZZZZZZZZZZZZZZZZZZZZ1',
@@ -37,6 +37,7 @@ test('Console Handoffs: a coaching hold is released by a specialist', async ({ p
   await expect(item).toContainText('Check-in call');
   await item.getByRole('button', { name: 'Release' }).click();
   await expect(item).toContainText('RELEASED');
+  await page.screenshot({ path: screenshotPath('console-handoffs'), fullPage: true });
 });
 
 const ledgerEntry = {
@@ -156,4 +157,5 @@ test('Halyn Test: running the US pack fills the scorecard', async ({ page }) => 
   const scorecard = page.getByRole('group', { name: 'Scorecard' });
   await expect(scorecard).toContainText('0PASS');
   await expect(scorecard).toContainText('38 ms');
+  await page.screenshot({ path: screenshotPath('console-test'), fullPage: true });
 });

@@ -28,7 +28,7 @@ export function Panel({
       )}
     >
       <header className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-3">
-        <h2 className="text-lg font-semibold tracking-wide uppercase">{title}</h2>
+        <h2 className="text-base font-semibold tracking-[0.08em] text-slate-300 uppercase">{title}</h2>
         {aside}
       </header>
       <div className="min-h-0 flex-1 overflow-hidden p-4">{children}</div>
@@ -100,7 +100,7 @@ export function TranscriptPanel({ state }: { state: StageState }) {
                 line.speaker === 'caller'
                   ? 'self-start bg-white/10'
                   : line.speaker === 'agent'
-                    ? 'self-end bg-indigo-600 text-white'
+                    ? 'self-end bg-slate-800 text-slate-50 ring-1 ring-indigo-400/40'
                     : 'self-center bg-white/5 text-sm italic',
               )}
             >
