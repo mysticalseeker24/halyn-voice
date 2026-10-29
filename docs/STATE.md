@@ -1,7 +1,8 @@
 # STATE — read at the start of every chat, update at the end (`/handoff`). Keep it short (speed mode).
 
-_Last updated: 2026-10-30 02:15 IST, chat #8 (mid-session). **The demo is ENGLISH** (agents, Confirm, Assistant, clips,
-seed). Parts A, B, E, H, G (1/4/5/6/9) and the README draft are done locally; calls (Part C) start at 09:00 IST._
+_Last updated: 2026-10-30 03:00 IST, end of chat #8. **Everything but the real calls is done** (English demo, demo
+reset, findings, detailed README, UI pass, ship-check). Chat #9 = the English call rounds from 09:00 IST, then
+README numbers, freeze, video (prompt in docs/HANDOFF.md)._
 
 ## Where we are
 - **Done on `main`:** Steps 0–16, slim 14, Day-0; Step 19's code. Working mode: **CLAUDE.md §5 speed mode**.
@@ -68,12 +69,16 @@ proposal → outcome audio 6.6 s, fillers since cut). **2 ⚠️** (`ded42251`):
 from the number during testing); Confirm call approved → executed; Aero never spoke it (carrier call-waiting audio) →
 fixed by `cd31bc8`. 3, 4, 5+6, 10, personas, round 2: not yet.
 
-## Next steps (chat #8, from 09:00 IST)
-1. Done 02:20: pushed (CI green) (Vercel redeploys the web) + API deployed with the finding-1 fix.
-2. Part C calls, round 1 then round 2 (English): 1–4, 5+6, 10, personas; demo reset + `seed:core` before each;
-   measure proposal → outcome audio (finding 7 decides on it); /compliance-check; COMPLIANCE.md log; Halyn Test
-   "Run all" on the deployed API → README numbers.
-3. Part D freeze (snapshots, `demo-freeze` tag), README numbers + /ship-check, /handoff.
+## Next steps (chat #9, from 09:00 IST — prompt in docs/HANDOFF.md)
+1. Calls round 1 + 2 (1–4, 5+6, 10, personas); demo reset + `seed:core` before each; first call: name check + latency.
+2. /compliance-check + COMPLIANCE.md log; `node scripts/ops/run-all.mjs` in DAYTIME → README numbers; seed:core after.
+3. Freeze (snapshots, `demo-freeze` tag), video per docs/DEMO_SCRIPT.md, submission.
+
+## Ship-check (chat #8, 02:55 IST)
+Code items all ✅ (text mode 15/15, CI green, Aero Core 401 on no/forged grant by curl, grant tests, ledger verify ok
+104 entries, 7/7 agents restricted false, violations 0, guardrails 9–21, disclosure, no secrets). Open: real calls ×2,
+step-up → live call < 2 s, passkey on the phone in a call, video, freeze. Keypad callback impossible (Vobiz, no DTMF).
+A live Run all at 02:30 IST failed on S_UNUSUAL_HOUR (night, by design) and cold latency — rerun in daytime.
 
 ## Chat #8 findings status
 - Done: 1 (verify_pass vs telephony record), 4 + 5 (documented in COMPLIANCE.md "Demo-only shortcuts"), 6 (propose
