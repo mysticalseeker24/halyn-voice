@@ -2,21 +2,26 @@ import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import type { ReactNode } from 'react';
 import { MotionRoot } from '@/components/motion-root';
+import { THEME_SCRIPT } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
 import './globals.css';
 
-// docs/UI.md: Inter for text, JetBrains Mono for ids and hashes.
+// docs/UI.md: Inter for text, JetBrains Mono for labels, ids and hashes.
 const sans = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
 
 export const metadata: Metadata = {
-  title: 'Halyn',
-  description: "The permission layer for voice agents. Don't trust the voice. Trust the permission.",
+  title: 'Halyn — the permission layer for voice agents',
+  description:
+    "A voice agent proposes; Halyn decides and executes. Don't trust the voice. Trust the permission.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className={cn('font-sans', sans.variable, mono.variable)}>
+    <html lang="en" className={cn('font-sans', sans.variable, mono.variable)} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="min-h-screen antialiased">
         <MotionRoot>{children}</MotionRoot>
       </body>
