@@ -560,6 +560,26 @@ describe('the webhook', () => {
     expect(events).not.toContain('done');
   });
 
+  it("a Pass code counts only from the assistant number in Bolna's record (chat #8 finding 1)", async () => {
+    const code = (
+      (await (await h.tool('get_pass_code', { run_id: RUN, pass_token: h.passToken })).json()) as {
+        code: string;
+      }
+    ).code;
+    await hook(inbound(UNKNOWN_AI));
+    const spoofed = await h.tool('verify_pass', { run_id: RUN, from_number: ASSISTANT, code });
+    expect(await spoofed.json()).toEqual({ valid: false });
+    // The refused attempt neither used the code nor named the Pass: the real assistant's call still verifies.
+    const OTHER = '0b5c7a4e-1111-4222-8333-999999999999';
+    await hook({
+      ...inbound(ASSISTANT),
+      id: OTHER,
+      telephony_data: { ...inbound(ASSISTANT).telephony_data, call_sid: 'CAsid0002' },
+    });
+    const real = await h.tool('verify_pass', { run_id: OTHER, from_number: ASSISTANT, code });
+    expect(await real.json()).toMatchObject({ valid: true });
+  });
+
   it("Bolna's record of the registered number identifies the customer", async () => {
     await hook(inbound(REGISTERED.replace('+', '')));
     const res = await h.tool('lookup_customer', { run_id: RUN, from_number: REGISTERED });

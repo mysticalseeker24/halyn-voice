@@ -245,10 +245,25 @@ function pepper(core: HubCore): string {
 /** verify_pass: on success the call's proof becomes this Pass. Failures count towards the lock; the 5th locks it. */
 export async function verifyPass(
   core: HubCore,
-  input: { run_id: string; call_sid: string | null; from_number: string; code: string; region: Region },
+  input: {
+    run_id: string;
+    call_sid: string | null;
+    from_number: string;
+    /** Hash of `from_number`; must match Bolna's telephony record on the call when there is one. */
+    number_hash: string;
+    code: string;
+    region: Region;
+  },
 ): Promise<{ valid: false } | { valid: true; assistant_name: string; scopes: string[] }> {
   const { store, clock } = core;
   const from = E164Schema.parse(input.from_number);
+  // The tool body's from_number is visible to the LLM; Bolna's telephony record of the call (the webhook) wins. A
+  // mismatch is refused before any Pass is looked at, so it neither uses a code nor counts towards a lock.
+  const recorded = store.call(input.run_id)?.number_hash;
+  if (recorded && recorded !== input.number_hash) {
+    logLine({ level: 'warn', hub: 'pass_code_refused', reason: 'number_mismatch' });
+    return { valid: false };
+  }
   const passes = store.passesForNumber(from);
   const result = await verifyPassCode(
     {

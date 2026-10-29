@@ -69,10 +69,12 @@ export function verifyPass(deps: AppDeps) {
   return async (c: Context<AppEnv>) => {
     const ctx = toolContext(c, deps);
     const { body } = await readToolBody(c, 'verify_pass', VerifyPassRequestSchema, ctx);
+    const { PHONE_HASH_PEPPER } = requireEnv(c.env, PhoneEnvSchema);
     const result = await ctx.flow.hub.verifyPassCode({
       run_id: body.run_id,
       call_sid: body.call_sid ?? null,
       from_number: body.from_number,
+      number_hash: await registeredNumberHash(PHONE_HASH_PEPPER, body.from_number),
       code: body.code,
       region: ctx.region,
     });

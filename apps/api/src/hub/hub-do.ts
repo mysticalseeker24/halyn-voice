@@ -405,7 +405,15 @@ export class HubDO extends DurableObject<Env> {
   /** verify_pass. */
   async verifyPassCode(
     tenant_id: string,
-    input: { run_id: string; call_sid: string | null; from_number: string; code: string; region: Region },
+    input: {
+      run_id: string;
+      call_sid: string | null;
+      from_number: string;
+      /** Hash of `from_number`; must match Bolna's telephony record on the call when there is one. */
+      number_hash: string;
+      code: string;
+      region: Region;
+    },
   ): Promise<HubResult<{ valid: false } | { valid: true; assistant_name: string; scopes: string[] }>> {
     return this.guard(() =>
       this.serial(async () => {
