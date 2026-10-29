@@ -11,6 +11,7 @@ import {
   IntegrationsView,
   LedgerView,
   PassesView,
+  actionRule,
   PoliciesView,
   SignalsView,
 } from './views';
@@ -284,5 +285,19 @@ describe('Console actions', () => {
     );
     await userEvent.click(screen.getByRole('button', { name: 'Verify chain' }));
     expect(await screen.findByText(/Chain BROKEN at #2/)).toBeInTheDocument();
+  });
+});
+
+describe('actionRule', () => {
+  it('reads limits in the pack currency, never raw minor units', () => {
+    const rule = (a: object, currency: 'INR' | 'USD' = 'INR') => actionRule(a as never, currency);
+    expect(rule({ tier: 1, limit: { amount_minor: 100000, count: 1, per: 'year' } })).toBe(
+      'tier 1 · up to ₹1,000, 1× per year',
+    );
+    expect(rule({ tier: 2, limit: { amount_minor: null, count: 1, per: 'year' } })).toBe(
+      'tier 2 · 1× per year',
+    );
+    expect(rule({ tier: 3, human_only_above_minor: 500000 }, 'USD')).toBe('tier 3 · human above $5,000');
+    expect(rule({ tier: 0, perimeter: 'human_only' })).toBe('human only');
   });
 });

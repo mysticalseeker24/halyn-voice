@@ -4,6 +4,7 @@ import {
   type ActionId,
   type CompiledAction,
   type ConsoleRequest,
+  formatMoney,
   OUTCOMES,
   type Outcome,
   REASON_CODE_INFO,
@@ -217,14 +218,23 @@ export function CallDetailView({ api, runId }: { api: ApiClient; runId: string }
 
 // ── Policies ─────────────────────────────────────────────────────────────────────────────────────
 
-function actionRule(a: CompiledAction): string {
+/** One readable rule per action: amounts in the pack's currency (₹1,000), never raw minor units. */
+export function actionRule(a: CompiledAction, currency: 'INR' | 'USD'): string {
+  const money = (amount_minor: number) => formatMoney({ amount_minor, currency });
   if (a.perimeter === 'human_only') return 'human only';
   const parts = [`tier ${a.tier}`];
   if (a.protective) parts.push('protective');
   if (a.read) parts.push('read');
   if (a.limit)
-    parts.push(`limit ${a.limit.amount_minor ?? '—'} minor / ${a.limit.count ?? '—'} per ${a.limit.per}`);
-  if (a.human_only_above_minor) parts.push(`human above ${a.human_only_above_minor} minor`);
+    parts.push(
+      [
+        a.limit.amount_minor != null ? `up to ${money(a.limit.amount_minor)}` : null,
+        a.limit.count != null ? `${a.limit.count}×` : null,
+      ]
+        .filter(Boolean)
+        .join(', ') + ` per ${a.limit.per}`,
+    );
+  if (a.human_only_above_minor) parts.push(`human above ${money(a.human_only_above_minor)}`);
   if (a.hold_hours) parts.push(`hold ${a.hold_hours} h`);
   return parts.join(' · ');
 }
@@ -265,7 +275,7 @@ export function PoliciesView({ api }: { api: ApiClient }) {
                     <td className={cell}>
                       {actionLabel(id)} <Mono>{id}</Mono>
                     </td>
-                    <td className={cell}>{actionRule(a)}</td>
+                    <td className={cell}>{actionRule(a, pack.currency)}</td>
                     <td className={cell}>
                       <Flag on={a.critical} yes="CRITICAL" no="no" />
                     </td>
@@ -529,7 +539,7 @@ export function LedgerView({ api }: { api: ApiClient }) {
 // ── Integrations ─────────────────────────────────────────────────────────────────────────────────
 
 const AGENT_LABEL = {
-  aero_in: 'Aero (India, Hindi)',
+  aero_in: 'Aero (India, English)',
   aero_en: 'Aero (US, English, web)',
   confirm: 'Halyn Confirm',
   assistant: "Saksham's Assistant",
