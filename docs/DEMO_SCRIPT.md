@@ -15,3 +15,7 @@ Recorded from the Stage; Saksham's phone filmed beside the screen.
 | 2:40–3:00 | Close | Architecture picture, one-command install, tagline | "Halyn. Don't trust the voice. Trust the permission." |
 
 45-second cut: hook, scenario 3, close. Label the clone on screen as "AI clone of my own voice".
+
+Scenario 3's clone lines (8 clips: greeting, ₹45,000 to a new account ending 4471, IFSC AERO0000001, payee, "yes",
+waiting, goodbye) live in `scripts/clone-clips.ts` (voice C, atempo 1.25, KV `file:ten_aero:clip:<id>`); play them
+from `/stage/soundboard` into the second phone. Record the Stage with `/stage?recording=1` (Escape leaves).
