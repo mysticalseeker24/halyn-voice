@@ -14,7 +14,7 @@ and the docs disagree, the docs win — then update this file.
 
 Attacker personas: **not until Bolna approves** (see `docs/COMPLIANCE.md`).
 
-## Aero graph (`agents/aero.graph.json`, prompts in `prompts/aero-*.md`)
+## Aero graph (`agents/aero.graph.json` English IN + `aero-en.graph.json` US, both generated from the Hindi `aero-hi.graph.json` by `make-aero-en.mjs`; prompts in `prompts/aero-*.md`)
 `agent_information` = persona + rules (protective, disclose AI, never read secrets, read back every action in digits).
 
 | Node | Type | Job | Edges |
