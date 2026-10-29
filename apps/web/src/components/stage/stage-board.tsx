@@ -40,7 +40,33 @@ function useFitScale(): number {
   return scale;
 }
 
+/**
+ * Recording mode (Step 19): `?recording=1` hides the scenario, region and dev controls and enlarges the type on the
+ * same fixed canvas. Escape leaves it.
+ */
+export function useRecordingMode(): [boolean, (on: boolean) => void] {
+  const [recording, setRecording] = useState(false);
+  useEffect(() => {
+    setRecording(new URLSearchParams(window.location.search).get('recording') === '1');
+  }, []);
+  const set = useCallback((on: boolean) => {
+    setRecording(on);
+    const url = new URL(window.location.href);
+    if (on) url.searchParams.set('recording', '1');
+    else url.searchParams.delete('recording');
+    window.history.replaceState(null, '', url);
+  }, []);
+  useEffect(() => {
+    if (!recording) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && set(false);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [recording, set]);
+  return [recording, set];
+}
+
 export function StageBoard() {
+  const [recording, setRecording] = useRecordingMode();
   const { state: session, api, token, retry, submitCode } = useDemoSession({ kind: 'console' });
   const [state, dispatch] = useReducer(stageReducer, initialStageState);
   const [region, setRegion] = useState<Region>('IN');
@@ -141,63 +167,75 @@ export function StageBoard() {
     <div className="fixed inset-0 overflow-hidden bg-[#0b0d17]">
       <div
         data-testid="stage-canvas"
-        className="origin-top-left bg-[#0b0d17] text-slate-50"
+        data-recording={recording ? 'on' : 'off'}
+        className={cn('origin-top-left bg-[#0b0d17] text-slate-50', recording && 'stage-recording')}
         style={{ width: STAGE_SIZE.width, height: STAGE_SIZE.height, transform: `scale(${scale})` }}
       >
         <header className="flex h-[96px] items-center gap-8 border-b border-white/10 px-8">
           <h1 className="text-3xl font-bold tracking-tight">
             Halyn <span className="text-indigo-300">Stage</span>
           </h1>
-          <div role="group" aria-label="Scenarios" className="flex gap-3">
-            {STAGE_SCENARIOS.map((s) => (
+          {recording ? null : (
+            <>
+              <div role="group" aria-label="Scenarios" className="flex gap-3">
+                {STAGE_SCENARIOS.map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    disabled={!ready || running !== null}
+                    aria-busy={running === s.id}
+                    onClick={() => run(s.id)}
+                    className={cn(
+                      'min-h-14 rounded-xl px-5 text-lg font-semibold focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-50',
+                      running === s.id ? 'bg-indigo-400 text-slate-950' : 'bg-indigo-600 text-white',
+                    )}
+                  >
+                    {s.id} · {s.label}
+                  </button>
+                ))}
+              </div>
+              <div role="group" aria-label="Region" className="flex rounded-xl bg-white/10 p-1">
+                {(['IN', 'US'] as const).map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    aria-pressed={region === r}
+                    disabled={!ready}
+                    onClick={() => switchRegion(r)}
+                    className={cn(
+                      'min-h-12 min-w-16 rounded-lg px-4 text-lg font-semibold disabled:opacity-50',
+                      region === r ? 'bg-white text-slate-950' : 'text-slate-100',
+                    )}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
+              <p className="text-base font-medium">Text mode</p>
+              {actionError ? (
+                <p role="alert" className="max-w-[420px] truncate text-base font-semibold text-red-300">
+                  {actionError}
+                </p>
+              ) : null}
+              <p role="status" data-hub={hubStatus} className="ml-auto text-base">
+                Hub:{' '}
+                <span
+                  className={
+                    hubStatus === 'open' ? 'font-semibold text-emerald-300' : 'font-semibold text-amber-300'
+                  }
+                >
+                  {hubStatus === 'open' ? 'live' : hubStatus === 'idle' ? 'not connected' : hubStatus}
+                </span>
+              </p>
               <button
-                key={s.id}
                 type="button"
-                disabled={!ready || running !== null}
-                aria-busy={running === s.id}
-                onClick={() => run(s.id)}
-                className={cn(
-                  'min-h-14 rounded-xl px-5 text-lg font-semibold focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-50',
-                  running === s.id ? 'bg-indigo-400 text-slate-950' : 'bg-indigo-600 text-white',
-                )}
+                onClick={() => setRecording(true)}
+                className="min-h-12 rounded-lg bg-white/10 px-4 text-base font-semibold text-slate-100"
               >
-                {s.id} · {s.label}
+                Recording mode
               </button>
-            ))}
-          </div>
-          <div role="group" aria-label="Region" className="flex rounded-xl bg-white/10 p-1">
-            {(['IN', 'US'] as const).map((r) => (
-              <button
-                key={r}
-                type="button"
-                aria-pressed={region === r}
-                disabled={!ready}
-                onClick={() => switchRegion(r)}
-                className={cn(
-                  'min-h-12 min-w-16 rounded-lg px-4 text-lg font-semibold disabled:opacity-50',
-                  region === r ? 'bg-white text-slate-950' : 'text-slate-100',
-                )}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
-          <p className="text-base font-medium">Text mode</p>
-          {actionError ? (
-            <p role="alert" className="max-w-[420px] truncate text-base font-semibold text-red-300">
-              {actionError}
-            </p>
-          ) : null}
-          <p role="status" data-hub={hubStatus} className="ml-auto text-base">
-            Hub:{' '}
-            <span
-              className={
-                hubStatus === 'open' ? 'font-semibold text-emerald-300' : 'font-semibold text-amber-300'
-              }
-            >
-              {hubStatus === 'open' ? 'live' : hubStatus === 'idle' ? 'not connected' : hubStatus}
-            </span>
-          </p>
+            </>
+          )}
         </header>
 
         {session.status === 'loading' ? (

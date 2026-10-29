@@ -260,3 +260,33 @@ describe('Stage board', () => {
     await waitFor(() => expect(calls.filter((c) => c.key === 'GET /web/ledger').length).toBe(before + 1));
   });
 });
+
+describe('Stage recording mode (Step 19)', () => {
+  afterEach(() => window.history.replaceState(null, '', '/'));
+
+  it('hides the scenario, region and dev controls, keeps the 1920x1080 canvas; Escape brings them back', async () => {
+    const user = userEvent.setup();
+    render(<StageBoard />);
+    await screen.findByRole('group', { name: 'Scenarios' });
+    await user.click(screen.getByRole('button', { name: 'Recording mode' }));
+    const canvas = screen.getByTestId('stage-canvas');
+    expect(canvas).toHaveAttribute('data-recording', 'on');
+    expect(canvas).toHaveClass('stage-recording');
+    expect(canvas).toHaveStyle({ width: '1920px', height: '1080px' });
+    expect(screen.queryByRole('group', { name: 'Scenarios' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Region' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Text mode')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Recording mode' })).not.toBeInTheDocument();
+    expect(window.location.search).toBe('?recording=1');
+    await user.keyboard('{Escape}');
+    expect(await screen.findByRole('group', { name: 'Scenarios' })).toBeInTheDocument();
+    expect(window.location.search).toBe('');
+  });
+
+  it('starts in recording mode from ?recording=1', async () => {
+    window.history.replaceState(null, '', '/stage?recording=1');
+    render(<StageBoard />);
+    await waitFor(() => expect(screen.getByTestId('stage-canvas')).toHaveAttribute('data-recording', 'on'));
+    expect(screen.queryByRole('group', { name: 'Scenarios' })).not.toBeInTheDocument();
+  });
+});

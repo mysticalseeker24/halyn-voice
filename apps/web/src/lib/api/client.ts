@@ -3,6 +3,8 @@ import {
   CallListResponseSchema,
   ConsolePassListResponseSchema,
   ConsolePassRevokeResponseSchema,
+  ClipAudioResponseSchema,
+  ClipListResponseSchema,
   IntegrationsResponseSchema,
   LedgerExportSchema,
   PermissionMapResponseSchema,
@@ -215,6 +217,10 @@ export function createApiClient(options: ApiClientOptions = {}) {
       request(ConsolePassRevokeResponseSchema, 'DELETE', `/web/console/passes/${id(passId)}`),
     signals: () => request(SignalsResponseSchema, 'GET', '/web/signals'),
     integrations: () => request(IntegrationsResponseSchema, 'GET', '/web/integrations'),
+
+    // Stage soundboard (Step 19): the AI clone's clips from KV.
+    clips: () => request(ClipListResponseSchema, 'GET', '/web/clips'),
+    clipAudio: (clipId: string) => request(ClipAudioResponseSchema, 'GET', `/web/clips/${id(clipId)}`),
 
     // Halyn Test (Step 15): a suite run, then one /web/stage/run per scenario that records into it.
     createTestRun: (region: Region | null) =>
