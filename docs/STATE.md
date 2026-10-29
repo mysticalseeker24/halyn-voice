@@ -77,7 +77,9 @@ Voice: none yet. Smoke plan: 1, 2, 3 (Saksham calls A; 3 from a second phone, st
 ## Next steps (in order) — only after Saksham's go-ahead (full detail: the chat #7 prompt in docs/HANDOFF.md)
 **Priority (Saksham, 2026-10-29): a complete product — every function working end to end — for the submission; the
 build freeze is gone. Screens stay plain until a UI refinement pass (professional, not AI-looking) after all steps.**
-1. Chat #7: Step 16 — the full testing + hardening pass (PROMPTS.md Step 16 + its speed-mode extension).
+1. Chat #7: Steps 16–19 + the real calls (prompt in HANDOFF.md): review + hardening (blockers/high now, the rest to a
+   "Chat #8 findings" list), Vercel (whole repo, Root Directory apps/web) + WEB_ORIGIN/RP_ID, phone passkey, persona agents,
+   voice smoke ×2, browser call, freeze + tag, clone clips + soundboard + recording mode. Chat #8: Step 20 + refining.
 2. Waiting for Saksham (09:00–21:00 IST, go-ahead per call or agent): voice smoke 1, 2, 3, 5, 6, 4 and the browser
    call (scenario 10) — inbound calls can't carry `user_data`, so 3/4's `security_demo` tag lives in our notes; create
    the three persona agents (`pnpm exec tsx scripts/bolna/agent.ts create agents/test-<persona>.json --yes` → `restricted: false` → `TEST_AGENT_*_ID` in
