@@ -75,5 +75,7 @@ describe('performance', () => {
     }
     times.sort((a, b) => a - b);
     expect(times[Math.ceil(times.length * 0.95) - 1]).toBeLessThan(300);
-  });
+    // 50 calls, each settled before the next: slow under pnpm verify's parallel load, so its own budget (only the
+    // propose_action calls themselves are timed).
+  }, 120_000);
 });
