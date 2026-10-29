@@ -1,4 +1,5 @@
 import type { Outcome } from '@halyn/shared';
+import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { HalynMark } from '@/components/halyn-mark';
@@ -219,6 +220,15 @@ export default function HomePage() {
                 </li>
               ))}
             </ol>
+            <figure className="border-border bg-card overflow-hidden rounded-xl border md:col-span-2">
+              <Image
+                src="/pipeline.png"
+                alt="A voice waveform enters a gate; only a signed line continues to the bank, while other requests branch to step-up, hold or deny"
+                width={1600}
+                height={995}
+                className="w-full dark:hue-rotate-180 dark:invert"
+              />
+            </figure>
           </div>
         </section>
 

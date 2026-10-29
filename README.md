@@ -195,6 +195,8 @@ is in [`docs/SCENARIOS.md`](docs/SCENARIOS.md) and the machine-readable spec in
 ---
 
 ## How it works
+
+![A voice waveform enters a gate; only a signed line continues to the bank, while other requests branch to step-up, hold or deny](apps/web/public/pipeline.png)
 ```
 Callers ─► Bolna (Vobiz numbers A/B, Web Call SDK)
             ├─ Aero voice agent (graph)  ──custom functions──►  Halyn API (Cloudflare Worker, Hono)
