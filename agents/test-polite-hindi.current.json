@@ -10,13 +10,7 @@
       "task_type": "conversation",
       "toolchain": {
         "execution": "parallel",
-        "pipelines": [
-          [
-            "transcriber",
-            "llm",
-            "synthesizer"
-          ]
-        ]
+        "pipelines": [["transcriber", "llm", "synthesizer"]]
       },
       "task_config": {
         "voicemail": false,
@@ -166,10 +160,7 @@
   "agent_category": "simple_llm_agent",
   "sip_headers": null,
   "memory_config": null,
-  "dispositions": [
-    "517c23df-fdf8-5634-b8cd-81b6daf17e35",
-    "e4893956-83f7-5350-a3a0-b7be22eafc5e"
-  ],
+  "dispositions": ["517c23df-fdf8-5634-b8cd-81b6daf17e35", "e4893956-83f7-5350-a3a0-b7be22eafc5e"],
   "single_prompt_ui": false,
   "agent_prompts": {
     "task_1": {
