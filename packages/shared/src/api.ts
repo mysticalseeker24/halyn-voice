@@ -49,7 +49,8 @@ const CallSidSchema = z.string().min(1).max(124).optional();
 export const LookupCustomerRequestSchema = z.object({
   run_id: RunIdSchema,
   call_sid: CallSidSchema,
-  from_number: E164Schema,
+  /** Absent on a browser call (Bolna sends "None"): the app session already names the customer. */
+  from_number: E164Schema.optional(),
   claimed_name: z.string().min(1).max(80).optional(),
 });
 export const LookupCustomerResponseSchema = z.strictObject({

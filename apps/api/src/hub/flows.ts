@@ -207,7 +207,7 @@ export function webCallCustomer(
  */
 export function registerWebCall(
   core: HubCore,
-  input: { run_id: string; session_customer_id: string; region: Region },
+  input: { run_id: string; session_customer_id: string; region: Region; call_ref?: string },
 ): CallState {
   const customer = webCallCustomer(core, input.session_customer_id, input.region);
   const existing = core.store.call(input.run_id);
@@ -215,7 +215,8 @@ export function registerWebCall(
   const call: CallState = {
     id: newId('call', core.clock, core.rng),
     run_id: RunIdSchema.parse(input.run_id),
-    call_sid: null,
+    // A browser call has no telephony call sid (Bolna sends "None"): the tools send Halyn's own reference instead.
+    call_sid: input.call_ref ?? null,
     channel: 'web',
     region: input.region,
     customer_id: customer.id,

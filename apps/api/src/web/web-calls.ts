@@ -1,4 +1,4 @@
-import { HalynError, WebCallSessionRequestSchema, WebCallSessionSchema } from '@halyn/shared';
+import { HalynError, newId, WebCallSessionRequestSchema, WebCallSessionSchema } from '@halyn/shared';
 import type { Context } from 'hono';
 import { WebCallEnvSchema } from '../env';
 import { type AppDeps, flowContext } from '../flow/context';
@@ -23,12 +23,20 @@ export function webCallSession(deps: AppDeps) {
     if (!agent_id) throw new HalynError('E_NOT_FOUND', `No Aero web agent for ${region}`);
     if (!flow.bolna) throw new HalynError('E_FAIL_CLOSED', 'Bolna is not configured');
     const who = await flow.hub.webCallCustomer(customer_id, region);
+    // The tools' `call_sid` for this call: a browser call has none (Bolna sends "None", call 59a2d9f8), so the graph
+    // sends {{call_ref}} and the Hub maps it to the run id like a call sid.
+    const call_ref = newId('web', flow.clock, flow.rng);
     const session = await flow.bolna.mintWebCall({
       agent_id,
       // The spoken form (Devanagari for Saksham): Sarvam reads Roman "Saksham" wrong (CLAUDE.md §8).
-      user_data: { customer_name: who.spoken_name, region },
+      user_data: { customer_name: who.spoken_name, region, call_ref },
     });
-    await flow.hub.registerWebCall({ run_id: session.run_id, session_customer_id: customer_id, region });
+    await flow.hub.registerWebCall({
+      run_id: session.run_id,
+      session_customer_id: customer_id,
+      region,
+      call_ref,
+    });
     return c.json(WebCallSessionSchema.parse(session));
   };
 }

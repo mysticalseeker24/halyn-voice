@@ -43,8 +43,8 @@ export function lookupCustomer(deps: AppDeps) {
       call_sid: body.call_sid ?? null,
       channel: 'phone',
       region: ctx.region,
-      number_hash: await registeredNumberHash(PHONE_HASH_PEPPER, body.from_number),
-      from_last4: body.from_number.slice(-4),
+      number_hash: body.from_number ? await registeredNumberHash(PHONE_HASH_PEPPER, body.from_number) : null,
+      from_last4: body.from_number ? body.from_number.slice(-4) : null,
       claimed_name: body.claimed_name ?? null,
     });
     return c.json(

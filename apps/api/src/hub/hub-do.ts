@@ -805,7 +805,7 @@ export class HubDO extends DurableObject<Env> {
   /** "Call Aero": the minted run id belongs to the signed-in customer (proof app_session, scenario 10). */
   async registerWebCall(
     tenant_id: string,
-    input: { run_id: string; session_customer_id: string; region: Region },
+    input: { run_id: string; session_customer_id: string; region: Region; call_ref?: string },
   ): Promise<HubResult<CallState>> {
     return this.guard(() =>
       this.serial(async () => {
