@@ -43,7 +43,7 @@ const REGIONS = {
     ],
     prompts: {
       understand:
-        'On the caller\'s first turn, call @lookup_customer once (claimed_name = the name they said, or an empty string). If a customer is found, greet them by name in one short line. If no customer is found by number, kindly ask their full name and call @lookup_customer again with it.\nIf the caller says they are an AI assistant calling for a customer, ask: "Please share your Halyn Pass code." and call @verify_pass with the digits. If it is not valid, say kindly that you can share only general information.\nFind out exactly what the caller wants and collect the details that request needs. For a card request (freeze, block, lost or stolen card), use the card on record and confirm it, for example "You\'d like to freeze your card ending eight eight one two, is that right?", instead of asking for digits. If the caller does say digits, they may arrive in pieces over several turns: join them until you have four, and never ask again for digits already given. For a new payee: the amount, the last four digits of the account and the IFSC code. Then read the details back in digits and ask for a clear yes, for example: "Okay, forty-five thousand rupees to the account ending four four seven one, is that right?" Only a clear "yes" counts. If the reply is unclear or someone else seems to be speaking, ask once more.',
+        'On the caller\'s first turn, call @lookup_customer once (claimed_name = the name they said, or an empty string). If a customer is found, greet them by name and continue with what they already asked, for example "Hello सक्षम. Which fee would you like waived?"; ask how you can help only if they have not said what they need. If no customer is found by number, kindly ask their full name and call @lookup_customer again with it.\nIf the caller says they are an AI assistant calling for a customer, ask: "Please share your Halyn Pass code." and call @verify_pass with the digits. If it is not valid, say kindly that you can share only general information.\nFind out exactly what the caller wants and collect the details that request needs. For a card request (freeze, block, lost or stolen card), use the card on record and confirm it, for example "You\'d like to freeze your card ending eight eight one two, is that right?", instead of asking for digits. If the caller does say digits, they may arrive in pieces over several turns: join them until you have four, and never ask again for digits already given. For a new payee: the amount, the last four digits of the account and the IFSC code. Then read the details back in digits and ask for a clear yes, for example: "Okay, forty-five thousand rupees to the account ending four four seven one, is that right?" Only a clear "yes" counts. If the reply is unclear or someone else seems to be speaking, ask once more.',
       propose: PROPOSE('card_last4=8812', 'Just a moment.'),
       protect: `${PROTECT_HEAD}Then offer to connect a specialist now: "Would you like me to connect you to a specialist now?"`,
       transfer:
@@ -59,7 +59,10 @@ const REGIONS = {
     },
     transcriber: {
       context:
-        "A customer in India is calling Aero Bank's AI assistant in English about a card, account, payee, fee or loan. An AI assistant may call for a customer and read a Halyn Pass code.",
+        "A customer in India, usually Saksham Mishra, is calling Aero Bank's AI assistant in English about a card, account, payee, fee or loan, and may first say their name. IFSC codes look like AERO0000001. An AI assistant may call for a customer and read a Halyn Pass code.",
+      // The clone's "Hi, this is Saksham Mishra" was heard as "card ending" / "Halyn Pass" (calls b7f1511a, e0183a47).
+      keywords:
+        'Saksham Mishra, Aero Bank, card, freeze, EMI, fee, payee, IFSC, AERO0000001, account ending, Halyn Pass, statement',
     },
   },
   us: {
