@@ -85,7 +85,30 @@ non-protective prompt wording and misspellings of Saksham's name).
     `pnpm test:e2e` when the web app changed** — e2e is not part of verify (chat #4's first CI run failed on it).
 
 
-## Prompt to paste into the new chat (chat #9 → calls, freeze, README numbers, both videos, X post, deck, submission)
+## Prompt to paste into the new chat (chat #10 → Run all, last calls, video takes, freeze, submit)
+```
+Halyn chat #10 — submission day, Sat Oct 31, 2026. Read docs/STATE.md first (chat #9 section). Speed mode (CLAUDE.md
+§5): no subagents, narrow reads, quiet commands, scripts via the Write tool, small local commits, status ≤ 5 lines.
+Laptop on the PHONE HOTSPOT (the home Wi-Fi blocks *.workers.dev). Calls and Run all only 09:00–21:00 IST.
+APPROVALS (ask once per batch): calls, agent updates, deploys, seed:core / DB / KV writes, Sarvam spend, push, tag.
+
+1. RUN ALL (first, daytime): seed:core + demo reset → one Stage scenario to warm the Hub → `node scripts/ops/run-all.mjs
+   IN` then `US` → fill README "Latest Run all on the deployed API" with the real scorecard (passed, actions without a
+   grant, median propose_action; explain any latency/LLM failures honestly) → seed:core + demo reset after.
+2. CALLS (Saksham calls; grade each with list_agent_executions → the review steps in STATE): 3 clone from the second
+   phone (clips 1, 2, 3, then 6; decline on the Confirm call — "No"), 4 coached (registered phone; "No, not now" to the
+   specialist), 5+6 Assistant with pass_demo (/assistant → Call with Aero; decline the transfer), personas (Console →
+   Test → Voice). Demo reset before each; seed:core after any executed action. Add rows to the README "Real calls" table.
+   Fix only what the calls show.
+3. VIDEO TAKES with Saksham per docs/DEMO_SCRIPT.md shot list (A–J); run resets/seeds between takes; X cut per
+   docs/LAUNCH.md. Fill the video/deck/X links in README + docs/SUBMISSION.md when Saksham has them.
+4. FREEZE + SUBMIT: agent snapshots (`agent.ts get <id> --out=agents/<x>.current.json`), commit, tag `demo-freeze`
+   (push = go-ahead); docs/SUBMISSION.md final pass (ask Saksham to paste the form's fields); compliance check
+   (list_violations, restricted false ×7) + COMPLIANCE.md log; /handoff; prettier; ONE pnpm verify; ask; bash
+   scripts/push.sh; gh run watch <id> --exit-status.
+```
+
+## Prompt used for chat #9 (done 2026-10-30; kept for the record)
 ```
 Halyn chat #9 — the last one. Bolna Symphony Buildathon; SUBMISSION SAT OCT 31, 2026. Everything that is code is
 done, pushed and green. This chat: (A) the English real-call rounds, (B) freeze, (C) README numbers + final

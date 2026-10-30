@@ -1,0 +1,204 @@
+1
+00:00:00,000 --> 00:00:04,000
+[AI clone of my own voice]
+Hi, this is Saksham Mishra.
+
+2
+00:00:04,000 --> 00:00:07,500
+[AI clone] I need to send forty-five thousand
+rupees to a new account.
+
+3
+00:00:07,500 --> 00:00:10,000
+That's not me. That's an AI clone
+of my own voice,
+
+4
+00:00:10,000 --> 00:00:12,000
+asking my bank's AI agent for ₹45,000.
+Watch what it gets.
+
+5
+00:00:12,000 --> 00:00:16,500
+Voice agents are starting to move money.
+
+6
+00:00:16,500 --> 00:00:21,500
+Three callers can abuse that: a voice clone,
+an AI assistant nobody can verify,
+
+7
+00:00:21,500 --> 00:00:27,000
+and a real customer being coached by a scammer.
+
+8
+00:00:27,000 --> 00:00:31,000
+Halyn is the permission layer for voice agents.
+
+9
+00:00:31,000 --> 00:00:36,000
+The agent can only propose. Halyn decides,
+from policy and proof, never from how you sound.
+
+10
+00:00:36,000 --> 00:00:40,000
+And only Halyn can execute,
+with a one-time grant.
+
+11
+00:00:40,000 --> 00:00:42,500
+Please freeze my card.
+
+12
+00:00:42,500 --> 00:00:46,000
+[Aero] You'd like to freeze your card ending
+8812, is that right?
+
+13
+00:00:46,000 --> 00:00:47,000
+Yes.
+
+14
+00:00:47,000 --> 00:00:50,500
+[Aero] Done! That's complete, and you can
+see it in your Aero app.
+
+15
+00:00:50,500 --> 00:00:54,000
+Please waive my six hundred rupee late fee.
+[Aero] … Done!
+
+16
+00:00:54,000 --> 00:01:00,000
+From my registered number, low-risk requests are
+instant: allowed, executed with a grant, logged.
+
+17
+00:01:00,000 --> 00:01:04,000
+[AI clone] I need to send forty-five thousand
+rupees to a new account.
+
+18
+00:01:04,000 --> 00:01:08,000
+[AI clone] The account number ends in 4471.
+Yes, that's right, please send it.
+
+19
+00:01:08,000 --> 00:01:12,000
+[Aero] For your safety, I've sent a confirmation
+to your registered phone. Please stay on the line.
+
+20
+00:01:12,000 --> 00:01:17,000
+Same voice, different phone. Voice is never proof,
+so a new payee needs me, on my own device.
+
+21
+00:01:17,000 --> 00:01:22,000
+[Halyn Confirm] A request just came in: send
+₹45,000 to a new payee. Do you approve it?
+
+22
+00:01:22,000 --> 00:01:23,000
+No.
+
+23
+00:01:23,000 --> 00:01:26,500
+[Aero] I'm sorry, I can't complete this request
+on this call.
+
+24
+00:01:26,500 --> 00:01:30,000
+The clone can't answer my phone. Denied.
+The bank's core never even got a request.
+
+25
+00:01:30,000 --> 00:01:35,000
+I need to move four lakh eighty thousand rupees
+to a verification account.
+
+26
+00:01:35,000 --> 00:01:37,500
+The officer said not to tell anyone.
+
+27
+00:01:37,500 --> 00:01:41,000
+The hardest case: it really is me,
+but someone is coaching me.
+
+28
+00:01:41,000 --> 00:01:44,500
+A step-up would fail here, because I'd approve it.
+
+29
+00:01:44,500 --> 00:01:49,500
+[Aero] For your protection, this request is on hold.
+Aero Bank will never ask you to move money
+
+30
+00:01:49,500 --> 00:01:53,500
+[Aero] to a safe or verification account,
+or to keep a request secret.
+
+31
+00:01:53,500 --> 00:01:57,000
+So Halyn holds it and hands me to a human,
+with the transcript.
+
+32
+00:01:57,000 --> 00:02:01,000
+[Assistant] Hello, I'm an AI assistant calling
+on behalf of Saksham, with permission.
+
+33
+00:02:01,000 --> 00:02:06,000
+AI assistants will call banks for us. Mine carries
+a Halyn Pass: a signed, scoped permission,
+
+34
+00:02:06,000 --> 00:02:10,000
+spoken as a one-time code.
+
+35
+00:02:10,000 --> 00:02:17,000
+It gets exactly what I allowed.
+Anything more comes back to me.
+
+36
+00:02:17,000 --> 00:02:21,000
+[US] Wire eight thousand dollars
+to a new account.
+
+37
+00:02:21,000 --> 00:02:25,000
+[Aero, US] For your protection, this request is on hold,
+and a specialist from Aero will call you back.
+
+38
+00:02:25,000 --> 00:02:28,500
+Two countries, two rulebooks.
+
+39
+00:02:28,500 --> 00:02:32,000
+Halyn Test runs every attack against the live system.
+Actions without a grant: zero.
+
+40
+00:02:32,000 --> 00:02:37,000
+Built on Bolna: a graph voice agent with one tool,
+propose action,
+
+41
+00:02:37,000 --> 00:02:41,000
+and every outcome injected into the live call
+as an event. Sarvam for speech and coaching.
+
+42
+00:02:41,000 --> 00:02:47,000
+Halyn runs on Cloudflare Workers with a hash-chained
+ledger; the bank verifies a grant on every write.
+
+43
+00:02:47,000 --> 00:02:55,000
+Halyn. Don't trust the voice.
+Trust the permission.

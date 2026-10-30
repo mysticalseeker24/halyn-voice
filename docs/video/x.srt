@@ -1,0 +1,47 @@
+1
+00:00:00,000 --> 00:00:02,000
+A perfect AI clone of my voice just
+asked my bank for ₹45,000.
+
+2
+00:00:02,000 --> 00:00:05,000
+Same voice. Different phone.
+
+3
+00:00:05,000 --> 00:00:09,000
+The bank's AI asks the real me,
+on my own phone.
+
+4
+00:00:09,000 --> 00:00:13,000
+I said no. It got nothing.
+The bank never even saw the request.
+
+5
+00:00:13,000 --> 00:00:20,000
+Harder: it's really me —
+but a scammer is coaching me.
+
+6
+00:00:20,000 --> 00:00:25,000
+A step-up would fail (I'd approve it).
+So it goes to a human.
+
+7
+00:00:25,000 --> 00:00:31,000
+Me, asking normally? Instant.
+
+8
+00:00:31,000 --> 00:00:38,000
+My AI assistant gets a Halyn Pass:
+exactly what I allowed. Nothing more.
+
+9
+00:00:38,000 --> 00:00:45,000
+The voice agent can only propose.
+Halyn decides. Only Halyn executes.
+
+10
+00:00:45,000 --> 00:00:52,000
+Don't trust the voice. Trust the permission.
+halyn-voice.vercel.app

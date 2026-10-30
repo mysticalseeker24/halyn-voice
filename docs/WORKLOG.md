@@ -2,6 +2,15 @@
 
 Newest at the top. One entry per session via `/handoff`: what changed, tests run (with counts), what's next, anything risky.
 
+## 2026-10-30 · English real calls and the fixes they forced, video scripts, deck, submission — chat #9
+- Calls (~35, 19:50–22:30): 1, 2 allow → executed; 4 hold (S_COACHING 0.95); 10 hold (browser); 3 failed closed on
+  bad clone digits. Fixes, each tested + deployed: static done/hold lines; allow sent only as `done` (finding 7);
+  demo reset clears limits + Pass uses (and runs per Stage scenario); browser `call_ref`; US Sarvam voice; no spoken
+  IFSC; caller_quotes; STT keywords; clips 3/4. API 873d73f0; tests green (API 39 + 98 + full 996, shared 92).
+- Docs: README real-call table + screenshots; DEMO_SCRIPT (2:55 beat sheet, shot list), LAUNCH (X video, post,
+  thread), video/*.srt, DECK.md (16 slides), SUBMISSION.md; COMPLIANCE log (7/7 restricted false, 0 violations).
+- Next: chat #10 — daytime Run all, calls 3/4/5+6, video takes, freeze, submit.
+
 ## 2026-10-30 · English demo, demo reset, findings 1/4/5/6/9, README draft, UI pass — chat #8
 - A: `make-aero-en.mjs in|us` writes both English graphs from the Hindi `aero-hi.graph.json`; Confirm + Assistant
   English; all 4 pushed (restricted false). Seed language `en` (halyn_dev seeded). Fee summary "late fee for October".

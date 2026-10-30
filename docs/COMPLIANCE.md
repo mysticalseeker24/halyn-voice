@@ -37,7 +37,9 @@ Bolna's published rules; where a rule is unclear we ask Bolna first; every test 
   on request.
 - **Dependency audit:** `pnpm audit --prod` reports one low advisory (deepmerge, via the shadcn CLI, a dev-time
   generator; no patched release on 2026-10-30). Not reachable from the deployed Workers or the web bundle.
-- **Demo reset:** the Console's "Demo reset" only moves the call-burst window for retakes; it deletes nothing.
+- **Demo reset:** the Console's "Demo reset" moves the window for the call-burst signal, the per-period limits and
+  Pass-use counts for retakes (since 2026-10-30; earlier takes had used the yearly fee waiver); it deletes nothing.
+  Every Stage / Run-all scenario starts with one, so a suite run is not skewed by its own earlier scenarios.
 
 ## Attacker personas
 Status: **awaiting Bolna** (update `docs/STATE.md` when answered).
@@ -58,3 +60,4 @@ If declined or no answer by Tue Oct 27: text mode only; Saksham plays the clone 
 | 2026-10-26 (Day-0 setup, with go-ahead) | 0 | Created 4 test agents (Aero test graph, Confirm test, Assistant, polite test caller); number A relinked from the old listener (kept) to the Aero test agent | Yes, 4/4 | None (checked 2026-10-27 01:50 IST) | Calls deferred: window closed. Guardrails 9–21 on the 3 outbound agents |
 | 2026-10-28 15:08–15:40 IST (Day-0 calls, with go-ahead) | 11: 5 inbound by Saksham to A (card freeze ×3, transfer, 1 short), 5 outbound Confirm from B to Saksham, 1 agent-to-agent B → A | Aero test + Confirm test: tool params only (no run id; Confirm: DTMF off, question in greeting, no `method` arg) — each with go-ahead | Yes, 4/4 | None (15:45 IST) | Only Saksham's own numbers dialled; all in 09:00–21:00; no fraud-like content; 33.9 ¢ spent (wallet 958.7 ¢) |
 | 2026-10-28 23:45 – 10-29 01:00 IST (Step 8/10 setup, with go-ahead) | 0 | Created Aero graph `f02fa07d…`, Halyn Confirm graph `96a6c2a2…`, Saksham's Assistant `29d45c35…` from the protective Devanagari prompts; number A relinked from the Day-0 Aero test agent (kept) to the Aero graph | Yes (3/3, checked with `get_agent`) | None (`list_violations` empty) | Guardrails 9–21 on Confirm + Assistant; DTMF off; no calls placed |
+| 2026-10-30 19:50–22:30 IST (chat #9 English calls, with go-ahead) | ~35: inbound by Saksham to A from his registered phone and his second phone (scenarios 1, 2, 3, 4), US browser calls to `aero-en` (scenario 10), 2 web-call sessions minted for a check (unused); no outbound calls (Confirm callbacks were not needed or outside 09–21) | Aero IN + US graphs updated 9× (fixed done/hold lines, `done` edge, transcriber keywords, no spoken IFSC, `call_ref` for browser calls, Sarvam voice for US) — protective wording only | Yes, 7/7 (checked after every update and at 22:30) | None (`list_violations` empty, 22:30) | Clone clips 3 + 4 re-rendered (Sarvam, ≈ ₹0.3, consented own voice, labelled). Guardrails 9–21 on Confirm + Assistant unchanged; never bypassed |

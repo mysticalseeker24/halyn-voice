@@ -1,8 +1,21 @@
 # STATE — read at the start of every chat, update at the end (`/handoff`). Keep it short (speed mode).
 
-_Last updated: 2026-10-30 05:00 IST, end of chat #8. **All code done, pushed (`9cd3ac4`), CI green.** Chat #9 (prompt in
-docs/HANDOFF.md): English call rounds → freeze → README numbers → submission video + X video/post → pitch deck →
-submit (Sat Oct 31)._
+_Last updated: 2026-10-30 22:45 IST, end of chat #9. **English real calls 1, 2, 4, 10 graded; ~10 call-driven fixes
+deployed (API `873d73f0`, Aero IN + US graphs) and pushed.** Chat #10 (prompt in docs/HANDOFF.md), Sat Oct 31 from
+09:00: daytime Run all → README numbers; calls 3, 4, 5+6 (+ personas) with the Confirm callback; video takes per
+docs/DEMO_SCRIPT.md; freeze tag; submit (docs/SUBMISSION.md)._
+
+## Chat #9 (2026-10-30, 19:48–22:45 IST) — what the calls changed (all live)
+- Fixed lines for `confirmed` and `protect` (the LLM improvised "under review"); an allow is sent only as `done`
+  (`propose` → `confirmed` edge; finding 7); demo reset (and every Stage/Run-all scenario) also clears limit and
+  Pass-use counts; browser calls send Halyn's `call_ref` (Bolna gives no call sid); US twin uses the Sarvam voice
+  (Deepgram TTS failed); India new payees skip the spoken IFSC (`payee_ifsc=AERO0000001` from records);
+  `caller_quotes` = the caller's own words about the request; STT keywords + "Saksham Mishra", minus "Aero Bank";
+  clone clips 3 ("forty-four seventy-one") and 4 re-rendered.
+- **This Wi-Fi blocks `*.workers.dev`** (laptop + browser): use the phone hotspot. Vobiz inbound dropped once ~20:50.
+- Run all is valid only 09:00–21:00 (after 21:00 no callback channel; after 23:00 `S_UNUSUAL_HOUR`). Live
+  `propose_action` measured 230–560 ms vs the 300 ms live budget — expect some latency failures; report honestly.
+- Specialist transfer goes to `SPECIALIST_NUMBER`: in a take, answer "No, not now" unless that number is another phone.
 
 ## Where we are
 - **Done on `main`:** Steps 0–16, slim 14, Day-0; Step 19's code. Working mode: **CLAUDE.md §5 speed mode**.
@@ -71,12 +84,17 @@ requests ≤ 8 ms; the in-process Stage run 105 ms; one Hub event 15 ms; no CPU-
 Voice (Hindi, round 1): **1 ✅** (call `3e4a4e81`: registered via telephony, allow tier 1, executed, Hindi outcome;
 proposal → outcome audio 6.6 s, fillers since cut). **2 ⚠️** (`ded42251`): step_up because `S_CALL_BURST` (≥ 3 calls/hour
 from the number during testing); Confirm call approved → executed; Aero never spoke it (carrier call-waiting audio) →
-fixed by `cd31bc8`. 3, 4, 5+6, 10, personas, round 2: not yet.
+fixed by `cd31bc8`.
+Voice (English, chat #9, table in README "Real calls"): **1 ✅** (`cee48b55`) · **2 ✅** (`6347ac0b`, P_WITHIN_LIMIT) ·
+**4 ✅ hold** (`5d781aa6`, S_COACHING 0.95; retake `1c490c71` missed the cue → caller_quotes fix) · **10 ✅ hold**
+(`f24739b9`, browser) · **3 ⚠️** (`5640f749`: clone digits heard as 471 → fail-closed deny; clip 3 re-rendered) ·
+5+6, personas, round 2: not yet (need 09:00–21:00 outbound).
 
-## Next steps (chat #9, from 09:00 IST — prompt in docs/HANDOFF.md)
-1. Calls round 1 + 2 (1–4, 5+6, 10, personas); demo reset + `seed:core` before each; first call: name check + latency.
-2. /compliance-check + COMPLIANCE.md log; `node scripts/ops/run-all.mjs` in DAYTIME → README numbers; seed:core after.
-3. Freeze (snapshots, `demo-freeze` tag), video per docs/DEMO_SCRIPT.md, submission.
+## Next steps (chat #10, Sat Oct 31 from 09:00 IST — prompt in docs/HANDOFF.md)
+1. seed:core + demo reset → `node scripts/ops/run-all.mjs IN` (+ US) → README "Latest Run all"; seed:core after.
+2. Calls: 3 (clone, decline on the Confirm call), 4 (coached), 5+6 (Assistant + Pass), personas; grade, README table.
+3. Video takes per docs/DEMO_SCRIPT.md shot list (Saksham records); X cut per docs/LAUNCH.md.
+4. Freeze: snapshots, `demo-freeze` tag (push = go-ahead); docs/SUBMISSION.md final pass; submit.
 
 ## Ship-check (chat #8, 02:55 IST)
 Code items all ✅ (text mode 15/15, CI green, Aero Core 401 on no/forged grant by curl, grant tests, ledger verify ok

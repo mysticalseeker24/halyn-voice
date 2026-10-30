@@ -138,11 +138,13 @@ Ten invariants are built in and each one has tests:
 **Halyn Stage** — the live view used for the demo video: the Aero app, the call transcript, the Confirm panel, the
 decision with its reason codes, the ledger and the event timeline, on a fixed 1920×1080 canvas.
 
-![A real phone call from the voice test session: a fee waiver steps up because of a call burst, the customer approves via the callback, Aero Core executes, and the ledger shows 28 linked entries](docs/screens/real-call-fee-waiver-stage.png)
-*A real call from the first voice session (in Hindi, before the demo switched to English): the fee waiver stepped up
-because of a call burst from repeated testing (`S_CALL_BURST`), the Confirm call to the customer approved it, Aero
-Core executed it, and the chain verified across 28 entries. Since then, the Stage splits the end-of-call transcript
-into agent and caller lines.*
+![A real phone call in English: the customer asks to waive a ₹600 late fee from the registered number; Halyn allows it within the yearly limit, Aero Core credits ₹600 with a one-time grant, and the ledger chain verifies](docs/screens/real-call-2-fee-waiver-allowed.png)
+*A real call on number A (2026-10-30): "Please waive my ₹600 late fee" → read-back → "Yes" → `ALLOWED`
+(`P_WITHIN_LIMIT`) → grant → Aero Core credits ₹600 → the agent says "Done!". Every step is a linked ledger row.*
+
+| The coached customer is held (real call) | Step-up: the exact action on the customer's phone | Declined on the passkey → denied |
+|---|---|---|
+| ![Stage: a ₹4,80,000 transfer to a "verification account" is HELD with S_COACHING and a specialist handoff](docs/screens/real-call-4-coached-held-stage.png) | ![Stage: a tier-3 new-payee transfer steps up; the Aero app shows the approval sheet with the exact amount and a safe-account warning](docs/screens/real-call-step-up-approval-sheet.png) | ![Stage: the customer declines on the passkey sheet; STEP-UP → DENIED with C_DECLINED; Aero Core is never called](docs/screens/real-call-step-up-declined.png) |
 
 **Aero Bank app** (the customer's phone): balance, card and loan; the approval sheet shows the *exact* action, a
 passkey button and a warning that Aero never asks anyone to move money to a "safe account".
@@ -312,8 +314,28 @@ never be in a Pass. Five wrong codes lock it; the customer can revoke it any tim
 About **2,100 automated tests** plus 16 end-to-end tests run on every push (GitHub Actions: lint, typecheck, unit,
 integration, scenarios, build, then e2e).
 
-**Latest "Run all" on the deployed API:** _filled from the daytime run on 2026-10-30 (scenarios passed, actions
-without a grant, median `propose_action`)._ **Real calls on Bolna (English):** _filled after the call rounds._
+**Latest "Run all" on the deployed API:** _filled from the daytime run on 2026-10-31 (scenarios passed, actions
+without a grant, median `propose_action`). Run all needs the 09:00–21:00 window: after 21:00 Halyn offers only the
+passkey (no outbound callback), and after 23:00 `S_UNUSUAL_HOUR` raises every tier, both by design._
+
+### Real calls on Bolna (English, 2026-10-30)
+Real phone calls to number A (Vobiz, India) and browser calls to the US twin, graded against
+[`docs/SCENARIOS.md`](docs/SCENARIOS.md). Outcome latency = Halyn's answer to the tool → the agent starts the outcome.
+
+| Scenario | Channel | Halyn's decision | Reason codes | What the caller heard | Outcome latency |
+|---|---|---|---|---|---|
+| 1 · Freeze a card | Phone, registered number | **allow** → executed | `P_TIER0` `P_PROTECTIVE` | "Done! That's complete…"; card frozen in the app | 4.5 s |
+| 2 · Waive a ₹600 late fee | Phone, registered number | **allow** → executed | `P_WITHIN_LIMIT` | "Done!"; balance +₹600 | 3.7 s |
+| 4 · Coached customer, ₹4,80,000 to a "verification account" | Phone, registered number | **hold** | `S_COACHING` (0.95) `H_SPECIALIST` | no step-up; specialist handoff opened (the hold line was improvised; now fixed) | 2.4 s |
+| 4 · retake: the coaching words did not reach the tool | Phone, registered number | **step_up → deny** | `P_TIER3_STEP_UP` `C_DECLINED` | the exact action on the passkey sheet; declined; Aero Core never called | 1.4 s |
+| 10 · Wire $8,000 to a new account (US) | Browser (Web Call SDK) | **hold** | `P_HUMAN_ONLY_ABOVE_LIMIT` `H_SPECIALIST` | "For your protection, this request is on hold…" | 1.8 s |
+
+What the calls changed (all fixed the same night, each with a test): the "done" and "hold" lines became fixed lines
+(the LLM improvised "under review"); an allow is now heard only as `done`; the demo reset also clears limit counts
+(earlier takes had used the yearly fee waiver); browser calls carry Halyn's own call reference (Bolna sends no call
+sid for web calls); the India agent no longer asks for a spoken IFSC. The cloned-voice call (scenario 3) and the
+agent-to-agent Pass call (5 + 6) need the Confirm callback, which only rings 09:00–21:00: they run on 2026-10-31.
+Every call: AI + recording disclosure in the greeting, `restricted: false` on all agents, 0 Bolna violations.
 
 ---
 

@@ -87,8 +87,8 @@ How the tools behave (Step 7, `apps/api/src/tools`; ADR-016):
 ## Events Halyn sends into calls (`POST https://api.bolna.ai/v1/call/{run_id}/events`)
 | Event | Properties | Aero graph goes to |
 |---|---|---|
-| `allow` | `{request_id}` | `working` |
-| `done` | `{reference, summary}` | `confirmed` |
+| `allow` | `{request_id}` | `working` (no longer sent since 2026-10-30: an allow is heard only as `done`) |
+| `done` | `{reference, summary}` | `confirmed` (from `propose` for an allow, from `working` after an approval) |
 | `step_up` | `{request_id, channels}` | `awaiting_confirmation` |
 | `approved` | `{request_id}` | `working` |
 | `denied` / `timeout` | `{request_id, reason}` | `refused` |
