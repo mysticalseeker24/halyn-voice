@@ -627,4 +627,26 @@ describe('the demo reset (S_CALL_BURST during retakes, chat #8 finding 9)', () =
     expect((await h.hub.consoleCalls()).calls.length).toBeGreaterThanOrEqual(4);
     expect((await h.hub.ledgerHead())?.seq).toBeGreaterThan(head?.seq ?? 0);
   });
+
+  it('a console reset also starts fresh limit counts (the yearly fee waiver, call f4bcd580)', async () => {
+    async function waive(n: number): Promise<{ outcome: string; reasons: string[] }> {
+      await h.tool('lookup_customer', { run_id: runId(n), from_number: REGISTERED });
+      const { json } = await propose({
+        ...freeze(runId(n)),
+        action: 'fee.waive',
+        params: { amount_minor: 60000, currency: 'INR', fee_id: 'fee_late_oct' },
+      });
+      await h.settle();
+      const d = (await h.hub.requestState(json.request_id))?.decision;
+      return { outcome: d?.outcome ?? '', reasons: d?.reasons ?? [] };
+    }
+    expect((await waive(11)).outcome).toBe('allow');
+    expect((await waive(12)).reasons).toContain('P_OVER_LIMIT');
+    h.clock.advance(60_000);
+    await h.web('/web/stage/demo-reset', {}, await h.consoleToken());
+    h.clock.advance(1_000);
+    const after = await waive(13);
+    expect(after.reasons).not.toContain('P_OVER_LIMIT');
+    expect(after.outcome).toBe('allow');
+  });
 });

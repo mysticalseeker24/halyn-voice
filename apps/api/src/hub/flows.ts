@@ -587,10 +587,12 @@ export async function propose(core: HubCore, raw: ProposeInput): Promise<Propose
       readback_confirmed: input.readback_confirmed,
       caller_quotes: input.caller_quotes,
     };
+    // A Console demo reset (retakes) also starts fresh limit and Pass-use counts: earlier takes used the yearly waiver.
+    const counted = history.filter((record) => record.created_at >= core.burstEpoch);
     const context: GateContext = {
       proof,
-      ...(passActive ? { pass: { scopes: pass.scopes, uses: passUses(history, pass.id) } } : {}),
-      counters: gateCounters(history, call.customer_id, pack, now),
+      ...(passActive ? { pass: { scopes: pass.scopes, uses: passUses(counted, pass.id) } } : {}),
+      counters: gateCounters(counted, call.customer_id, pack, now),
       signals: {
         unregistered_number: !call.registered && !fromPassNumber && !passActive,
         calls_last_hour: call.number_hash
