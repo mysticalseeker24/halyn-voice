@@ -13,13 +13,7 @@
         "task_type": "conversation",
         "toolchain": {
           "execution": "parallel",
-          "pipelines": [
-            [
-              "transcriber",
-              "llm",
-              "synthesizer"
-            ]
-          ]
+          "pipelines": [["transcriber", "llm", "synthesizer"]]
         },
         "task_config": {
           "optimize_latency": true,
@@ -65,9 +59,7 @@
                       "description": "Calling number. Filled automatically."
                     }
                   },
-                  "required": [
-                    "claimed_name"
-                  ]
+                  "required": ["claimed_name"]
                 }
               },
               {
@@ -91,9 +83,7 @@
                       "description": "Calling number. Filled automatically."
                     }
                   },
-                  "required": [
-                    "code"
-                  ]
+                  "required": ["code"]
                 }
               },
               {
@@ -129,12 +119,7 @@
                       "description": "Calling number. Filled automatically."
                     }
                   },
-                  "required": [
-                    "action",
-                    "params",
-                    "readback_confirmed",
-                    "caller_quotes"
-                  ]
+                  "required": ["action", "params", "readback_confirmed", "caller_quotes"]
                 }
               },
               {
@@ -144,9 +129,7 @@
                 "pre_call_message": "I'm connecting you to our specialist now. Please stay on the line.",
                 "parameters": {
                   "type": "object",
-                  "required": [
-                    "call_sid"
-                  ],
+                  "required": ["call_sid"],
                   "properties": {
                     "call_sid": {
                       "type": "string",
@@ -173,9 +156,7 @@
                   "tool": "lookup_customer"
                 },
                 "scope": "node",
-                "nodes": [
-                  "understand"
-                ]
+                "nodes": ["understand"]
               },
               "verify_pass": {
                 "url": "{{API_URL}}/tools/verify_pass",
@@ -193,9 +174,7 @@
                   "tool": "verify_pass"
                 },
                 "scope": "node",
-                "nodes": [
-                  "understand"
-                ]
+                "nodes": ["understand"]
               },
               "propose_action": {
                 "url": "{{API_URL}}/tools/propose_action",
@@ -217,9 +196,7 @@
                   "tool": "propose_action"
                 },
                 "scope": "node",
-                "nodes": [
-                  "propose"
-                ]
+                "nodes": ["propose"]
               },
               "transfer_call_specialist": {
                 "url": null,
@@ -230,9 +207,7 @@
                   "call_transfer_number": "{{SPECIALIST_NUMBER}}"
                 },
                 "scope": "node",
-                "nodes": [
-                  "transfer"
-                ]
+                "nodes": ["transfer"]
               }
             }
           },

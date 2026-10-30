@@ -66,8 +66,12 @@
               "name": "lookup_customer",
               "parameters": {
                 "type": "object",
-                "required": ["claimed_name"],
+                "required": ["claimed_name", "call_ref"],
                 "properties": {
+                  "call_ref": {
+                    "type": "string",
+                    "description": "The call reference from the call details, starting with web_."
+                  },
                   "call_sid": {
                     "type": "string",
                     "description": "Telephony call id. Filled automatically."
@@ -90,11 +94,15 @@
               "name": "verify_pass",
               "parameters": {
                 "type": "object",
-                "required": ["code"],
+                "required": ["code", "call_ref"],
                 "properties": {
                   "code": {
                     "type": "string",
                     "description": "The six digits the assistant said, digits only."
+                  },
+                  "call_ref": {
+                    "type": "string",
+                    "description": "The call reference from the call details, starting with web_."
                   },
                   "call_sid": {
                     "type": "string",
@@ -114,7 +122,7 @@
               "name": "propose_action",
               "parameters": {
                 "type": "object",
-                "required": ["action", "params", "readback_confirmed", "caller_quotes"],
+                "required": ["action", "params", "readback_confirmed", "caller_quotes", "call_ref"],
                 "properties": {
                   "action": {
                     "type": "string",
@@ -123,6 +131,10 @@
                   "params": {
                     "type": "string",
                     "description": "The details as key=value pairs separated by semicolons. No quotes, no braces, no JSON. Amounts are amount_minor = dollars x 100 (8000 dollars -> 800000) with currency USD. Keys per action: card.freeze card_last4; balance.view/statement.view/account.close account (checking); fee.waive amount_minor, currency, fee_id; transfer.saved amount_minor, currency, payee_id; wire.new amount_minor, currency, payee_account_last4, routing_last4; profile.change_mobile new_number with +1; dispute.charge card_last4, amount_minor, currency, merchant; wire.international amount_minor, currency, payee_account_last4, swift_bic, payee_country. Example: amount_minor=800000; currency=USD; payee_account_last4=3310; routing_last4=0021"
+                  },
+                  "call_ref": {
+                    "type": "string",
+                    "description": "The call reference from the call details, starting with web_."
                   },
                   "call_sid": {
                     "type": "string",
@@ -152,6 +164,7 @@
               "nodes": ["understand"],
               "param": {
                 "code": "%(code)s",
+                "call_ref": "%(call_ref)s",
                 "call_sid": "%(call_sid)s",
                 "from_number": "%(from_number)s"
               },
@@ -174,6 +187,7 @@
                 "action": "%(action)s",
                 "params": "%(params)s",
                 "channel": "web",
+                "call_ref": "%(call_ref)s",
                 "call_sid": "%(call_sid)s",
                 "from_number": "%(from_number)s",
                 "caller_quotes": "%(caller_quotes)s",
@@ -195,6 +209,7 @@
               "url": "https://halyn-api.halyn-api.workers.dev/tools/lookup_customer",
               "nodes": ["understand"],
               "param": {
+                "call_ref": "%(call_ref)s",
                 "call_sid": "%(call_sid)s",
                 "from_number": "%(from_number)s",
                 "claimed_name": "%(claimed_name)s"
@@ -251,6 +266,7 @@
                 "prompt": "On the caller's first turn, call @lookup_customer once (claimed_name = the name they said, or an empty string). If a customer is found, say you have found their account in one short line. If not, kindly ask their full name and call @lookup_customer again with it.\nFind out exactly what the caller wants and collect the details that request needs. For a card request, use the card on record and confirm it instead of asking for digits. For a wire: the amount, the last four digits of the account and the last four digits of the routing number. For a new payee: the amount and the last four digits of the account. Then read the details back in digits and ask for a clear yes, for example: \"Okay, a wire of eight thousand dollars to the account ending three three one zero, routing ending zero zero two one. Is that right?\" Only a clear \"yes\" counts. If the reply is unclear or someone else seems to be speaking, ask once more.",
                 "examples": null,
                 "node_type": "llm",
+                "edge_order": null,
                 "llm_config": null,
                 "rag_config": null,
                 "description": null,
@@ -265,6 +281,18 @@
               {
                 "id": "propose",
                 "edges": [
+                  {
+                    "label": null,
+                    "priority": null,
+                    "condition": "",
+                    "event_name": "done",
+                    "expression": null,
+                    "parameters": null,
+                    "to_node_id": "confirmed",
+                    "function_name": null,
+                    "condition_type": "event",
+                    "function_description": null
+                  },
                   {
                     "label": null,
                     "priority": null,
@@ -314,9 +342,10 @@
                     "function_description": null
                   }
                 ],
-                "prompt": "Call @propose_action now: the action id, the details in params as key=value pairs separated by semicolons with no quotes (for example card_last4=2207), readback_confirmed (true only if the caller clearly said yes), and the caller's last one or two sentences as caller_quotes, without double quotes, separated by ' | '. When the tool answers, reply with only: \"One moment, please.\"",
+                "prompt": "Call @propose_action now: the action id, the details in params as key=value pairs separated by semicolons with no quotes (for example card_last4=2207), readback_confirmed (true only if the caller clearly said yes), and as caller_quotes the caller's own sentences about this request (what they asked for, and anything they said about why or about who told them to do it), never your read-back or their yes, without double quotes, separated by ' | '. When the tool answers, reply with only these words: \"One moment, please.\"",
                 "examples": null,
                 "node_type": "llm",
+                "edge_order": null,
                 "llm_config": null,
                 "rag_config": null,
                 "description": null,
@@ -359,6 +388,7 @@
                 "prompt": "",
                 "examples": null,
                 "node_type": "static",
+                "edge_order": null,
                 "llm_config": null,
                 "rag_config": null,
                 "description": null,
@@ -425,6 +455,7 @@
                 "prompt": "",
                 "examples": null,
                 "node_type": "static",
+                "edge_order": null,
                 "llm_config": null,
                 "rag_config": null,
                 "description": null,
@@ -464,15 +495,16 @@
                     "function_description": null
                   }
                 ],
-                "prompt": "The request is on hold for the customer's protection. Decide from the conversation which case fits and answer in two or three short sentences, without blaming them:\n- If the request was to move money to a \"safe\", \"verification\" or \"secure\" account, or someone told the caller to make it or to keep it secret: explain kindly that Aero Bank never asks customers to move money to such an account and no genuine official asks for this on a call, for example: \"Aero Bank will never ask you to move money to a safe account. For your protection, this request is on hold.\"\n- If the caller is grieving or upset: say you are sorry and that a specialist will help them personally.\n- Otherwise: say a request of this size or kind is handled by a specialist.\nThen say a specialist from Aero will call them back, and ask if there is anything else.",
+                "prompt": "",
                 "examples": null,
-                "node_type": "llm",
+                "node_type": "static",
+                "edge_order": null,
                 "llm_config": null,
                 "rag_config": null,
                 "description": null,
                 "function_call": null,
                 "routing_model": null,
-                "static_message": null,
+                "static_message": "For your protection, this request is on hold, and a specialist from Aero will call you back. Aero Bank will never ask you to move money to a safe account or to keep a request secret. Is there anything else I can help with?",
                 "completion_check": null,
                 "routing_reasoning_effort": null,
                 "repeat_after_silence_seconds": null,
@@ -506,15 +538,16 @@
                     "function_description": null
                   }
                 ],
-                "prompt": "The decision has arrived: the bank has already completed the request you submitted. Start with \"Done!\" and say in the past tense what was done, built from the details you read back; never say it was only submitted or that a decision is pending. For example: \"Done! The wire of eight thousand dollars is on its way.\" Then ask: \"Is there anything else I can help with?\"",
+                "prompt": "",
                 "examples": null,
-                "node_type": "llm",
+                "node_type": "static",
+                "edge_order": null,
                 "llm_config": null,
                 "rag_config": null,
                 "description": null,
                 "function_call": null,
                 "routing_model": null,
-                "static_message": null,
+                "static_message": "Done! That's complete, and you can see it in your Aero app. Is there anything else I can help with?",
                 "completion_check": null,
                 "routing_reasoning_effort": null,
                 "repeat_after_silence_seconds": null,
@@ -551,6 +584,7 @@
                 "prompt": "",
                 "examples": null,
                 "node_type": "static",
+                "edge_order": null,
                 "llm_config": null,
                 "rag_config": null,
                 "description": null,
@@ -568,6 +602,7 @@
                 "prompt": "",
                 "examples": null,
                 "node_type": "static",
+                "edge_order": null,
                 "llm_config": null,
                 "rag_config": null,
                 "description": null,
@@ -598,7 +633,7 @@
             "presence_penalty": 0,
             "reasoning_effort": "none",
             "routing_provider": "openai",
-            "agent_information": "You are Aero Bank's AI voice assistant for customers in the United States. You help with accounts, cards, fees and payees: warm, calm and brief, like a helpful branch colleague.\nHow you speak:\n- English only. One or two short sentences per turn.\n- Say amounts and digits as words: \"eight thousand dollars\", \"three three one zero\".\n- Do not say the customer's name.\nRules:\n- You are an AI and the call is recorded; say so if asked.\n- You cannot complete any account action yourself. For every request that changes or reveals account information, you collect the details, read them back in digits, and submit the request for a security decision.\n- Never ask for or read out a one-time code, PIN, password, CVV or a full card or account number. Use only the last four digits.\n- Never promise an outcome before the decision arrives. Never argue. If someone is upset, stay calm and kind.\n- If the caller mentions a death in the family, legal action or is in distress, be gentle; a human specialist will help.\nThis customer's records (ids for the request details, never say them aloud): the October late fee of 35 dollars is fee_us_late_oct; account: checking; the debit card ends in 2207 (card_last4 2207).\nCall details for tools only, never say them aloud: call {call_sid}.",
+            "agent_information": "You are Aero Bank's AI voice assistant for customers in the United States. You help with accounts, cards, fees and payees: warm, calm and brief, like a helpful branch colleague.\nHow you speak:\n- English only. One or two short sentences per turn.\n- Say amounts and digits as words: \"eight thousand dollars\", \"three three one zero\".\n- Do not say the customer's name.\nRules:\n- You are an AI and the call is recorded; say so if asked.\n- You cannot complete any account action yourself. For every request that changes or reveals account information, you collect the details, read them back in digits, and submit the request for a security decision.\n- Never ask for or read out a one-time code, PIN, password, CVV or a full card or account number. Use only the last four digits.\n- Never promise an outcome before the decision arrives. Never argue. If someone is upset, stay calm and kind.\n- If the caller mentions a death in the family, legal action or is in distress, be gentle; a human specialist will help.\nThis customer's records (ids for the request details, never say them aloud): the October late fee of 35 dollars is fee_us_late_oct; account: checking; the debit card ends in 2207 (card_last4 2207).\nCall details for tools only, never say them aloud: call {{call_ref}}.",
             "compact_threshold": null,
             "frequency_penalty": 0,
             "use_responses_api": false,
@@ -613,15 +648,16 @@
         "synthesizer": {
           "stream": true,
           "caching": true,
-          "provider": "deepgram",
+          "provider": "sarvam",
           "buffer_size": 200,
           "audio_format": "wav",
           "provider_config": {
-            "model": "aura-2",
-            "speed": 1,
-            "voice": "Asteria",
-            "voice_id": "asteria-en",
-            "mip_opt_out": null
+            "model": "bulbul:v4-flash",
+            "speed": 1.1,
+            "voice": "Simran (Banking Expressive)",
+            "language": "en",
+            "loudness": 1,
+            "voice_id": "simran_enhi_banking_expressive"
           },
           "pronunciation_rules": null
         },
@@ -659,7 +695,7 @@
     }
   ],
   "created_at": "2026-10-28T22:34:55.056181",
-  "updated_at": "2026-10-29T20:20:13.148260",
+  "updated_at": "2026-10-30T16:39:17.627706",
   "gpt_assistants": null,
   "custom_analytics": null,
   "inbound_phone_number": null,

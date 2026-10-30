@@ -14,13 +14,7 @@
         "task_type": "conversation",
         "toolchain": {
           "execution": "parallel",
-          "pipelines": [
-            [
-              "transcriber",
-              "llm",
-              "synthesizer"
-            ]
-          ]
+          "pipelines": [["transcriber", "llm", "synthesizer"]]
         },
         "task_config": {
           "optimize_latency": true,
@@ -70,10 +64,7 @@
                       "description": "The call reference from the call details, starting with web_."
                     }
                   },
-                  "required": [
-                    "claimed_name",
-                    "call_ref"
-                  ]
+                  "required": ["claimed_name", "call_ref"]
                 }
               },
               {
@@ -101,10 +92,7 @@
                       "description": "The call reference from the call details, starting with web_."
                     }
                   },
-                  "required": [
-                    "code",
-                    "call_ref"
-                  ]
+                  "required": ["code", "call_ref"]
                 }
               },
               {
@@ -144,13 +132,7 @@
                       "description": "The call reference from the call details, starting with web_."
                     }
                   },
-                  "required": [
-                    "action",
-                    "params",
-                    "readback_confirmed",
-                    "caller_quotes",
-                    "call_ref"
-                  ]
+                  "required": ["action", "params", "readback_confirmed", "caller_quotes", "call_ref"]
                 }
               }
             ],
@@ -172,9 +154,7 @@
                   "tool": "lookup_customer"
                 },
                 "scope": "node",
-                "nodes": [
-                  "understand"
-                ]
+                "nodes": ["understand"]
               },
               "verify_pass": {
                 "url": "{{API_URL}}/tools/verify_pass",
@@ -193,9 +173,7 @@
                   "tool": "verify_pass"
                 },
                 "scope": "node",
-                "nodes": [
-                  "understand"
-                ]
+                "nodes": ["understand"]
               },
               "propose_action": {
                 "url": "{{API_URL}}/tools/propose_action",
@@ -218,9 +196,7 @@
                   "tool": "propose_action"
                 },
                 "scope": "node",
-                "nodes": [
-                  "propose"
-                ]
+                "nodes": ["propose"]
               }
             }
           },

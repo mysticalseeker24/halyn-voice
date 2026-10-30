@@ -50,7 +50,8 @@ const REGIONS = {
       working: 'Okay.',
       protect:
         'For your protection, this request is on hold. Aero Bank will never ask you to move money to a safe or verification account, or to keep a request secret, and no genuine official asks for this on a call. Would you like me to connect you to a specialist now?',
-      confirmed: "Done! That's complete, and you can see it in your Aero app. Is there anything else I can help with?",
+      confirmed:
+        "Done! That's complete, and you can see it in your Aero app. Is there anything else I can help with?",
       awaiting_confirmation:
         "For your safety, I've sent a confirmation to your registered phone. Please stay on the line.",
       refused: "I'm sorry, I can't complete this request on this call. Can I help with anything else?",
@@ -61,8 +62,7 @@ const REGIONS = {
         "A customer in India, usually Saksham Mishra, is calling Aero Bank's AI assistant in English about a card, account, payee, fee or loan, and may first say their name. An AI assistant may call for a customer and read a Halyn Pass code.",
       // The clone's "Hi, this is Saksham Mishra" was heard as "card ending" / "Halyn Pass" (calls b7f1511a, e0183a47);
       // an AERO0000001 keyword was then hallucinated into other turns, and 300 ms endpointing cut digits apart (9584c9dd).
-      keywords:
-        'Saksham Mishra, card, freeze, EMI, fee, payee, account ending, Halyn Pass, statement, lakh',
+      keywords: 'Saksham Mishra, card, freeze, EMI, fee, payee, account ending, Halyn Pass, statement, lakh',
       endpointing: 300,
     },
   },
@@ -91,7 +91,8 @@ const REGIONS = {
       working: 'Okay.',
       protect:
         'For your protection, this request is on hold, and a specialist from Aero will call you back. Aero Bank will never ask you to move money to a safe account or to keep a request secret. Is there anything else I can help with?',
-      confirmed: "Done! That's complete, and you can see it in your Aero app. Is there anything else I can help with?",
+      confirmed:
+        "Done! That's complete, and you can see it in your Aero app. Is there anything else I can help with?",
       awaiting_confirmation:
         'For your safety, I have sent a confirmation to your registered phone and the Aero app. Please stay on the line.',
       refused:
