@@ -42,7 +42,7 @@ export const CLIPS: readonly CloneClip[] = [
     id: 'account',
     order: 3,
     label: 'Account ending',
-    text: 'The account number ends in four four seven one.',
+    text: 'The account number ends in forty-four seventy-one.',
   },
   {
     id: 'ifsc',

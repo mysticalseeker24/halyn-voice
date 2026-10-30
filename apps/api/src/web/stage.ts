@@ -60,6 +60,9 @@ export function stageRun(deps: AppDeps, makeApp: (deps: AppDeps) => AppLike) {
     const suite = suite_run_id ? await hub.testRuns(suite_run_id) : null;
     if (suite_run_id && !suite?.run.scenarios.includes(id.data))
       throw new HalynError('E_NOT_FOUND', 'No such test run or scenario');
+    // Every Stage/suite scenario is a fresh take of the demo customer: earlier takes' calls and limits stop counting
+    // (a live Run all otherwise hit S_CALL_BURST from its 3rd scenario, chat #9).
+    await hub.resetDemo();
     const test_run_id = suite_run_id ?? stageRunId(deps.rng);
     let completed = suite ? suite.run.results.filter((r) => r.scenario_id !== id.data).length : 0;
     const total = suite ? suite.run.scenarios.length : 1;
