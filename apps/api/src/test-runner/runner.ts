@@ -123,22 +123,28 @@ function eventNames(events: readonly OutcomeEvent[]): string[] {
 
 /** What may follow each event on a call (the Aero graph's event edges). */
 const FOLLOWS: Record<string, readonly string[]> = {
-  allow: ['done', 'deny'],
   step_up: ['approved', 'denied', 'timeout', 'hold'],
   approved: ['done', 'deny'],
 };
 
+/** The first event per decision: an allow is heard only as the bank's answer (`done`, or `deny` if it refused). */
+const FIRST: Record<string, readonly string[]> = { allow: ['done', 'deny'] };
+
 /**
- * SCENARIOS.md rule 3, on every step: the call hears the decision first (allow / step_up / hold / deny), then only
- * what the graph allows after it (done / approved / denied / timeout). Test mode must see at least the first event;
- * live mode cannot listen, so it checks what it saw.
+ * SCENARIOS.md rule 3, on every step: the call hears the decision first (step_up / hold / deny; an allow as `done`),
+ * then only what the graph allows after it (approved / denied / timeout / done). Test mode must see at least the first
+ * event; live mode cannot listen, so it checks what it saw.
  */
 function eventsFollowDecision(run: Run, at: string, outcome: string, events: readonly string[]): void {
   if (events.length === 0) {
     check(run, run.harness.mode !== 'test', `${at}: no event reached the call (decision ${outcome})`);
     return;
   }
-  check(run, events[0] === outcome, `${at}: first event ${String(events[0])}, decision ${outcome}`);
+  check(
+    run,
+    (FIRST[outcome] ?? [outcome]).includes(events[0] ?? ''),
+    `${at}: first event ${String(events[0])}, decision ${outcome}`,
+  );
   for (let i = 1; i < events.length; i++) {
     const prev = events[i - 1] ?? '';
     check(

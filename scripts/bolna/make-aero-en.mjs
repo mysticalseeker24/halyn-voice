@@ -60,9 +60,11 @@ const REGIONS = {
     transcriber: {
       context:
         "A customer in India, usually Saksham Mishra, is calling Aero Bank's AI assistant in English about a card, account, payee, fee or loan, and may first say their name. IFSC codes look like AERO0000001. An AI assistant may call for a customer and read a Halyn Pass code.",
-      // The clone's "Hi, this is Saksham Mishra" was heard as "card ending" / "Halyn Pass" (calls b7f1511a, e0183a47).
+      // The clone's "Hi, this is Saksham Mishra" was heard as "card ending" / "Halyn Pass" (calls b7f1511a, e0183a47);
+      // an AERO0000001 keyword was then hallucinated into other turns, and 300 ms endpointing cut digits apart (9584c9dd).
       keywords:
-        'Saksham Mishra, Aero Bank, card, freeze, EMI, fee, payee, IFSC, AERO0000001, account ending, Halyn Pass, statement',
+        'Saksham Mishra, Aero Bank, card, freeze, EMI, fee, payee, IFSC, account ending, Halyn Pass, statement',
+      endpointing: 300,
     },
   },
   us: {

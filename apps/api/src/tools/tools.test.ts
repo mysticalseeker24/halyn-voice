@@ -184,7 +184,7 @@ describe('propose_action (docs/ARCHITECTURE.md "Main flow")', () => {
     const again = await Promise.all([propose(freeze()), propose(freeze())]);
     expect(again.map((a) => a.json.request_id)).toEqual([first.json.request_id, first.json.request_id]);
     await h.settle();
-    expect(h.bolna.events.get(RUN)?.map((e) => e.event)).toEqual(['allow', 'done']);
+    expect(h.bolna.events.get(RUN)?.map((e) => e.event)).toEqual(['done']);
     expect((await h.ledger()).filter((e) => e.type === 'decided')).toHaveLength(1);
   });
 

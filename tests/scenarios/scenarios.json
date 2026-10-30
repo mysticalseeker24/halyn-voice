@@ -34,7 +34,7 @@
             "decision": "allow",
             "reasons_include": ["P_PROTECTIVE"],
             "core_called": true,
-            "events": ["allow", "done"]
+            "events": ["done"]
           }
         }
       ]
@@ -63,7 +63,7 @@
             "decision": "allow",
             "reasons_include": ["P_WITHIN_LIMIT"],
             "core_called": true,
-            "events": ["allow", "done"]
+            "events": ["done"]
           }
         }
       ]
@@ -209,7 +209,7 @@
           "expect": {
             "decision": "allow",
             "reasons_include": ["X_PASS_IN_SCOPE"],
-            "events": ["allow", "done"]
+            "events": ["done"]
           }
         },
         {
@@ -225,7 +225,7 @@
             "decision": "allow",
             "reasons_include": ["X_PASS_IN_SCOPE"],
             "core_called": true,
-            "events": ["allow", "done"]
+            "events": ["done"]
           }
         }
       ]

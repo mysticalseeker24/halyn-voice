@@ -136,7 +136,7 @@ describe('coaching layer 2', () => {
     h = await appHarness({ sarvam: sarvam('down').fetch });
     const allowed = await propose('transfer.saved', saved);
     expect(allowed.status).toBe('executed');
-    expect(h.bolna.events.get(RUN)?.map((e) => e.event)).toEqual(['allow', 'done']);
+    expect(h.bolna.events.get(RUN)?.map((e) => e.event)).toEqual(['done']);
   });
 
   it('does not screen what cannot change: no quotes, or an action that moves no money', async () => {

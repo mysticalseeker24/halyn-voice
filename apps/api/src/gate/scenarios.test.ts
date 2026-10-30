@@ -169,7 +169,8 @@ function check(id: string, step: Step, d: GateDecision, pack: CompiledPolicyPack
   if (e.core_called !== undefined)
     expect(effective === 'allow', `${at}: Aero Core is called only on allow`).toBe(e.core_called);
   if (e.events) {
-    expect(e.events[0], `${at}: first event`).toBe(eventForOutcome(d.outcome));
+    // An allow is heard only as the bank's answer, `done` (chat #8 finding 7).
+    expect(e.events[0], `${at}: first event`).toBe(d.outcome === 'allow' ? 'done' : eventForOutcome(d.outcome));
     if (answer && answer !== 'approved') expect(e.events[1], `${at}: final event`).toBe(FINAL_EVENT[answer]);
   }
 }

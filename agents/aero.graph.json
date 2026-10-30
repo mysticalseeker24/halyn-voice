@@ -277,6 +277,11 @@
                   "function_call": "propose_action",
                   "edges": [
                     {
+                      "to_node_id": "confirmed",
+                      "condition_type": "event",
+                      "event_name": "done"
+                    },
+                    {
                       "to_node_id": "working",
                       "condition_type": "event",
                       "event_name": "allow"
@@ -413,7 +418,7 @@
             "endpointing": 300,
             "task": "transcribe",
             "context": "A customer in India, usually Saksham Mishra, is calling Aero Bank's AI assistant in English about a card, account, payee, fee or loan, and may first say their name. IFSC codes look like AERO0000001. An AI assistant may call for a customer and read a Halyn Pass code.",
-            "keywords": "Saksham Mishra, Aero Bank, card, freeze, EMI, fee, payee, IFSC, AERO0000001, account ending, Halyn Pass, statement",
+            "keywords": "Saksham Mishra, Aero Bank, card, freeze, EMI, fee, payee, IFSC, account ending, Halyn Pass, statement",
             "noise_reduction": true,
             "vad_threshold": 0.65
           },

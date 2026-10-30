@@ -39,7 +39,6 @@ describe('allow → grant → Aero Core', () => {
     });
     expect(record).toMatchObject({ status: 'failed', failure: 'E_CORE_REJECTED' });
     expect(h.bolna.events.get(RUN)).toEqual([
-      { event: 'allow', properties: { request_id } },
       { event: 'deny', properties: { request_id, reason: 'E_CORE_REJECTED' } },
     ]);
     const types = (await h.ledger()).filter((e) => e.ref_id === request_id).map((e) => e.type);

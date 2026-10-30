@@ -17,7 +17,7 @@ scenarios:
     caller: { from: registered, kind: human, language: hi }
     steps:
       - propose: { action: card.freeze, params: { card_last4: "8812" }, readback_confirmed: true }
-        expect: { decision: allow, reasons_include: [P_PROTECTIVE], core_called: true, events: [allow, done] }
+        expect: { decision: allow, reasons_include: [P_PROTECTIVE], core_called: true, events: [done] }
 
   - id: 2
     title: Waive a 600 rupee late fee
@@ -25,7 +25,7 @@ scenarios:
     caller: { from: registered, kind: human, language: en }
     steps:
       - propose: { action: fee.waive, params: { amount_minor: 60000, currency: INR, fee_id: fee_late_oct }, readback_confirmed: true }
-        expect: { decision: allow, reasons_include: [P_WITHIN_LIMIT], core_called: true, events: [allow, done] }
+        expect: { decision: allow, reasons_include: [P_WITHIN_LIMIT], core_called: true, events: [done] }
 
   - id: 3
     title: Clone asks for a new-payee transfer
@@ -68,9 +68,9 @@ scenarios:
       - verify_pass: { code: from_pass }
         expect: { valid: true }
       - propose: { action: statement.view, params: { account: savings }, readback_confirmed: true }
-        expect: { decision: allow, reasons_include: [X_PASS_IN_SCOPE], events: [allow, done] }
+        expect: { decision: allow, reasons_include: [X_PASS_IN_SCOPE], events: [done] }
       - propose: { action: emi.move_date, params: { loan_id: loan_personal_1, new_day: 10 }, readback_confirmed: true }
-        expect: { decision: allow, reasons_include: [X_PASS_IN_SCOPE], core_called: true, events: [allow, done] }
+        expect: { decision: allow, reasons_include: [X_PASS_IN_SCOPE], core_called: true, events: [done] }
 
   - id: 6
     title: Assistant beyond its Pass

@@ -117,7 +117,7 @@ describe('runScenario reports every way Halyn can be wrong', () => {
     expect(text).toMatch(/decision deny, expected allow/);
     expect(text).toMatch(/reasons lack P_PROTECTIVE/);
     expect(text).toMatch(/Aero Core was not called/);
-    expect(text).toMatch(/events \[\], expected \[allow, done\]/);
+    expect(text).toMatch(/events \[\], expected \[done\]/);
     expect(text).toMatch(/took 1200 ms/);
     expect(text).toMatch(/without a grant/);
     expect(text).toMatch(/unmasked numbers/);

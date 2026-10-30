@@ -243,6 +243,11 @@
                   "function_call": "propose_action",
                   "edges": [
                     {
+                      "to_node_id": "confirmed",
+                      "condition_type": "event",
+                      "event_name": "done"
+                    },
+                    {
                       "to_node_id": "working",
                       "condition_type": "event",
                       "event_name": "allow"

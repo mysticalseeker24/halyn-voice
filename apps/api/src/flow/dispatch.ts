@@ -27,14 +27,16 @@ export async function dispatchProposal(ctx: FlowContext, outcome: ProposeOutcome
       if (!screened) return;
       record = screened;
     }
+    if (record.status === 'approved') {
+      // No `allow` first: the call hears only `done` (or `deny`) once the bank answers, so the agent goes straight
+      // from the proposal to the outcome (chat #8 finding 7; `allow` → "Okay." added ~1.5 s, call 6347ac0b).
+      await executeRequest(ctx, record.request_id);
+      return;
+    }
     const event = record.last_event
       ? (ctx.bolna?.sendEvent(record.run_id, record.last_event) ?? Promise.resolve(null))
       : Promise.resolve(null);
-    if (record.status === 'approved') {
-      // The call hears `allow` before `done`: the graph's `working` node only listens for `done`.
-      await event;
-      await executeRequest(ctx, record.request_id);
-    } else if (record.status === 'awaiting_confirmation') {
+    if (record.status === 'awaiting_confirmation') {
       await Promise.all([event, startCallback(ctx, record, outcome.customer)]);
     } else {
       await event;
