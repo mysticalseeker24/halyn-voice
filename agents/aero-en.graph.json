@@ -14,7 +14,13 @@
         "task_type": "conversation",
         "toolchain": {
           "execution": "parallel",
-          "pipelines": [["transcriber", "llm", "synthesizer"]]
+          "pipelines": [
+            [
+              "transcriber",
+              "llm",
+              "synthesizer"
+            ]
+          ]
         },
         "task_config": {
           "optimize_latency": true,
@@ -60,7 +66,9 @@
                       "description": "Calling number. Filled automatically."
                     }
                   },
-                  "required": ["claimed_name"]
+                  "required": [
+                    "claimed_name"
+                  ]
                 }
               },
               {
@@ -84,7 +92,9 @@
                       "description": "Calling number. Filled automatically."
                     }
                   },
-                  "required": ["code"]
+                  "required": [
+                    "code"
+                  ]
                 }
               },
               {
@@ -120,7 +130,12 @@
                       "description": "Calling number. Filled automatically."
                     }
                   },
-                  "required": ["action", "params", "readback_confirmed", "caller_quotes"]
+                  "required": [
+                    "action",
+                    "params",
+                    "readback_confirmed",
+                    "caller_quotes"
+                  ]
                 }
               }
             ],
@@ -141,7 +156,9 @@
                   "tool": "lookup_customer"
                 },
                 "scope": "node",
-                "nodes": ["understand"]
+                "nodes": [
+                  "understand"
+                ]
               },
               "verify_pass": {
                 "url": "{{API_URL}}/tools/verify_pass",
@@ -159,7 +176,9 @@
                   "tool": "verify_pass"
                 },
                 "scope": "node",
-                "nodes": ["understand"]
+                "nodes": [
+                  "understand"
+                ]
               },
               "propose_action": {
                 "url": "{{API_URL}}/tools/propose_action",
@@ -181,7 +200,9 @@
                   "tool": "propose_action"
                 },
                 "scope": "node",
-                "nodes": ["propose"]
+                "nodes": [
+                  "propose"
+                ]
               }
             }
           },
@@ -218,7 +239,7 @@
                 },
                 {
                   "id": "propose",
-                  "prompt": "Call @propose_action now: the action id, the details in params as key=value pairs separated by semicolons with no quotes (for example card_last4=2207), readback_confirmed (true only if the caller clearly said yes), and the caller's last one or two sentences as caller_quotes, without double quotes, separated by ' | '. When the tool answers, reply with only: \"One moment, please.\"",
+                  "prompt": "Call @propose_action now: the action id, the details in params as key=value pairs separated by semicolons with no quotes (for example card_last4=2207), readback_confirmed (true only if the caller clearly said yes), and the caller's last one or two sentences as caller_quotes, without double quotes, separated by ' | '. When the tool answers, reply with only these words: \"One moment, please.\" Never say the request was sent, done or under review: the decision comes next.",
                   "function_call": "propose_action",
                   "edges": [
                     {
@@ -304,7 +325,6 @@
                 },
                 {
                   "id": "confirmed",
-                  "prompt": "The decision has arrived: the bank has already completed the request you submitted. Start with \"Done!\" and say in the past tense what was done, built from the details you read back; never say it was only submitted or that a decision is pending. For example: \"Done! The wire of eight thousand dollars is on its way.\" Then ask: \"Is there anything else I can help with?\"",
                   "edges": [
                     {
                       "to_node_id": "understand",
@@ -314,7 +334,9 @@
                       "to_node_id": "goodbye",
                       "condition": "The caller has nothing else or says goodbye"
                     }
-                  ]
+                  ],
+                  "node_type": "static",
+                  "static_message": "Done! That's complete, and you can see it in your Aero app. Is there anything else I can help with?"
                 },
                 {
                   "id": "refused",

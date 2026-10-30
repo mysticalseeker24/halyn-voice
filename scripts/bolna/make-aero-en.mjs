@@ -15,9 +15,7 @@ const RULES = [
   '- If the caller mentions a death in the family, legal action or is in distress, be gentle; a human specialist will help.',
 ];
 const PROPOSE = (example, filler) =>
-  `Call @propose_action now: the action id, the details in params as key=value pairs separated by semicolons with no quotes (for example ${example}), readback_confirmed (true only if the caller clearly said yes), and the caller's last one or two sentences as caller_quotes, without double quotes, separated by ' | '. When the tool answers, reply with only: "${filler}"`;
-const CONFIRMED = (example) =>
-  `The decision has arrived: the bank has already completed the request you submitted. Start with "Done!" and say in the past tense what was done, built from the details you read back; never say it was only submitted or that a decision is pending. For example: "${example}" Then ask: "Is there anything else I can help with?"`;
+  `Call @propose_action now: the action id, the details in params as key=value pairs separated by semicolons with no quotes (for example ${example}), readback_confirmed (true only if the caller clearly said yes), and the caller's last one or two sentences as caller_quotes, without double quotes, separated by ' | '. When the tool answers, reply with only these words: "${filler}" Never say the request was sent, done or under review: the decision comes next.`;
 const PROTECT_HEAD =
   'The request is on hold for the customer\'s protection. Decide from the conversation which case fits and answer in two or three short sentences, without blaming them:\n- If the request was to move money to a "safe", "verification" or "secure" account, or someone told the caller to make it or to keep it secret: explain kindly that Aero Bank never asks customers to move money to such an account and no genuine official asks for this on a call, for example: "Aero Bank will never ask you to move money to a safe account. For your protection, this request is on hold."\n- If the caller is grieving or upset: say you are sorry and that a specialist will help them personally.\n- Otherwise: say a request of this size or kind is handled by a specialist.\n';
 
@@ -48,12 +46,12 @@ const REGIONS = {
         'On the caller\'s first turn, call @lookup_customer once (claimed_name = the name they said, or an empty string). If a customer is found, greet them by name in one short line. If no customer is found by number, kindly ask their full name and call @lookup_customer again with it.\nIf the caller says they are an AI assistant calling for a customer, ask: "Please share your Halyn Pass code." and call @verify_pass with the digits. If it is not valid, say kindly that you can share only general information.\nFind out exactly what the caller wants and collect the details that request needs. For a card request (freeze, block, lost or stolen card), use the card on record and confirm it, for example "You\'d like to freeze your card ending eight eight one two, is that right?", instead of asking for digits. If the caller does say digits, they may arrive in pieces over several turns: join them until you have four, and never ask again for digits already given. For a new payee: the amount, the last four digits of the account and the IFSC code. Then read the details back in digits and ask for a clear yes, for example: "Okay, forty-five thousand rupees to the account ending four four seven one, is that right?" Only a clear "yes" counts. If the reply is unclear or someone else seems to be speaking, ask once more.',
       propose: PROPOSE('card_last4=8812', 'Just a moment.'),
       protect: `${PROTECT_HEAD}Then offer to connect a specialist now: "Would you like me to connect you to a specialist now?"`,
-      confirmed: CONFIRMED('Done! Your card ending eight eight one two is now frozen.'),
       transfer:
         'Tell the caller kindly, in one short sentence, that you are connecting them to a specialist now.',
     },
     statics: {
       working: 'Okay.',
+      confirmed: "Done! That's complete, and you can see it in your Aero app. Is there anything else I can help with?",
       awaiting_confirmation:
         "For your safety, I've sent a confirmation to your registered phone. Please stay on the line.",
       refused: "I'm sorry, I can't complete this request on this call. Can I help with anything else?",
@@ -85,10 +83,10 @@ const REGIONS = {
         'On the caller\'s first turn, call @lookup_customer once (claimed_name = the name they said, or an empty string). If a customer is found, say you have found their account in one short line. If not, kindly ask their full name and call @lookup_customer again with it.\nFind out exactly what the caller wants and collect the details that request needs. For a card request, use the card on record and confirm it instead of asking for digits. For a wire: the amount, the last four digits of the account and the last four digits of the routing number. For a new payee: the amount and the last four digits of the account. Then read the details back in digits and ask for a clear yes, for example: "Okay, a wire of eight thousand dollars to the account ending three three one zero, routing ending zero zero two one. Is that right?" Only a clear "yes" counts. If the reply is unclear or someone else seems to be speaking, ask once more.',
       propose: PROPOSE('card_last4=2207', 'One moment, please.'),
       protect: `${PROTECT_HEAD}Then say a specialist from Aero will call them back, and ask if there is anything else.`,
-      confirmed: CONFIRMED('Done! The wire of eight thousand dollars is on its way.'),
     },
     statics: {
       working: 'Okay.',
+      confirmed: "Done! That's complete, and you can see it in your Aero app. Is there anything else I can help with?",
       awaiting_confirmation:
         'For your safety, I have sent a confirmation to your registered phone and the Aero app. Please stay on the line.',
       refused:
@@ -138,7 +136,12 @@ function build(region) {
     .map((n) => {
       const node = { ...n };
       if (r.prompts[n.id]) node.prompt = r.prompts[n.id];
-      if (r.statics[n.id]) node.static_message = r.statics[n.id];
+      if (r.statics[n.id]) {
+        // A fixed line: the LLM on `confirmed` said "under review" after `done` (call ecad8cfe, 2026-10-30).
+        node.node_type = 'static';
+        node.static_message = r.statics[n.id];
+        delete node.prompt;
+      }
       if (region === 'us') {
         node.edges = (n.edges ?? []).filter((e) => e.to_node_id !== 'transfer');
         if (n.id === 'protect')
