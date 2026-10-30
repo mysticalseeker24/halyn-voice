@@ -160,19 +160,9 @@ function build(region) {
   llm.routing_instructions = `You are the routing system for Aero Bank's ${region === 'us' ? 'US ' : ''}voice assistant. Pick the transition whose condition matches the caller's latest words. If none matches, stay on the current node.`;
 
   tools.transcriber = { ...tools.transcriber, language: 'en', ...r.transcriber };
-  if (region === 'in') {
-    // Same Sarvam voice (Simran, banking), speaking English.
-    tools.synthesizer.provider_config.language = 'en';
-  } else {
-    tools.synthesizer = {
-      provider: 'deepgram',
-      stream: true,
-      caching: true,
-      buffer_size: 200,
-      audio_format: 'wav',
-      provider_config: { voice: 'Asteria', voice_id: 'asteria-en', model: 'aura-2' },
-    };
-  }
+  // Same Sarvam voice (Simran, banking), speaking English, in both regions: the US twin's Deepgram voice failed to
+  // connect on Bolna (call d63a0f08, agent_voice_error, 2026-10-30).
+  tools.synthesizer.provider_config.language = 'en';
   agent.agent_prompts.task_1.system_prompt =
     "You are Aero Bank's AI voice assistant. You never complete an action yourself; you submit it for a security decision. Never ask for or read out a one-time code, PIN, password, CVV or full card or account number. Speak English.";
 
