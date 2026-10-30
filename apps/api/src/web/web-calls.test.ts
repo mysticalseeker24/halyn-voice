@@ -56,11 +56,12 @@ describe('POST /web/calls/session', () => {
     const res = await h.web('/web/calls/session', {}, await h.customerToken());
     const { run_id } = (await res.json()) as { run_id: string };
     const call_ref = String(h.bolna.webCalls[0]?.user_data.call_ref);
-    const lookup = await h.tool('lookup_customer', { call_sid: call_ref, from_number: 'None', claimed_name: '' });
-    expect(lookup.status).toBe(200);
+    const lookup = await h.tool('lookup_customer', { call_sid: 'None', call_ref, from_number: 'None', claimed_name: '' });
+    expect(lookup.status, await lookup.clone().text()).toBe(200);
     expect(await lookup.json()).toMatchObject({ customer_found: true, region: 'US' });
     const propose = await h.tool('propose_action', {
-      call_sid: call_ref,
+      call_sid: 'None',
+      call_ref,
       from_number: 'None',
       channel: 'web',
       action: 'fee.waive',

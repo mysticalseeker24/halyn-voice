@@ -41,7 +41,9 @@ describe('Bolna tool: lookup_customer', () => {
     expect(
       ok(LookupCustomerRequestSchema, { run_id: RUN, from_number: '+919000000001', claimed_name: 'Saksham' }),
     ).toBe(true);
-    expect(ok(LookupCustomerRequestSchema, { run_id: RUN })).toBe(false);
+    // A browser call has no number (scenario 10); a bad one is still refused.
+    expect(ok(LookupCustomerRequestSchema, { run_id: RUN })).toBe(true);
+    expect(ok(LookupCustomerRequestSchema, { run_id: RUN, from_number: 'not a number' })).toBe(false);
     expect(
       ok(LookupCustomerResponseSchema, {
         customer_found: true,

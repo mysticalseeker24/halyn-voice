@@ -15,9 +15,7 @@ const RULES = [
   '- If the caller mentions a death in the family, legal action or is in distress, be gentle; a human specialist will help.',
 ];
 const PROPOSE = (example, filler) =>
-  `Call @propose_action now: the action id, the details in params as key=value pairs separated by semicolons with no quotes (for example ${example}), readback_confirmed (true only if the caller clearly said yes), and the caller's last one or two sentences as caller_quotes, without double quotes, separated by ' | '. When the tool answers, reply with only these words: "${filler}" Never say the request was sent, done or under review: the decision comes next.`;
-const PROTECT_HEAD =
-  'The request is on hold for the customer\'s protection. Decide from the conversation which case fits and answer in two or three short sentences, without blaming them:\n- If the request was to move money to a "safe", "verification" or "secure" account, or someone told the caller to make it or to keep it secret: explain kindly that Aero Bank never asks customers to move money to such an account and no genuine official asks for this on a call, for example: "Aero Bank will never ask you to move money to a safe account. For your protection, this request is on hold."\n- If the caller is grieving or upset: say you are sorry and that a specialist will help them personally.\n- Otherwise: say a request of this size or kind is handled by a specialist.\n';
+  `Call @propose_action now: the action id, the details in params as key=value pairs separated by semicolons with no quotes (for example ${example}), readback_confirmed (true only if the caller clearly said yes), and the caller's last one or two sentences as caller_quotes, without double quotes, separated by ' | '. When the tool answers, reply with only these words: "${filler}"`;
 
 const REGIONS = {
   in: {
@@ -45,12 +43,13 @@ const REGIONS = {
       understand:
         'On the caller\'s first turn, call @lookup_customer once (claimed_name = the name they said, or an empty string). If a customer is found, greet them by name and continue with what they already asked, for example "Hello सक्षम. Which fee would you like waived?"; ask how you can help only if they have not said what they need. If no customer is found by number, kindly ask their full name and call @lookup_customer again with it.\nIf the caller says they are an AI assistant calling for a customer, ask: "Please share your Halyn Pass code." and call @verify_pass with the digits. If it is not valid, say kindly that you can share only general information.\nFind out exactly what the caller wants and collect the details that request needs. For a card request (freeze, block, lost or stolen card), use the card on record and confirm it, for example "You\'d like to freeze your card ending eight eight one two, is that right?", instead of asking for digits. If the caller does say digits, they may arrive in pieces over several turns: join them until you have four, and never ask again for digits already given. For a new payee: the amount and the last four digits of the account. New payees here are at Aero Bank: always send payee_ifsc=AERO0000001 and never ask for an IFSC code. Then read the details back in digits and ask for a clear yes, for example: "Okay, forty-five thousand rupees to the account ending four four seven one, is that right?" Only a clear "yes" counts. If the reply is unclear or someone else seems to be speaking, ask once more.',
       propose: PROPOSE('card_last4=8812', 'Just a moment.'),
-      protect: `${PROTECT_HEAD}Then offer to connect a specialist now: "Would you like me to connect you to a specialist now?"`,
       transfer:
         'Tell the caller kindly, in one short sentence, that you are connecting them to a specialist now.',
     },
     statics: {
       working: 'Okay.',
+      protect:
+        'For your protection, this request is on hold. Aero Bank will never ask you to move money to a safe or verification account, or to keep a request secret, and no genuine official asks for this on a call. Would you like me to connect you to a specialist now?',
       confirmed: "Done! That's complete, and you can see it in your Aero app. Is there anything else I can help with?",
       awaiting_confirmation:
         "For your safety, I've sent a confirmation to your registered phone. Please stay on the line.",
@@ -87,10 +86,11 @@ const REGIONS = {
       understand:
         'On the caller\'s first turn, call @lookup_customer once (claimed_name = the name they said, or an empty string). If a customer is found, say you have found their account in one short line. If not, kindly ask their full name and call @lookup_customer again with it.\nFind out exactly what the caller wants and collect the details that request needs. For a card request, use the card on record and confirm it instead of asking for digits. For a wire: the amount, the last four digits of the account and the last four digits of the routing number. For a new payee: the amount and the last four digits of the account. Then read the details back in digits and ask for a clear yes, for example: "Okay, a wire of eight thousand dollars to the account ending three three one zero, routing ending zero zero two one. Is that right?" Only a clear "yes" counts. If the reply is unclear or someone else seems to be speaking, ask once more.',
       propose: PROPOSE('card_last4=2207', 'One moment, please.'),
-      protect: `${PROTECT_HEAD}Then say a specialist from Aero will call them back, and ask if there is anything else.`,
     },
     statics: {
       working: 'Okay.',
+      protect:
+        'For your protection, this request is on hold, and a specialist from Aero will call you back. Aero Bank will never ask you to move money to a safe account or to keep a request secret. Is there anything else I can help with?',
       confirmed: "Done! That's complete, and you can see it in your Aero app. Is there anything else I can help with?",
       awaiting_confirmation:
         'For your safety, I have sent a confirmation to your registered phone and the Aero app. Please stay on the line.',
@@ -128,6 +128,16 @@ function build(region) {
     tools.api_tools.tools = tools.api_tools.tools.filter((t) => t.name !== 'transfer_call_specialist');
     delete tools.api_tools.tools_params.transfer_call_specialist;
     tools.api_tools.tools_params.propose_action.param.channel = 'web';
+    // A browser call has no call sid (Bolna fills "None", call 3e039987): the agent sends Halyn's own reference from
+    // the call details ({{call_ref}}, the web session's user_data) and the API reads it as the call sid.
+    for (const t of tools.api_tools.tools) {
+      t.parameters.properties.call_ref = {
+        type: 'string',
+        description: 'The call reference from the call details, starting with web_.',
+      };
+      t.parameters.required = [...new Set([...(t.parameters.required ?? []), 'call_ref'])];
+      tools.api_tools.tools_params[t.name].param.call_ref = '%(call_ref)s';
+    }
     const propose = tools.api_tools.tools.find((t) => t.name === 'propose_action');
     propose.parameters.properties.action.description =
       'One of: card.freeze, balance.view, statement.view, fee.waive, transfer.saved, wire.new, profile.change_mobile, dispute.charge, account.close, wire.international.';

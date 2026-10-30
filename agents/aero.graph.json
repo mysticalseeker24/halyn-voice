@@ -273,7 +273,7 @@
                 },
                 {
                   "id": "propose",
-                  "prompt": "Call @propose_action now: the action id, the details in params as key=value pairs separated by semicolons with no quotes (for example card_last4=8812), readback_confirmed (true only if the caller clearly said yes), and the caller's last one or two sentences as caller_quotes, without double quotes, separated by ' | '. When the tool answers, reply with only these words: \"Just a moment.\" Never say the request was sent, done or under review: the decision comes next.",
+                  "prompt": "Call @propose_action now: the action id, the details in params as key=value pairs separated by semicolons with no quotes (for example card_last4=8812), readback_confirmed (true only if the caller clearly said yes), and the caller's last one or two sentences as caller_quotes, without double quotes, separated by ' | '. When the tool answers, reply with only these words: \"Just a moment.\"",
                   "function_call": "propose_action",
                   "edges": [
                     {
@@ -350,7 +350,6 @@
                 },
                 {
                   "id": "protect",
-                  "prompt": "The request is on hold for the customer's protection. Decide from the conversation which case fits and answer in two or three short sentences, without blaming them:\n- If the request was to move money to a \"safe\", \"verification\" or \"secure\" account, or someone told the caller to make it or to keep it secret: explain kindly that Aero Bank never asks customers to move money to such an account and no genuine official asks for this on a call, for example: \"Aero Bank will never ask you to move money to a safe account. For your protection, this request is on hold.\"\n- If the caller is grieving or upset: say you are sorry and that a specialist will help them personally.\n- Otherwise: say a request of this size or kind is handled by a specialist.\nThen offer to connect a specialist now: \"Would you like me to connect you to a specialist now?\"",
                   "edges": [
                     {
                       "to_node_id": "transfer",
@@ -360,7 +359,9 @@
                       "to_node_id": "goodbye",
                       "condition": "The caller does not want a specialist now, or says goodbye"
                     }
-                  ]
+                  ],
+                  "node_type": "static",
+                  "static_message": "For your protection, this request is on hold. Aero Bank will never ask you to move money to a safe or verification account, or to keep a request secret, and no genuine official asks for this on a call. Would you like me to connect you to a specialist now?"
                 },
                 {
                   "id": "confirmed",

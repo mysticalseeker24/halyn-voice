@@ -177,7 +177,8 @@ export function normalizeToolBody(tool: BolnaTool, raw: unknown): unknown {
   const body = raw as Record<string, unknown>;
   const common = {
     run_id: bolnaValue(body.halyn_run_id ?? body.run_id ?? body.execution_id),
-    call_sid: bolnaValue(body.call_sid),
+    // A browser call has no call sid (Bolna sends "None"): its tools send Halyn's web-session reference instead.
+    call_sid: bolnaValue(body.call_sid) ?? bolnaValue(body.call_ref),
   };
   switch (tool) {
     case 'lookup_customer':
