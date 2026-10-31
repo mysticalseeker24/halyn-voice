@@ -14,8 +14,8 @@ export default function TryPage() {
           </p>
           <h1 className="text-2xl font-bold">Try Halyn on your own phone</h1>
           <p className="text-sm text-muted-foreground">
-            You become a customer of Aero Bank, a fictional bank, with the same demo account as the video:
-            ₹5,20,000 balance, a debit card ending 8812, a ₹600 late fee, saved payees Mom and Landlord.
+            You become a customer of Aero Bank, a fictional bank, with the same demo account as in the pitch
+            deck: ₹5,20,000 balance, a debit card ending 8812, a ₹600 late fee, saved payees Mom and Landlord.
           </p>
         </header>
         <TryForm />

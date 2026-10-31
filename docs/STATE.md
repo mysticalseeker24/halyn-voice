@@ -5,6 +5,14 @@ deployed (API `873d73f0`, Aero IN + US graphs) and pushed.** Chat #10 (prompt in
 09:00: daytime Run all → README numbers; calls 3, 4, 5+6 (+ personas) with the Confirm callback; video takes per
 docs/DEMO_SCRIPT.md; freeze tag; submit (docs/SUBMISSION.md)._
 
+## Chat #9, Oct 31 evening — deck-only submission + judge access (live)
+- Saksham submits the **pitch deck only** (no video): content in docs/DECK.md (14 slides, real-call screenshots).
+- **Judges try it at `/try`** with `JUDGE_ACCESS_CODE` = `HALYN-JUDGE-2026` (Worker secret; on slide 13): name +
+  number → own demo customer `cus_judge_<id>` (+ `_us`), hash + last 4 only, mirrored to TiDB; Aero Core creates the
+  account from the seed template on the first grant; passkey-only step-ups (Halyn never calls a judge). API
+  `f323d9f9`, Aero Core `2b4cd8d3`; live check ✅ (401 wrong code, signup, ₹5,20,000 home, same number → same id).
+  A test judge `cus_judge_01M69G82…` (a fake test number) exists in prod data. Rotate the code after judging.
+
 ## Chat #9 (2026-10-30, 19:48–22:45 IST) — what the calls changed (all live)
 - Fixed lines for `confirmed` and `protect` (the LLM improvised "under review"); an allow is sent only as `done`
   (`propose` → `confirmed` edge; finding 7); demo reset (and every Stage/Run-all scenario) also clears limit and
