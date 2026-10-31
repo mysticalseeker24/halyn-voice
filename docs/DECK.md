@@ -146,7 +146,7 @@ Layout key: **Headline** (one line, big) · **Body** (what goes on the slide) ·
 ## 13 · Try it yourself (for judges)
 - **Headline:** Become an Aero Bank customer in one minute, then call the bank.
 - **Body (numbered, large):**
-  1. Open **halyn-voice.vercel.app/try** and enter the access code **`<JUDGE CODE>`**, your name and your mobile
+  1. Open **halyn-voice.vercel.app/try** and enter the access code **`HALYN-JUDGE-2026`**, your name and your mobile
      number (the phone you'll call from). You get your own copy of the demo account: ₹5,20,000 balance, debit card
      ending 8812, a ₹600 late fee, saved payees Mom and Landlord.
   2. The Aero app opens on that phone: tap **Set up passkey** (fingerprint / face). Keep it open.

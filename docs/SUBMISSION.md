@@ -7,6 +7,8 @@ Paste the buildathon form's exact fields here when you have them; the answers be
 |---|---|
 | Project name | Halyn |
 | Tagline | The permission layer for voice agents. Don't trust the voice. Trust the permission. |
+| Short description (1–2 lines) | Halyn is the permission layer for voice agents: the AI agent can only propose an action, and Halyn decides — from policy and proof, never from how the caller sounds — asking the real customer on their own device when it's risky. For banks, lenders and fintechs whose voice agents can move money, so a voice clone, an unverified AI assistant or a coached scam victim can't. |
+| Try it (judges) | https://halyn-voice.vercel.app/try · access code `HALYN-JUDGE-2026` · then call +91 80653 56344 from that phone |
 | Team | Saksham Mishra (solo) |
 | Live demo | https://halyn-voice.vercel.app (Stage, Console, Aero app, Assistant; demo access code on request) |
 | Call the demo bank | +91 80653 56344 (Aero Bank's English AI agent on Bolna; fictional bank) |

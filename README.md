@@ -17,10 +17,16 @@ Buildathon 2026**, by Saksham Mishra (solo).
 </picture>
 
 ## Try it in two minutes
-1. **Call Aero Bank**, the fictional demo bank, in English: **+91 80653 56344**. You're an unregistered caller, so
-   anything risky steps up to the demo customer and won't execute for you.
-2. **Open the Stage** to watch decisions live, then the other apps. Every page has light and dark themes; the apps
-   ask for a demo access code (available on request).
+1. **Become a customer (judges):** open **[/try](https://halyn-voice.vercel.app/try)**, enter the judge access code
+   (in the pitch deck, slide 13), your name and the mobile number you'll call from. You get your own copy of the demo
+   account; set up a passkey in the Aero app that opens. Your number is stored only as a salted hash + last 4 digits,
+   and Halyn never calls it (your confirmations go to that passkey).
+2. **Call Aero Bank**, the fictional demo bank, in English: **+91 80653 56344**, from that phone: "Please freeze my
+   card", "Please waive my six hundred rupee late fee", a ₹45,000 transfer to a new account (step-up to your Aero
+   app), or a "verification account" transfer someone told you to keep secret (held). From any other phone you are an
+   unregistered caller: anything risky steps up to the customer and won't execute for you.
+3. **Open the Stage** to watch decisions live, then the other apps (the same code signs in). Every page has light
+   and dark themes.
 
 | App | Link | Who it's for | What to look at |
 |---|---|---|---|

@@ -37,6 +37,10 @@ Bolna's published rules; where a rule is unclear we ask Bolna first; every test 
   on request.
 - **Dependency audit:** `pnpm audit --prod` reports one low advisory (deepmerge, via the shadcn CLI, a dev-time
   generator; no patched release on 2026-10-30). Not reachable from the deployed Workers or the web bundle.
+- **Judge access (`/try`, 2026-10-31):** `JUDGE_ACCESS_CODE` (printed on the pitch deck) signs judges in like the
+  demo code and lets them create their own demo customer from a name + their number (stored as the salted hash + last
+  4 only). Halyn places **no** call to a judge's number: the Confirm callback goes only to the configured demo
+  number, so their step-ups use the passkey; judges only call *in* to number A. Rotate the code after judging.
 - **Demo reset:** the Console's "Demo reset" moves the window for the call-burst signal, the per-period limits and
   Pass-use counts for retakes (since 2026-10-30; earlier takes had used the yearly fee waiver); it deletes nothing.
   Every Stage / Run-all scenario starts with one, so a suite run is not skewed by its own earlier scenarios.

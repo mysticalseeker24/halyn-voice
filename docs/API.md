@@ -107,7 +107,8 @@ by the Hub's own alarm.
 ## Web (apps)
 | Endpoint | Purpose |
 |---|---|
-| `POST /web/session` | Demo login (customer or console user) |
+| `POST /web/session` | Demo login (customer or console user); `x-demo-code` = `DEMO_ACCESS_CODE` or `JUDGE_ACCESS_CODE` |
+| `POST /web/judges/signup` | `{code, name, phone}` (no session; `JUDGE_ACCESS_CODE`) → a customer session for the judge's own demo customer (`cus_judge_<id>` + `_us` twin, keyed by the number's hash + last 4; same number → same customer; the demo customer's number → 400). Aero Core creates the account from the seed template on the first grant (`/try`, deck slide 13) |
 | `GET /web/aero/home` | Balance, activity, card, loan, alerts, pending approvals for the customer (`AeroHomeSchema`) |
 | `POST /web/approvals/:id/options` · `POST /web/approvals/:id/verify` · `POST /web/approvals/:id/decline` | Passkey challenge / verify `{response}` → `{ok, status:"approved"}` / decline `{}` → `{ok, status:"declined"}` |
 | `POST /web/passkeys/register/options` · `/verify` | One-time passkey registration: `{options}` / `{response}` → `{ok:true}` |
