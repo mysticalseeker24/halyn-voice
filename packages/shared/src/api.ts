@@ -164,6 +164,21 @@ export const SessionRequestSchema = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('customer'), customer_id: CustomerIdSchema }),
   z.strictObject({ kind: z.literal('console') }),
 ]);
+/**
+ * POST /web/judges/signup — a judge becomes a demo customer of their own (slide 13): the judge access code, the name
+ * the agent greets them by, and the phone they will call from (E.164). Answers with a customer session.
+ */
+export const JudgeSignupRequestSchema = z.strictObject({
+  code: z.string().min(8).max(64),
+  name: z
+    .string()
+    .trim()
+    .min(2)
+    .max(60)
+    .regex(/^[\p{L}][\p{L} .'-]*$/u, 'letters, spaces, dots, apostrophes and hyphens only'),
+  phone: E164Schema,
+});
+
 export const SessionResponseSchema = z.strictObject({
   token: z.string().min(16).max(4096),
   tenant_id: TenantIdSchema,

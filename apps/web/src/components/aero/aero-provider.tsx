@@ -21,7 +21,7 @@ import { ApiError, type ApiClient } from '@/lib/api/client';
 import type { AeroHome, PendingApproval } from '@halyn/shared';
 import { useHub } from '@/lib/hub/use-hub';
 import { COPY, type Copy } from '@/lib/i18n';
-import { DEMO_CUSTOMER_ID, useDemoSession } from '@/lib/session';
+import { demoCustomerId, useDemoSession } from '@/lib/session';
 import type { HubStatus } from '@/lib/hub/use-hub';
 import { type ApprovalPhase, ApprovalSheet } from './approval-sheet';
 
@@ -106,7 +106,7 @@ function isCancelled(error: unknown): boolean {
 export function AeroProvider({ children }: { children: ReactNode }) {
   const { state, api, token, retry, submitCode } = useDemoSession({
     kind: 'customer',
-    customerId: DEMO_CUSTOMER_ID,
+    customerId: demoCustomerId(),
   });
   const [lang, setLang] = useStoredLanguage();
   const [home, setHome] = useState<HomeState>({ status: 'loading' });

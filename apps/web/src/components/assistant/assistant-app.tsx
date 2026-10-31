@@ -7,7 +7,7 @@ import { OutcomeBadge } from '@/components/outcome-badge';
 import { ErrorState, LoadingState } from '@/components/states';
 import { useHub } from '@/lib/hub/use-hub';
 import { COPY } from '@/lib/i18n';
-import { DEMO_CUSTOMER_ID, useDemoSession } from '@/lib/session';
+import { demoCustomerId, useDemoSession } from '@/lib/session';
 
 // Saksham's Assistant (docs/UI.md): a task box, the Pass as a boarding-pass card, and the agent-to-agent call as it
 // happens — Halyn's Pass-code line, every decision Aero's Gate makes, then the transcript when the call ends.
@@ -100,7 +100,7 @@ export function PassCard({ pass }: { pass: PassSummary }) {
 export function AssistantApp() {
   const { state, api, token, retry, submitCode } = useDemoSession({
     kind: 'customer',
-    customerId: DEMO_CUSTOMER_ID,
+    customerId: demoCustomerId(),
   });
   const [passes, setPasses] = useState<PassSummary[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);

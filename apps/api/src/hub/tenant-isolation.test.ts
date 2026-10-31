@@ -62,6 +62,7 @@ const RPC_CALLS = {
   webCallCustomer: (s, t) => s.webCallCustomer(t, 'cus_saksham', 'US'),
   registerWebCall: (s, t) =>
     s.registerWebCall(t, { run_id: 'run', session_customer_id: 'cus_saksham', region: 'US' }),
+  registerJudge: (s, t) => s.registerJudge(t, { name: 'Judge', number_hash: 'a'.repeat(64), last4: '1234' }),
   finishScreening: (s, t) => s.finishScreening(t, 'req_x', null),
   handoffs: (s, t) => s.handoffs(t),
   resolveHandoff: (s, t) => s.resolveHandoff(t, { id: 'ho_x', action: 'block', note: null }),

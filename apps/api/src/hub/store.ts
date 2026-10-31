@@ -108,8 +108,13 @@ export class HubStore {
    * does not have them yet, because after the first load the Hub's copies are the newest (it writes them first).
    */
   loadDirectory(snapshot: DirectorySnapshot): void {
+    // Judges' customers are created here first (their TiDB rows follow through the mirror outbox): keep any the
+    // snapshot does not have yet, so a refresh between sign-up and the flush cannot drop them.
+    const judges = this.customers().filter(
+      (c) => c.id.startsWith('cus_judge_') && !snapshot.customers.some((s) => s.id === c.id),
+    );
     this.sql.exec('DELETE FROM customers');
-    for (const customer of snapshot.customers) this.putCustomer(customer);
+    for (const customer of [...snapshot.customers, ...judges]) this.putCustomer(customer);
     for (const pass of snapshot.passes) if (!this.pass(pass.id)) this.putPass(pass);
     for (const code of snapshot.codes)
       if (this.rows('SELECT row FROM pass_codes WHERE id = ?', code.id).length === 0) this.putCode(code);

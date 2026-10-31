@@ -61,6 +61,7 @@ export type HubRpc = Pick<
   | 'resetDemo'
   | 'webCallCustomer'
   | 'registerWebCall'
+  | 'registerJudge'
   | 'issueWsTicket'
   | 'consoleCalls'
   | 'consoleCall'
@@ -177,6 +178,10 @@ export function hubFor(env: Pick<Env, 'HUB'>, tenant_id: string) {
       unwrap(await stub.webCallCustomer(tenant_id, session_customer_id, region)),
     registerWebCall: async (input: Parameters<HubRpc['registerWebCall']>[1]): Promise<CallState> =>
       unwrap(await stub.registerWebCall(tenant_id, input)),
+    registerJudge: async (
+      input: Parameters<HubRpc['registerJudge']>[1],
+    ): Promise<{ customer_id: string; created: boolean }> =>
+      unwrap(await stub.registerJudge(tenant_id, input)),
     /** A one-time WebSocket ticket body (ADR-021); the Worker seals it before handing it out. */
     issueWsTicket: async (
       input: Parameters<HubRpc['issueWsTicket']>[1],

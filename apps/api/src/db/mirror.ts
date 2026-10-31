@@ -106,6 +106,17 @@ const PassCodeRow = z.object({
   used_at: z.iso.datetime().nullable(),
 });
 const CredentialsRow = z.object({ customer_id: z.string(), credentials: z.array(z.unknown()) });
+/** A judge's demo customer created in the Hub (POST /web/judges/signup); only the number's hash and last 4 digits. */
+const CustomerRow = z.object({
+  id: z.string(),
+  name: z.string(),
+  spoken_name: z.string(),
+  region: z.enum(['IN', 'US']),
+  language: z.enum(['hi', 'en']),
+  number_hash: z.string().regex(/^[0-9a-f]{64}$/),
+  last4: z.string().regex(/^\d{4}$/),
+  created_at: Ms,
+});
 
 function fail(kind: string): never {
   throw new HalynError('E_FAIL_CLOSED', `mirror: malformed ${kind} item`);
@@ -306,6 +317,23 @@ export function mirrorStatement(db: AnyDb, tenant_id: string, item: MirrorItem) 
         .update(customers)
         .set({ passkey_credential: r.credentials })
         .where(and(eq(customers.tenant_id, t), eq(customers.id, r.customer_id)));
+    }
+    case 'customer': {
+      const r = read(CustomerRow, item);
+      return db
+        .insert(customers)
+        .values({
+          id: r.id,
+          tenant_id: t,
+          name: r.name,
+          spoken_name: r.spoken_name,
+          region: r.region,
+          language: r.language,
+          registered_number_hash: r.number_hash,
+          registered_number_last4: r.last4,
+          created_at: at(r.created_at),
+        })
+        .onDuplicateKeyUpdate({ set: { name: r.name, spoken_name: r.spoken_name } });
     }
   }
 }

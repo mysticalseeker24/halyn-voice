@@ -178,6 +178,7 @@ export const MIRROR_KINDS = [
   'pass_row',
   'pass_code',
   'credentials',
+  'customer',
 ] as const;
 export const MirrorItemSchema = z.strictObject({
   kind: z.enum(MIRROR_KINDS),

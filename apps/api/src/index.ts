@@ -31,6 +31,7 @@ import {
   registerVerify,
 } from './web/passkeys';
 import { assistantTask, issuePassRoute, listPasses, passOptions, revokePassRoute } from './web/passes';
+import { judgeSignup } from './web/judges';
 import { createSession } from './web/session-route';
 import { webCallSession } from './web/web-calls';
 import { stageDemoReset, stageRegion, stageRun } from './web/stage';
@@ -95,7 +96,10 @@ export function createApp(deps: AppDeps = defaultDeps) {
       }
     return res;
   });
-  app.use('/web/*', async (c, next) => (c.req.path === '/web/session' ? next() : requireSession()(c, next)));
+  app.post('/web/judges/signup', judgeSignup(deps));
+  app.use('/web/*', async (c, next) =>
+    c.req.path === '/web/session' || c.req.path === '/web/judges/signup' ? next() : requireSession()(c, next),
+  );
   app.get('/web/me', (c) => c.json(c.get('session')));
   app.get('/web/aero/home', aeroHome(deps));
   app.post('/web/passkeys/register/options', registerOptions(deps));

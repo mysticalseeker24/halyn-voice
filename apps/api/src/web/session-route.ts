@@ -18,10 +18,9 @@ export async function readJson(c: Context<AppEnv>): Promise<unknown> {
  */
 export async function createSession(c: Context<AppEnv>): Promise<Response> {
   const env = requireEnv(c.env, SessionEnvSchema);
-  if (
-    env.DEMO_ACCESS_CODE !== undefined &&
-    !timingSafeEqual(c.req.header('x-demo-code') ?? '', env.DEMO_ACCESS_CODE)
-  )
+  const sent = c.req.header('x-demo-code') ?? '';
+  const judge = env.JUDGE_ACCESS_CODE !== undefined && timingSafeEqual(sent, env.JUDGE_ACCESS_CODE);
+  if (env.DEMO_ACCESS_CODE !== undefined && !judge && !timingSafeEqual(sent, env.DEMO_ACCESS_CODE))
     throw new HalynError('E_UNAUTHORIZED', 'A valid demo access code is required');
   const body = SessionRequestSchema.parse(await readJson(c));
   const { token, session } = await signSession(

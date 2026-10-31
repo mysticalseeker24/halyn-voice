@@ -137,6 +137,9 @@ export function createApiClient(options: ApiClientOptions = {}) {
       ),
     createConsoleSession: () =>
       request(SessionResponseSchema, 'POST', '/web/session', { kind: 'console' }, demoHeaders()),
+    /** /try: a judge becomes a demo customer of their own (code, name, the phone they will call from). */
+    judgeSignup: (body: { code: string; name: string; phone: string }) =>
+      request(SessionResponseSchema, 'POST', '/web/judges/signup', body),
 
     aeroHome: () => request(AeroHomeSchema, 'GET', '/web/aero/home'),
 

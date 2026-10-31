@@ -1,131 +1,177 @@
-# Pitch deck — Halyn (16 slides, 16:9)
+# Pitch deck — Halyn (14 slides, 16:9, no video)
 
-Style: docs/BRAND.md (ink on paper, one cobalt accent, Inter + JetBrains Mono; outcome colours always with their
-word). Images: `docs/deck/NN-*.png` from the BRAND.md prompts; real screenshots from `docs/screens/` beat
-illustrations on the product slides. Every number is sourced (docs/PRODUCT.md) or measured (README "Real calls").
+The deck is the whole submission, so it must read on its own: every slide says what it shows, the product slides use
+**real screenshots from real calls**, and slide 13 lets a judge try Halyn on their own phone.
+Style (docs/BRAND.md): ink on paper (or near-black for screenshot slides), one cobalt accent, Inter for text,
+JetBrains Mono for codes; outcome colours always carry their word (ALLOWED green, STEP-UP amber, HELD violet,
+DENIED red). Illustrations: `docs/deck/NN-*.png`. Screenshots: `docs/screens/*.png`. Numbers are sourced
+(docs/PRODUCT.md) or measured on real calls (README → "Real calls").
+
+Layout key: **Headline** (one line, big) · **Body** (what goes on the slide) · **Visual** (files, placement) ·
+**Footer** (small print: sources, ids).
 
 ---
 
-### 1 · Title
-- **Message:** Halyn — the permission layer for voice agents.
-- **On slide:** wordmark; "Don't trust the voice. Trust the permission."; "Saksham Mishra · Bolna Symphony Buildathon
-  2026".
-- **Image:** `deck/01-title.png`.
-- **Notes:** "Voice agents are starting to act on our money. Halyn decides what they're allowed to do."
+## 1 · Title
+- **Headline:** Halyn — the permission layer for voice agents
+- **Body:** "Don't trust the voice. Trust the permission." · Saksham Mishra · Bolna Symphony Buildathon 2026 ·
+  halyn-voice.vercel.app
+- **Visual:** `docs/deck/01-title.png` full bleed; headline in the empty left two-thirds.
 
-### 2 · The problem: three callers
-- **Message:** A voice agent that can act can be abused by three kinds of caller — and today's checks fail all three.
-- **Bullets:** A **voice clone** — biometrics can be fooled; known details aren't secret. · An **AI assistant** calling
-  for a customer — banks can't check its authority. · A **real customer coached by a scammer** — every check passes,
-  and they approve any step-up.
-- **Image:** `deck/02-three-callers.png`.
-- **Notes:** Deepfake fraud attempts +1,300% in 2024 (Pindrop); US consumers reported $12.5B lost to fraud in 2024,
-  imposter scams $2.95B (FTC); ~₹120 crore lost to "digital arrest" scams in early 2024 (The Wire).
+## 2 · The problem: voice agents can now act — and three callers can abuse that
+- **Headline:** Voice agents now move money. Who decides what they're allowed to do?
+- **Body (three columns):**
+  - **The clone** — an AI copy of your voice calls your bank. Voice biometrics can be fooled; "known details" aren't
+    secret.
+  - **The AI assistant** — an agent calls the bank *for* you. The bank can't check its authority, so it hangs up or
+    over-trusts it.
+  - **The coached customer** — it really is you, on your phone, but a scammer is telling you what to say. Every check
+    passes, and you approve any confirmation.
+- **Visual:** `docs/deck/02-three-callers.png` as the column background.
+- **Footer:** Deepfake fraud attempts +1,300% in 2024 (Pindrop) · US consumers reported $12.5B lost to fraud in 2024,
+  imposter scams $2.95B (FTC) · ~₹120 crore lost to "digital arrest" scams in early 2024 (The Wire).
 
-### 3 · Why voice isn't proof
-- **Message:** If a model can copy a voice, a voice can't authorise money.
-- **Bullets:** The demo's clone is my own voice (consented, Sarvam instant voice cloning), and it sounds like me. ·
-  Liveness and biometric scores can only *raise* risk
-  in Halyn, never lower it. · Proof is the registered number (low risk only), a Halyn Pass, or the customer on their
-  own device.
-- **Image:** `deck/03-voice-not-proof.png`.
-- **Notes:** Mention the consented clone used in the demo, labelled every time.
+## 3 · Why voice can't be proof
+- **Headline:** If a model can copy a voice, a voice can't authorise money.
+- **Body:**
+  - The demo's clone is my own voice (consented, Sarvam instant cloning, labelled "AI clone" everywhere).
+  - In Halyn, voice and liveness scores can only **raise** the risk tier — never lower it.
+  - **Proof** is only: the registered number (low-risk actions), a Halyn Pass in scope, or the real customer
+    confirming on **their own device** (passkey or a callback to the registered number).
+- **Visual:** `docs/deck/03-voice-not-proof.png`.
 
-### 4 · The one rule
-- **Message:** The agent proposes. Halyn decides. Only Halyn executes.
-- **Bullets:** One tool for the agent: `propose_action`. · Four answers: **allow / step-up / hold / deny**, from policy,
-  proof and signals. · Execution needs a one-time **Ed25519 grant**: expires ≤ 120 s, bound to the SHA-256 of the
-  exact parameters, single use.
-- **Image:** `deck/04-propose-decide-execute.png`.
-- **Notes:** "Even a jailbroken agent can't move money: it holds no tool that executes anything."
+## 4 · The one rule: propose → decide → execute
+- **Headline:** The agent proposes. Halyn decides. Only Halyn executes.
+- **Body:**
+  - The voice agent has **one tool**: `propose_action` (action + exact parameters + did the caller say yes to the
+    read-back). It holds no tool that can execute anything — even a jailbroken agent can't move money.
+  - Halyn's Gate answers within the tool call: **ALLOWED · STEP-UP · HELD · DENIED**, from policy, proof and signals
+    (unregistered number, call bursts, unusual hour, velocity, coaching).
+  - To execute, Halyn signs a **one-time Ed25519 grant** (expires ≤ 120 s, bound to the SHA-256 of the exact
+    parameters, single use). The bank's core rejects every write without one.
+  - **Fail closed:** any error or unknown state → DENIED, and the caller still hears a polite outcome.
+- **Visual:** `docs/deck/04-propose-decide-execute.png` across the top; four outcome chips below.
 
-### 5 · Demo
-- **Message:** Real calls, one product.
-- **On slide:** the submission video (2:55) embedded; fallback link.
-- **Notes:** Play it; if time is short, start at 1:00 (the clone).
+## 5 · The product: four apps around one decision
+- **Headline:** What you're looking at
+- **Body (2×2 grid, one line each):**
+  - **Aero Bank** (`/aero`) — a fictional bank's customer app: balance, card, approval sheets with a passkey,
+    "Call Aero" in the browser. The voice agent answers on **+91 80653 56344** (Bolna).
+  - **Halyn Stage** (`/stage`) — the live view of a call: transcript, Halyn's decision and reason codes, the
+    confirmation, the hash-chained ledger, the event timeline.
+  - **Halyn Console** (`/console`) — for the bank: calls, policies per region, Passes, handoffs, ledger, signals,
+    and **Halyn Test** (runs every attack against the live system).
+  - **Assistant** (`/assistant`) — an AI agent that calls the bank for the customer, carrying a Halyn Pass.
+- **Visual:** `docs/screens/landing.png` (left) + `docs/screens/stage-v1-dark.png` (right).
 
-### 6 · Step-up across two devices
-- **Message:** Risky requests from an unproven caller go to the real customer, on their own device.
-- **Bullets:** Passkey sheet in the bank app *and* a callback to the registered number; first answer wins. · The sheet
-  shows the exact action ("Send ₹45,000 to a NEW payee, account ending 4471") and a safe-account warning. ·
-  Unanswered in 60 s → denied.
-- **Image:** `docs/screens/real-call-step-up-approval-sheet.png` (real call) or `deck/05-step-up.png`.
-- **Notes:** The clone can sound perfect; it still can't answer my phone.
+## 6 · The real customer: instant (real call)
+- **Headline:** From the registered phone, a low-risk request just happens.
+- **Body:** Real call, English, 2026-10-30: "Please waive my ₹600 late fee" → the agent reads it back → "Yes" →
+  **ALLOWED** (`P_WITHIN_LIMIT`: tier 1, within the yearly limit) → Halyn signs a grant → Aero Core credits ₹600 →
+  the agent says "Done!". Every step is a linked ledger row (`proposed → decided → grant_issued → executed`).
+  A card freeze works the same way (**ALLOWED**, `P_PROTECTIVE`).
+- **Visual:** `docs/screens/real-call-2-fee-waiver-allowed.png` (full width).
+- **Footer:** Real calls on Bolna (Vobiz number A); Sarvam speech. Freeze and fee waiver: allowed → executed.
 
-### 7 · The coached victim gets a human
-- **Message:** When the customer is being coached, a step-up is useless — so Halyn holds and hands over to a person.
-- **Bullets:** Coaching cues ("verification account", "don't tell anyone", a third party giving instructions): a
-  keyword layer plus a Sarvam LLM check. · Score ≥ 0.6 → **hold**, never step-up. · The agent explains kindly,
-  offers a specialist; a handoff with the transcript and a check-in call is scheduled.
-- **Image:** `docs/screens/real-call-4-coached-held-stage.png` (real call: HELD, `S_COACHING`).
-- **Notes:** This is the case authentication alone can't solve.
+## 7 · The clone gets nothing: step-up on the customer's own device
+- **Headline:** Same voice, different phone → the real customer decides.
+- **Body:**
+  - A new-payee transfer is tier 3; from an unregistered number it raises `S_UNREGISTERED_NUMBER`.
+  - Halyn sends the **exact action** to the customer: a passkey sheet in the Aero app ("Send ₹45,000 to a NEW payee,
+    account ending 4471" + "Aero will never ask you to move money to a safe account") and a callback to the
+    registered number. **First answer wins**; no answer in 60 s → DENIED.
+  - Declined → **DENIED** (`C_DECLINED`). Aero Core never receives a request: no grant was ever signed.
+- **Visual:** `docs/deck/05-step-up.png` (small, left) + `docs/screens/real-call-step-up-approval-sheet.png` and
+  `docs/screens/real-call-step-up-declined.png` (right, stacked).
+- **Footer:** Real call: STEP-UP `P_TIER3_STEP_UP` → declined on the passkey → DENIED `C_DECLINED`.
 
-### 8 · Halyn Pass — permission for AI assistants
-- **Message:** Your AI assistant gets exactly what you allowed, and nothing more.
-- **Bullets:** A signed, scoped Pass: which actions, how many times, until when, from which number. · Spoken on the
-  call as a one-time six-digit code, checked against Bolna's telephony record. · Critical actions can never be in a
-  Pass; five wrong codes lock it; revoke any time.
-- **Image:** `docs/screens/assistant-pass-card.png` or `deck/07-pass.png`.
-- **Notes:** Agent-to-agent calls are coming (assistants that call companies for consumers are already funded).
+## 8 · The coached customer gets a human
+- **Headline:** When the customer is being coached, a confirmation is useless — so Halyn holds it.
+- **Body:**
+  - A scam victim would approve any step-up. Halyn looks for **coaching cues** ("verification account", "don't tell
+    anyone", a third party giving instructions): a keyword layer plus a Sarvam LLM check.
+  - Score ≥ 0.6 → **HELD**, never step-up. The agent says kindly: "Aero Bank will never ask you to move money to a
+    safe or verification account, or to keep a request secret…" and offers a specialist.
+  - A **handoff** opens with the transcript, and a check-in call is scheduled.
+- **Visual:** `docs/screens/real-call-4-coached-held-stage.png` (main) + `docs/screens/real-call-4-coached-held-console.png`
+  (inset: cues `verification_account`, `llm_third_party_instructions`). Optional: `docs/deck/06-hold.png`.
+- **Footer:** Real call: ₹4,80,000 to a "verification account" → HELD `S_COACHING` (0.95) `H_SPECIALIST`.
 
-### 9 · Grant and ledger
-- **Message:** Every decision is provable afterwards.
-- **Bullets:** The bank's core rejects any write without a valid Halyn grant (401 on a forged or replayed one). ·
-  Append-only, hash-chained ledger: `hash = SHA-256(prev ‖ entry)`; one click verifies the chain. · Fail closed: any
-  error on a write path → deny, and the caller still hears a polite outcome.
-- **Image:** `docs/screens/console-ledger-real.png` or `deck/08-grant-ledger.png`.
+## 9 · Halyn Pass: permission for AI assistants
+- **Headline:** Your AI assistant gets exactly what you allowed — nothing more.
+- **Body:**
+  - The customer issues a **signed, scoped Pass** in the bank app (with a passkey): which actions, how many times,
+    until when, from which phone number.
+  - On the call, the assistant speaks a **one-time six-digit code**; Halyn checks it against the Pass *and* the
+    calling number from Bolna's telephony record.
+  - In scope → ALLOWED (`X_PASS_IN_SCOPE`). Out of scope → back to the customer (step-up). Critical actions (new
+    payee, number change, closing an account) can never be in a Pass. Five wrong codes lock it; revoke any time.
+- **Visual:** `docs/deck/07-pass.png` + `docs/screens/assistant-pass-card.png`.
 
-### 10 · Architecture — how Bolna and Sarvam are used
-- **Message:** A drop-in layer between the voice agent and the bank.
-- **Bullets:** **Bolna:** graph voice agents (Aero, Halyn Confirm, the Assistant), custom-function tools, outcomes
-  injected into the live call as events, Web Call SDK for the US, Vobiz numbers. · **Sarvam:** speech-to-text and
-  text-to-speech (and the consented voice clone for the demo), plus the coaching check. · **Halyn:** Cloudflare
-  Workers + a Durable Object hub (ordering, timers, WebSockets), TiDB as the system of record, Next.js apps on Vercel.
-- **Image:** `apps/web/public/pipeline.png` or `deck/09-architecture.png`.
+## 10 · Proof the bank can audit: grants, ledger, policies, tests
+- **Headline:** Every decision is provable afterwards.
+- **Body:**
+  - **Policies per region** (India ₹ / US $): tiers, limits, human-only actions, coaching threshold — compiled, never
+    parsed at runtime.
+  - **Ledger:** append-only, `hash = SHA-256(prev ‖ entry)`, one click verifies the whole chain.
+  - **Halyn Test:** runs the scenario suite against the live system: actions without a grant **0**.
+  - ~2,100 automated tests + 16 end-to-end; every scenario passes in text mode against the real Gate.
+- **Visual:** `docs/screens/console-policies-in.png` (left) + `docs/screens/console-ledger-real.png` (right);
+  `docs/deck/08-grant-ledger.png` small.
 
-### 11 · Results
-- **Message:** It works on real calls, and every rule has a test.
-- **Bullets:** Real calls (2026-10-30): card freeze and fee waiver **allowed → executed**; coached ₹4.8 lakh
-  **held** (`S_COACHING` 0.95); US $8,000 wire **held** (`P_HUMAN_ONLY_ABOVE_LIMIT`); step-up **declined → denied**,
-  bank core never called. · ~2,100 automated tests + 16 end-to-end; every scenario passes in text mode against the
-  real Gate. · Actions without a grant: **0** (fill the Run all numbers from the 2026-10-31 daytime run).
-- **Image:** the README "Real calls" table as a slide table; `docs/screens/console-calls-real.png`.
+## 11 · How it's built — Bolna, Sarvam, Halyn
+- **Headline:** A drop-in layer between any voice agent and the systems it acts on.
+- **Body:**
+  - **Bolna:** graph voice agents (Aero, Halyn Confirm, the Assistant); custom-function tools (`lookup_customer`,
+    `verify_pass`, `propose_action`); outcomes **injected into the live call as events**; the Web Call SDK for the US
+    twin; Vobiz numbers; calling guardrails 09:00–21:00 on every outbound agent.
+  - **Sarvam:** speech-to-text, text-to-speech, the consented voice clone, and the coaching check.
+  - **Halyn:** Cloudflare Workers + a Durable Object hub (ordering, timers, WebSockets), TiDB as the system of
+    record, Ed25519 grants, Next.js apps on Vercel; Aero Core is the mock bank that verifies every grant.
+- **Visual:** `docs/deck/09-architecture.png` or `apps/web/public/pipeline.png`.
 
-### 12 · Market
-- **Message:** Every bank, lender and insurer that lets a voice agent act needs a permission layer.
-- **Bullets:** First: Indian lenders and fintechs already building on Bolna. · Then: US banks and credit unions
-  (browser and app channels first). · Later: any voice or chat agent that acts — insurance claims, telecom,
-  utilities.
-- **Image:** `deck/10-market.png`.
-- **Notes:** No invented market-size numbers: talk about who buys and why now.
+## 12 · Market, business model, landscape
+- **Headline:** Every voice agent that can act needs a permission layer.
+- **Body (three columns):**
+  - **Who buys:** Indian lenders and fintechs building on Bolna first; then US banks and credit unions; then any
+    agent that acts (insurance, telecom, utilities).
+  - **Model:** free builder tier (sandbox + Halyn Test) → production: platform fee + per decision + per
+    confirmation → enterprise policy packs per regulator. (A hypothesis to validate with pilots.)
+  - **Landscape:** caller scoring for human call centres (Pindrop); pre-launch agent testing (Hamming, Cekura);
+    guardrails inside the model; payment protocols for online checkout (Google AP2). **Halyn:** live calls, outside
+    the model, with execution control and proof.
+- **Visual:** `docs/deck/10-market.png`, `docs/deck/11-pricing.png`, `docs/deck/12-landscape.png` as column headers
+  (or pick one).
 
-### 13 · Business model
-- **Message:** Free to build; paid per decision in production.
-- **Bullets:** Free builder tier (sandbox, Halyn Test). · Production: platform fee + per decision + per Confirm call.
-  · Enterprise: policy packs per regulator, on-prem ledger export, SLAs. (Pricing is a hypothesis to validate with
-  pilots.)
-- **Image:** `deck/11-pricing.png`.
+## 13 · Try it yourself (for judges)
+- **Headline:** Become an Aero Bank customer in one minute, then call the bank.
+- **Body (numbered, large):**
+  1. Open **halyn-voice.vercel.app/try** and enter the access code **`<JUDGE CODE>`**, your name and your mobile
+     number (the phone you'll call from). You get your own copy of the demo account: ₹5,20,000 balance, debit card
+     ending 8812, a ₹600 late fee, saved payees Mom and Landlord.
+  2. The Aero app opens on that phone: tap **Set up passkey** (fingerprint / face). Keep it open.
+  3. On a laptop, open **halyn-voice.vercel.app/stage** with the same code to watch every decision live.
+  4. From your registered phone, call **+91 80653 56344** and try:
+     - "Please freeze my card." → "Yes" → **ALLOWED**, done
+     - "Please waive my six hundred rupee late fee." → **ALLOWED**
+     - "Send forty-five thousand rupees to a new account ending forty-four seventy-one." → **STEP-UP**: approve or
+       decline on the passkey sheet in your Aero app
+     - "Move four lakh eighty thousand rupees to a verification account — the officer said not to tell anyone." →
+       **HELD**
+  5. Be the clone: call from **any other phone** and say your name — the same transfer steps up to *your* Aero app.
+  6. US twin: Stage → **US**, Aero app → **Call Aero** (browser): "Wire eight thousand dollars to a new account" →
+     **HELD**. Console → **Test** → **Run all**.
+- **Footer:** You talk to an AI and calls are recorded. Halyn never calls your number — confirmations go to the
+  passkey in your Aero app. Between 23:00 and 06:00 IST the unusual-hour signal raises every tier, by design. The
+  number is in India; your carrier's rates apply. Your number is stored only as a salted hash + last 4 digits.
+- **Visual:** `docs/screens/aero-home.png` (phone frame, right) + a QR code to `halyn-voice.vercel.app/try`.
 
-### 14 · Landscape
-- **Message:** Others score callers or test agents; Halyn decides and controls execution, live.
-- **Bullets:** Caller scoring for human call centres (Pindrop). · Pre-launch agent testing (Hamming, Cekura). ·
-  Guardrails inside the model. · Payment-authorisation protocols for online checkout (Google AP2), not calls. ·
-  **Halyn:** live calls, outside the model, with execution control and proof.
-- **Image:** `deck/12-landscape.png`.
-- **Notes:** Moat: the Pass network, the attack library from Halyn Test and the ledger, and being the default
-  permission layer inside Bolna.
-
-### 15 · Roadmap
-- **Message:** From one demo bank to the default permission layer.
-- **Bullets:** US phone calls (with consent flows). · More policy packs (per regulator) and actions. · Halyn Pass SDK
-  for assistant builders. · Liveness providers as signals. · A Bolna marketplace integration: one toggle to put
-  Halyn between any agent and its tools.
-- **Image:** `deck/13-roadmap.png`.
-
-### 16 · Team and ask · Close
-- **Message:** Built solo in a week; looking for pilots.
-- **Bullets:** Saksham Mishra — built Halyn end to end (API, policy engine, apps, Bolna agents, tests). · Ask: two
-  pilot lenders or fintechs on Bolna; feedback from Bolna's team on making Halyn a default layer.
-- **On slide (close):** wordmark · "Don't trust the voice. Trust the permission." · halyn-voice.vercel.app ·
-  github.com/mysticalseeker24/halyn-voice · Call Aero: +91 80653 56344.
-- **Image:** `deck/14-close.png` or `docs/screens/landing.png`.
+## 14 · Roadmap · team · close
+- **Headline:** Don't trust the voice. Trust the permission.
+- **Body:**
+  - **Next:** US phone calls with consent flows · more policy packs and actions · Halyn Pass SDK for assistant
+    builders · liveness providers as signals · one toggle in Bolna to put Halyn between any agent and its tools.
+  - **Team:** Saksham Mishra — built Halyn end to end (API, policy engine, apps, Bolna agents, tests).
+  - **Ask:** two pilot lenders or fintechs on Bolna; Bolna's feedback on making Halyn a default layer.
+- **Visual:** `docs/deck/13-roadmap.png` (top, thin) + `docs/deck/14-close.png` (bottom).
+- **Footer:** halyn-voice.vercel.app · github.com/mysticalseeker24/halyn-voice · Call Aero: +91 80653 56344

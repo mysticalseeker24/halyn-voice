@@ -39,6 +39,8 @@ export const SessionEnvSchema = z.object({
   SESSION_SECRET: Secret,
   DEFAULT_TENANT_ID: TenantIdSchema,
   DEMO_ACCESS_CODE: z.string().min(8).optional(),
+  /** Judges' code (pitch deck slide 13): signs in like the demo code and lets them sign up at /try. */
+  JUDGE_ACCESS_CODE: z.string().min(8).optional(),
 });
 
 /** The TiDB system of record (the Hub's ledger flush, every query). */

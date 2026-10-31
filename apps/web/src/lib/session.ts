@@ -16,6 +16,41 @@ export type SessionState =
   | { status: 'ready'; session: Session };
 
 export const DEMO_CUSTOMER_ID = 'cus_saksham';
+const JUDGE_CUSTOMER_KEY = 'halyn.customer';
+
+/**
+ * The customer the Aero and Assistant apps act as: a judge who signed up at /try on this device (their own demo
+ * customer, pitch deck slide 13), else the demo customer.
+ */
+export function demoCustomerId(): string {
+  try {
+    const id = typeof window === 'undefined' ? null : window.localStorage.getItem(JUDGE_CUSTOMER_KEY);
+    return id && /^cus_judge_[A-Za-z0-9]+$/.test(id) ? id : DEMO_CUSTOMER_ID;
+  } catch {
+    return DEMO_CUSTOMER_ID;
+  }
+}
+
+/** After /try: remember the code (this tab) and the judge's customer (this device), and cache their session. */
+export function storeJudgeSession(code: string, session: Session): void {
+  storeDemoCode(code.trim());
+  if (session.customer_id === null) return;
+  try {
+    window.localStorage.setItem(JUDGE_CUSTOMER_KEY, session.customer_id);
+    window.sessionStorage.setItem(`halyn.session.${session.customer_id}`, JSON.stringify(session));
+  } catch {
+    // Private window: the Aero app asks for the code again and signs in as this customer from the cached id.
+  }
+}
+
+/** Back to the demo customer on this device. */
+export function forgetJudge(): void {
+  try {
+    window.localStorage.removeItem(JUDGE_CUSTOMER_KEY);
+  } catch {
+    // Nothing stored.
+  }
+}
 
 // One browser tab holds one demo session at a time; the API client reads its token from here.
 let currentToken: string | null = null;

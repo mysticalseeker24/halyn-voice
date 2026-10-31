@@ -1,6 +1,7 @@
 import { type Clock, coreEndpoints, newId, type Rng } from '@halyn/shared';
 import { Hono } from 'hono';
 import { execute } from './core/execute';
+import { ensureJudgeAccount } from './seed/judge';
 import { createDb } from './db/client';
 import { requireCoreEnv } from './env';
 import { readParams } from './grant/params';
@@ -44,6 +45,7 @@ export function createApp(deps: AppDeps = { clock: systemClock, rng: cryptoRng }
         tenant: env.tenant,
         nowMs,
       });
+      await ensureJudgeAccount(env.db, grant.claims.tenant, grant.claims.sub);
       const body = await execute(
         {
           db: createDb(env.db),

@@ -11,6 +11,7 @@ import {
   type JsonValue,
   type LedgerEntry,
   LedgerEntrySchema,
+  newId,
   LedgerEntryTypeSchema,
   MoneySchema,
   type OutcomeEvent,
@@ -800,6 +801,50 @@ export class HubDO extends DurableObject<Env> {
       await this.ensureDirectory(tenant);
       return webCallCustomer(this.core(tenant), session_customer_id, RegionSchema.parse(region));
     });
+  }
+
+  /**
+   * A judge's own demo customer (POST /web/judges/signup, pitch deck slide 13): an India record and its US twin, keyed
+   * by the judge's number (hash + last 4 only), mirrored to TiDB through the outbox. The same number signs in again
+   * as the same customer; a number that belongs to the demo customer is refused. Aero Core creates the matching
+   * account on its first grant for the id.
+   */
+  async registerJudge(
+    tenant_id: string,
+    input: { name: string; number_hash: string; last4: string },
+  ): Promise<HubResult<{ customer_id: string; created: boolean }>> {
+    return this.guard(() =>
+      this.serial(async () => {
+        const tenant = this.bindTenant(tenant_id);
+        await this.ensureDirectory(tenant);
+        const existing = this.store.customerByNumber('IN', input.number_hash);
+        if (existing) {
+          if (!existing.id.startsWith('cus_judge_'))
+            throw new HalynError('E_BAD_REQUEST', 'This number already belongs to a demo customer');
+          return { customer_id: existing.id, created: false };
+        }
+        const id = `cus_${newId('judge', this.clock, this.rng)}`;
+        const now = this.clock.nowMs();
+        for (const [cid, region] of [
+          [id, 'IN'],
+          [`${id}_us`, 'US'],
+        ] as const) {
+          const customer: DirectoryCustomer = {
+            id: cid,
+            name: input.name,
+            spoken_name: input.name,
+            region,
+            language: 'en',
+            number_hash: input.number_hash,
+            last4: input.last4,
+          };
+          this.store.putCustomer(customer);
+          this.store.enqueue({ kind: 'customer', row: { ...customer, created_at: now } });
+        }
+        await this.scheduleAlarm();
+        return { customer_id: id, created: true };
+      }),
+    );
   }
 
   /** "Call Aero": the minted run id belongs to the signed-in customer (proof app_session, scenario 10). */
