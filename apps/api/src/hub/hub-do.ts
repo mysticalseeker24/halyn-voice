@@ -310,7 +310,13 @@ export class HubDO extends DurableObject<Env> {
   /** Whose message this is: a customer id, null (a request or call with no known customer), or undefined (nobody's). */
   private messageCustomer(message: WsMessage): string | null | undefined {
     if (message.type === 'core_update') return message.customer_id;
-    if (message.type === 'call_update') return this.store.call(message.run_id)?.customer_id ?? null;
+    if (message.type === 'call_update') {
+      // The Assistant's own call (number B → A) belongs to the customer whose Pass it was placed on.
+      const owner = this.store.call(message.run_id)?.customer_id;
+      if (owner) return owner;
+      const passId = this.meta(`assistant_call:${message.run_id}`);
+      return (passId === null ? null : this.store.pass(passId)?.customer_id) ?? null;
+    }
     const requestId =
       message.type === 'decision'
         ? message.decision.request_id
