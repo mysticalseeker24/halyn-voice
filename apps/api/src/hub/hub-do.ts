@@ -307,15 +307,19 @@ export class HubDO extends DurableObject<Env> {
     else await this.ctx.storage.setAlarm(Math.min(...next));
   }
 
-  /** Whose message this is: a customer id, null (a request or call with no known customer), or undefined (nobody's). */
+  /**
+   * Whose message this is: a customer id; null for a request or call the Hub holds with no customer (no customer's
+   * app hears it); undefined when it is about nothing the Hub holds (ledger, tests, a bare id) — sent as addressed.
+   */
   private messageCustomer(message: WsMessage): string | null | undefined {
     if (message.type === 'core_update') return message.customer_id;
     if (message.type === 'call_update') {
       // The Assistant's own call (number B → A) belongs to the customer whose Pass it was placed on.
-      const owner = this.store.call(message.run_id)?.customer_id;
-      if (owner) return owner;
       const passId = this.meta(`assistant_call:${message.run_id}`);
-      return (passId === null ? null : this.store.pass(passId)?.customer_id) ?? null;
+      const viaPass = passId === null ? null : (this.store.pass(passId)?.customer_id ?? null);
+      const call = this.store.call(message.run_id);
+      if (call === null) return viaPass ?? undefined;
+      return call.customer_id ?? viaPass;
     }
     const requestId =
       message.type === 'decision'
@@ -323,7 +327,8 @@ export class HubDO extends DurableObject<Env> {
         : 'request_id' in message && typeof message.request_id === 'string'
           ? message.request_id
           : null;
-    return requestId === null ? undefined : (this.store.request(requestId)?.customer_id ?? null);
+    const record = requestId === null ? null : this.store.request(requestId);
+    return record === null ? undefined : record.customer_id;
   }
 
   private send(message: WsMessage, roles?: readonly HubRole[]): number {
