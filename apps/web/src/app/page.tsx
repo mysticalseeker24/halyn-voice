@@ -126,6 +126,13 @@ export default function HomePage() {
           </nav>
           <div className="ml-auto flex items-center gap-3">
             <ThemeToggle />
+            {/* Judges sign up as their own demo customer and call Aero from their phone (docs/JUDGES.md). */}
+            <Link
+              href="/try"
+              className="border-border hover:bg-muted inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium"
+            >
+              Try Halyn
+            </Link>
             <Link
               href="/stage"
               className="bg-primary text-primary-foreground hidden h-9 items-center rounded-md px-4 text-sm font-medium sm:inline-flex"
@@ -242,8 +249,12 @@ export default function HomePage() {
                 </h2>
               </div>
               <p className="text-muted-foreground max-w-md text-sm">
-                Start with the Stage, then call Aero Bank. The apps ask for a demo access code (available on
-                request); Halyn never shows real customer data.
+                Judges: start with{' '}
+                <Link href="/try" className="text-foreground underline underline-offset-4">
+                  Try Halyn
+                </Link>{' '}
+                — your own demo account in a minute — then call Aero Bank from your phone with the Stage open.
+                The apps ask for an access code (on request); Halyn never shows real customer data.
               </p>
             </div>
             <ol className="mt-10 grid gap-4 md:grid-cols-2">

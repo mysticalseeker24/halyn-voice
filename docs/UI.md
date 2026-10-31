@@ -4,6 +4,8 @@ One Next.js project (`apps/web`) with four route groups. All live data via the H
 
 | App | Route | For | Must show |
 |---|---|---|---|
+| Landing | `/` | Everyone | What Halyn is, the four apps, "Call Aero Bank"; top bar: **Try Halyn** (`/try`, visible on phones too) and **Open the Stage** |
+| Try Halyn | `/try` | Judges | Access code, name, mobile number (10 Indian digits get +91) → `POST /web/judges/signup` → the Aero app as their own customer; what to try next; privacy line (hash + last 4, never called). Spec: docs/JUDGES.md |
 | Halyn Stage | `/stage` | Video, judges | Scenario buttons (1–4, more, region IN/US), Aero app panel, live call transcript, Confirm panel, Halyn decision (request, tier, signals, outcome badge), ledger lines + "chain verified", event timeline. Dark mode. Never scrolls during a scenario |
 | Halyn Console | `/console/*` | Bank teams | Live, Calls, Policies, Passes, Test, Signals, Ledger, Handoffs, Integrations |
 | Aero Bank app | `/aero/*` | Customer on phone | Home (balance, activity, card, loan), approval sheet (exact action, Approve with passkey / Decline, "Aero will never ask you to move money to a safe account"), alerts, Assistant access (issue/revoke Pass), Call Aero (web call), Hindi/English toggle |

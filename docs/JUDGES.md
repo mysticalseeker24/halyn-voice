@@ -17,7 +17,8 @@ app. You talk to an AI and calls are recorded (the agent says so in its greeting
 ---
 
 ## 1 · Become a customer (2 minutes)
-1. On your **phone**, open **https://halyn-voice.vercel.app/try**.
+1. On your **phone**, open **https://halyn-voice.vercel.app/try** — or tap **Try Halyn** in the top bar of
+   [halyn-voice.vercel.app](https://halyn-voice.vercel.app).
 2. Enter the **access code**, **your name** (the agent greets you by it) and **your mobile number** — the phone you
    will call from. Indian numbers: 10 digits; others: `+` and the country code.
 3. Tap **Create my Aero Bank account**. You land in the **Aero app** as yourself, with your own copy of the demo

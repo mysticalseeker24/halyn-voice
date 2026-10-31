@@ -53,7 +53,8 @@ design (`S_UNUSUAL_HOUR`), so even a card freeze asks you to confirm.
 
 | App | Link | Who it's for | What to look at |
 |---|---|---|---|
-| Landing | [halyn-voice.vercel.app](https://halyn-voice.vercel.app) | Everyone | What Halyn is and where to click first |
+| Landing | [halyn-voice.vercel.app](https://halyn-voice.vercel.app) | Everyone | What Halyn is and where to click first; **Try Halyn** and **Open the Stage** in the top bar |
+| **Try Halyn** | [/try](https://halyn-voice.vercel.app/try) | Judges | Sign up with the access code, your name and your number → your own demo customer; then call Aero from that phone ([guide](docs/JUDGES.md)) |
 | **Halyn Stage** | [/stage](https://halyn-voice.vercel.app/stage) | Judges, the demo video | Scenario buttons 1–4, the live call, the decision with its reason codes, the ledger. [/stage?recording=1](https://halyn-voice.vercel.app/stage?recording=1) is the clean recording canvas; [/stage/soundboard](https://halyn-voice.vercel.app/stage/soundboard) plays the labelled voice-clone clips |
 | **Halyn Console** | [/console](https://halyn-voice.vercel.app/console) | The bank's teams | [Policies](https://halyn-voice.vercel.app/console/policies) (every action's tier), [Test](https://halyn-voice.vercel.app/console/test) (run all scenarios, permission map), [Ledger](https://halyn-voice.vercel.app/console/ledger), [Handoffs](https://halyn-voice.vercel.app/console/handoffs), [Passes](https://halyn-voice.vercel.app/console/passes), [Calls](https://halyn-voice.vercel.app/console/calls), [Signals](https://halyn-voice.vercel.app/console/signals), [Integrations](https://halyn-voice.vercel.app/console/integrations) |
 | **Aero Bank app** | [/aero](https://halyn-voice.vercel.app/aero) | The customer, on their phone | Balance, card, loan; approval sheets with a passkey; alerts; Assistant access (issue or revoke a Pass); "Call Aero" in the browser for the US twin |
