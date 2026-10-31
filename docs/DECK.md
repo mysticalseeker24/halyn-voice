@@ -10,6 +10,44 @@ DENIED red). Illustrations: `docs/deck/NN-*.png`. Screenshots: `docs/screens/*.p
 Layout key: **Headline** (one line, big) · **Body** (what goes on the slide) · **Visual** (files, placement) ·
 **Footer** (small print: sources, ids).
 
+## Canva AI prompt (paste as is; then attach the deck)
+
+> Restyle this 14-slide pitch deck for **Halyn, "the permission layer for voice agents"** — a fintech security
+> product for banks whose AI voice agents can move money. Mood: calm, precise, trustworthy, quietly premium — like
+> Stripe, Linear or Vercel decks, **not** a startup template. No stock photos of people, no clip-art, no 3D icons, no
+> gradients, no glow, no rounded cartoon shapes.
+>
+> **Theme.** Two surfaces only: warm paper **#F7F7F4** with ink text **#16171C** for idea slides (2, 3, 4, 9, 11,
+> 12, 14), and near-black **#141519** with off-white **#EDEDEA** text for every slide built around a product
+> screenshot (5, 6, 7, 8, 10, 13) — dark makes the screenshots glow. One accent only: cobalt **#3A55D6** (on dark use
+> **#7C93F5**) for links, a thin rule under headlines, slide numbers and key numbers — never as a big fill.
+> **Outcome colours appear only as small labelled pills, always with their word:** ALLOWED **#047857** (white text),
+> STEP-UP **#FBBF24** (ink text), HELD **#6D28D9** (white text), DENIED **#B91C1C** (white text).
+>
+> **Type.** Inter (or Canva's closest grotesk): headlines 40–48 pt, bold, tight letter-spacing, sentence case, max
+> two lines; body 18–22 pt regular, max 5 short lines per slide. JetBrains Mono (or any monospace) at 12–14 pt, all
+> caps, letter-spaced, for small labels, reason codes (`S_COACHING`), ids and the slide footer. Left-aligned text
+> everywhere except the title and closing slides.
+>
+> **Layout.** 16:9, generous margins (≥ 64 px), a 12-column grid. A small monospace eyebrow label above each headline
+> (e.g. "02 · THE PROBLEM"). Screenshots: full-bleed or in a thin 1 px border (#2A2B31 on dark) with 12 px rounded
+> corners and a soft shadow, never tilted, never inside a fake laptop; at most two per slide. Illustrations (flat,
+> geometric line art on a dot grid) sit beside text, never behind it. One idea per slide; lots of empty space.
+> Thin 1 px dividers instead of boxes. A footer line in monospace grey: "HALYN · halyn-voice.vercel.app · NN/14".
+>
+> **Special slides.** Slide 1: huge headline left, the H-shaped gate mark right, tagline under it in grey. Slide 4: the
+> three steps PROPOSE → DECIDE → EXECUTE as a horizontal flow of three outlined cards with cobalt arrows, the four
+> outcome pills beneath. Slide 13 (judges): a numbered checklist on the left in large type, the access code
+> **HALYN-JUDGE-2026** in a monospace pill, a QR code to halyn-voice.vercel.app/try and the phone number
+> **+91 80653 56344** large on the right. Slide 14: centred tagline "Don't trust the voice. Trust the permission." in
+> 56 pt, links below in monospace.
+>
+> Keep every word of my text, every reason code and every number exactly as written; only change the design.
+
+Tips for Canva: apply the prompt with "Magic Design → Restyle", then fix by hand: replace any stock photos it adds
+with the `docs/deck/*.png` and `docs/screens/*.png` files listed per slide; check that each outcome colour still
+has its word; export as PDF (Print quality) and check the QR code scans.
+
 ---
 
 ## 1 · Title
