@@ -80,7 +80,10 @@ describe('Bolna-facing routes: source IP AND x-halyn-secret, on every one', () =
 
 describe('web routes: a session is required, and CORS is an allow-list (never *)', () => {
   it.each(
-    webRoutes.filter((r) => r.path !== '/web/session').map((r) => [r.method + ' ' + r.path, r] as const),
+    // The two sign-in routes are public: each needs an access code instead (tested in session-route / judges tests).
+    webRoutes
+      .filter((r) => r.path !== '/web/session' && r.path !== '/web/judges/signup')
+      .map((r) => [r.method + ' ' + r.path, r] as const),
   )('%s without a session is 401 and carries no wildcard CORS', async (_, route) => {
     const res = await send(route, { origin: ORIGIN });
     expect(res.status).toBe(401);
