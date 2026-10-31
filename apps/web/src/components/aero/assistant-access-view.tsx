@@ -36,7 +36,8 @@ export function AssistantAccessView() {
   const [passes, setPasses] = useState<PassSummary[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [name, setName] = useState("Saksham's Assistant");
-  const [number, setNumber] = useState('');
+  // The Assistant agent calls from number B (Aero's assistant line), so a Pass for it names that number.
+  const [number, setNumber] = useState('+918065356379');
   const [chosen, setChosen] = useState<ActionId[]>(['statement.view', 'card.freeze', 'emi.move_date']);
   const [days, setDays] = useState(7);
   const [phase, setPhase] = useState<Phase>('idle');

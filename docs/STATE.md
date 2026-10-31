@@ -12,6 +12,10 @@ docs/DEMO_SCRIPT.md; freeze tag; submit (docs/SUBMISSION.md)._
   account from the seed template on the first grant; passkey-only step-ups (Halyn never calls a judge). API
   `f323d9f9`, Aero Core `2b4cd8d3`; live check ✅ (401 wrong code, signup, ₹5,20,000 home, same number → same id).
   A test judge `cus_judge_01M69G82…` (a fake test number) exists in prod data. Rotate the code after judging.
+- Nov 1 hardening: each customer's Aero/Assistant socket hears only its own requests (`messageCustomer` in the Hub;
+  before, every Aero app saw every approval sheet); `/try` refuses numbers A/B and the demo phone; judge accounts skip
+  `S_UNUSUAL_HOUR`; the Pass form pre-fills number B; `/try` links every app/page + "Good to know". Outbound calls
+  stay 09:00–21:00 IST and never go to judges' numbers (hard rules).
 
 ## Chat #9 (2026-10-30, 19:48–22:45 IST) — what the calls changed (all live)
 - Fixed lines for `confirmed` and `protect` (the LLM improvised "under review"); an allow is sent only as `done`

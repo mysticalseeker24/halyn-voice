@@ -307,11 +307,32 @@ export class HubDO extends DurableObject<Env> {
     else await this.ctx.storage.setAlarm(Math.min(...next));
   }
 
+  /** Whose message this is: a customer id, null (a request or call with no known customer), or undefined (nobody's). */
+  private messageCustomer(message: WsMessage): string | null | undefined {
+    if (message.type === 'core_update') return message.customer_id;
+    if (message.type === 'call_update') return this.store.call(message.run_id)?.customer_id ?? null;
+    const requestId =
+      message.type === 'decision'
+        ? message.decision.request_id
+        : 'request_id' in message && typeof message.request_id === 'string'
+          ? message.request_id
+          : null;
+    return requestId === null ? undefined : (this.store.request(requestId)?.customer_id ?? null);
+  }
+
   private send(message: WsMessage, roles?: readonly HubRole[]): number {
     const text = JSON.stringify(WsMessageSchema.parse(message));
     const sockets = roles ? roles.flatMap((role) => this.ctx.getWebSockets(role)) : this.ctx.getWebSockets();
+    // A customer's apps (Aero, Assistant) hear only their own requests: with judges signed up (/try), several
+    // customers' Aero apps are open at once, and an approval sheet must never reach someone else's phone.
+    const customer = this.messageCustomer(message);
+    const owner = customer === undefined ? undefined : `customer:${customer ?? '-'}`;
     let sent = 0;
     for (const ws of sockets) {
+      if (owner !== undefined) {
+        const tag = this.ctx.getTags(ws).find((t) => t.startsWith('customer:'));
+        if (tag !== undefined && tag !== owner) continue;
+      }
       try {
         ws.send(text);
         sent += 1;

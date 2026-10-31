@@ -16,6 +16,27 @@ test('"Try Halyn" on the landing page leads to the sign-up, even on a phone', as
   await expect(cta).toHaveAttribute('href', '/try');
   await cta.click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Try Halyn on your own phone');
+  // Every next step is one tap away: the Aero app, the Stage, the Console pages, the bank's number, the guide.
+  const steps = page.getByRole('region', { name: 'What to try' });
+  for (const href of [
+    '/aero',
+    '/aero/passkey',
+    '/aero/alerts',
+    '/aero/assistant',
+    '/stage',
+    '/assistant',
+    '/console',
+    '/console/calls',
+    '/console/handoffs',
+    '/console/policies',
+    '/console/ledger',
+    '/console/test',
+    'tel:+918065356344',
+  ])
+    await expect(steps.locator(`a[href="${href}"]`).first()).toBeVisible();
+  await expect(page.getByRole('link', { name: 'docs/JUDGES.md' })).toHaveAttribute('href', /JUDGES\.md$/);
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  expect(overflow).toBe(false);
 });
 
 test('a judge signs up and lands in the Aero app as their own customer', async ({ page }) => {

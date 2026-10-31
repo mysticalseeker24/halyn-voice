@@ -599,7 +599,10 @@ export async function propose(core: HubCore, raw: ProposeInput): Promise<Propose
         calls_last_hour: call.number_hash
           ? store.callsFromNumberSince(call.number_hash, Math.max(now - HOUR, core.burstEpoch))
           : 0,
-        unusual_hour: unusualHour(now, call.region),
+        // Judges (/try) call from every time zone at any hour: their demo accounts behave as in the daytime, so
+        // the scenarios they read about match what they hear. The demo customer keeps the signal (a demo shortcut,
+        // docs/COMPLIANCE.md); it only ever raised tiers, so the policy tier is unchanged.
+        unusual_hour: !call.customer_id?.startsWith('cus_judge_') && unusualHour(now, call.region),
       },
       coaching: input.coaching,
       distress: input.distress,

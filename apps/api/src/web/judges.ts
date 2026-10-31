@@ -24,6 +24,11 @@ export function judgeSignup(deps: AppDeps) {
     const body = parsed.data;
     if (env.JUDGE_ACCESS_CODE === undefined || !timingSafeEqual(body.code, env.JUDGE_ACCESS_CODE))
       throw new HalynError('E_UNAUTHORIZED', 'That judge access code was not accepted');
+    // Aero's own lines (A answers, B is the assistant's and Confirm's) and the demo customer's phone are not a judge's:
+    // registering one would turn the assistant's calls, or the demo customer's, into this judge's.
+    const env_ = c.env as unknown as Record<string, unknown>;
+    if (['NUMBER_A', 'NUMBER_B', 'CUSTOMER_PHONE'].some((k) => env_[k] === body.phone))
+      throw new HalynError('E_BAD_REQUEST', 'That number belongs to the demo; use your own mobile number');
     const { PHONE_HASH_PEPPER } = requireEnv(c.env, PhoneEnvSchema);
     const { customer_id, created } = await hubFor(c.env, env.DEFAULT_TENANT_ID).registerJudge({
       name: body.name,

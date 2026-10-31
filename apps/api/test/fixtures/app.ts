@@ -151,7 +151,8 @@ export interface AppHarness {
   /** A passkey registered for cus_saksham through the real routes. */
   registerPasskey(alg?: -7 | -8): Promise<SoftPasskey>;
   approve(request_id: string, passkey: SoftPasskey): Promise<Response>;
-  listen(role: 'aero' | 'assistant' | 'stage' | 'console'): Promise<WsMessage[]>;
+  /** A socket as the app opens it; customer apps sign in as `customer_id` (default the demo customer). */
+  listen(role: 'aero' | 'assistant' | 'stage' | 'console', customer_id?: string): Promise<WsMessage[]>;
   ledger(): Promise<LedgerEntry[]>;
 }
 
@@ -280,10 +281,12 @@ export async function appHarness(options: AppHarnessOptions = {}): Promise<AppHa
       const assertion: AuthenticationCredentialJson = await passkey.authenticate(options, WEB_ORIGIN);
       return harness.web(`/web/approvals/${request_id}/verify`, { response: assertion }, token);
     },
-    async listen(role) {
+    async listen(role, customer_id) {
       // As the apps do (ADR-021): trade the session for a one-time ticket, then open the socket with the ticket.
       const token =
-        role === 'aero' || role === 'assistant' ? await customerToken() : await harness.consoleToken();
+        role === 'aero' || role === 'assistant'
+          ? await customerToken(customer_id)
+          : await harness.consoleToken();
       const issued = await harness.web('/web/ws-ticket', { role }, token);
       if (issued.status !== 200) throw new Error(`no WebSocket ticket for ${role}: ${issued.status}`);
       const { ticket } = WsTicketResponseSchema.parse(await issued.json());

@@ -200,7 +200,7 @@ has its word; export as PDF (Print quality) and check the QR code scans.
   6. US twin: Stage → **US**, Aero app → **Call Aero** (browser): "Wire eight thousand dollars to a new account" →
      **HELD**. Console → **Test** → **Run all**.
 - **Footer:** You talk to an AI and calls are recorded. Halyn never calls your number — confirmations go to the
-  passkey in your Aero app. Between 23:00 and 06:00 IST the unusual-hour signal raises every tier, by design. The
+  passkey in your Aero app. Calling in works at any hour (the assistant's outbound call: 09:00–21:00 IST). The
   number is in India; your carrier's rates apply. Your number is stored only as a salted hash + last 4 digits.
 - **Visual:** `docs/screens/aero-home.png` (phone frame, right) + a QR code to `halyn-voice.vercel.app/try`.
 

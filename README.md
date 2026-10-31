@@ -48,8 +48,9 @@ The full walkthrough — every scenario, the personas, Halyn Test and a Console 
    numbers, 09:00–21:00 IST) — see [docs/JUDGES.md §6](docs/JUDGES.md#6--halyn-test--attacks-against-the-live-system-no-phone-needed).
 
 Your number is stored only as a salted hash + last 4 digits, and **Halyn never calls it**: confirmations go to your
-passkey. You talk to an AI and calls are recorded. Between 23:00 and 06:00 IST every request is raised one tier by
-design (`S_UNUSUAL_HOUR`), so even a card freeze asks you to confirm.
+passkey. You talk to an AI and calls are recorded. Calling in, the Stage, the Console and browser calls work at any
+hour, and judge accounts get the daytime decisions at any hour; the assistant's call and the voice personas are
+outbound calls between our own numbers, so they run only 09:00–21:00 IST (Indian calling hours).
 
 | App | Link | Who it's for | What to look at |
 |---|---|---|---|

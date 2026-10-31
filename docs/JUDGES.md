@@ -5,10 +5,10 @@ Halyn is the permission layer for voice agents: the bank's AI agent can only *pr
 Halyn can execute, with a one-time grant. This guide lets you test that on your own phone in about 15 minutes.
 
 **You need:** a phone you can call India from, a laptop, and the judge access code (pitch deck, slide 13).
-**Costs:** your carrier's rate for a call to an Indian number. **Hours:** any time — but between **23:00 and 06:00
-IST** the unusual-hour signal raises every request by one tier (by design), so even a card freeze asks you to
-confirm. The agent-to-agent call and the voice personas (§5, §6) run only **09:00–21:00 IST** (calling hours on
-outbound agents).
+**Costs:** your carrier's rate for a call to an Indian number. **Hours:** calling in, the Stage, the Console and
+browser calls work **any time**, and your judge account gets the daytime decisions at any hour (the unusual-hour
+signal, 23:00–06:00 IST, stays on for the demo customer only). The agent-to-agent call and the voice personas
+(§5, §6) are outbound calls between our own numbers, so they run only **09:00–21:00 IST** (Indian calling hours).
 
 **Privacy.** Aero Bank is fictional. Your number is stored only as a salted hash plus its last 4 digits, so Aero can
 recognise you when you call. **Halyn never calls your number**: your confirmations go to the passkey in your Aero
@@ -122,8 +122,8 @@ exact read-back (`R_READBACK_NOT_CONFIRMED`).
   or your carrier hides caller ID. Say your name (you'll be treated as unregistered, so risky actions step up).
 - **The agent misheard digits:** answer "No" to the read-back; it asks again. Saying amounts as words works best
   ("forty-five thousand rupees").
-- **Everything steps up:** it is after 23:00 IST (`S_UNUSUAL_HOUR`) or you made three calls this hour
-  (`S_CALL_BURST`) — press **Demo reset** on the Stage.
+- **Everything steps up:** you made three calls this hour (`S_CALL_BURST`) — press **Demo reset** on the Stage.
+  (Your judge account skips the 23:00–06:00 IST unusual-hour signal, so the hour never changes your results.)
 - **The fee waiver steps up:** you already used this year's waiver on your account (`P_OVER_LIMIT`), by design.
 - **No approval sheet:** keep the Aero app open on the phone where you created the passkey (it listens live).
 
